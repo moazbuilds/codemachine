@@ -1,0 +1,7 @@
+{
+  "id": "smoke-run",
+  "agentId": "frontend-dev",
+  "status": "success",
+  "summary": "Planning workflow completed successfully",
+  "output": "Advancing Planning workflow to next phase: Building"
+}

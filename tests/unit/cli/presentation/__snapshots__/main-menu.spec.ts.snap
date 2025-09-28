@@ -1,0 +1,55 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`renderMainMenu > renders the branded main menu with login action 1`] = `
+"════════════════════════════════════════════════════════════
+ CodeMachine - CLI Coding Agent Specification 
+════════════════════════════════════════════════════════════
+  ██████╗ ██████╗ ███████╗███╗   ███╗██╗███╗   ██╗██╗
+  ██╔══██╗██╔══██╗██╔════╝████╗ ████║██║████╗  ██║██║
+  ██████╔╝██████╔╝█████╗  ██╔████╔██║██║██╔██╗ ██║██║
+  ██╔═══╝ ██╔══██╗██╔══╝  ██║╚██╔╝██║██║██║╚██╗██║██║
+  ██║     ██║  ██║███████╗██║ ╚═╝ ██║██║██║ ╚████║██║
+  ╚═╝     ╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝
+STATUS
+────────────────────────────────────────────────────────────
+Mode:                   build
+COMMANDS
+────────────────────────────────────────────────────────────
+/start:                 Plan and build from specifications
+/templates:             Browse available templates
+/login:                 Authenticate with Codex services
+/version:               Show CLI version
+/help:                  Show command help
+/mcp:                   Manage MCP tools and connections
+SPECIFICATIONS
+────────────────────────────────────────────────────────────
+Have you written the full specification in .codemachine/inputs/specifications.md?
+Add any necessary context files, then run /start to begin."
+`;
+
+exports[`renderMainMenu > renders the branded main menu with logout action 1`] = `
+"════════════════════════════════════════════════════════════
+ CodeMachine - CLI Coding Agent Specification 
+════════════════════════════════════════════════════════════
+  ██████╗ ██████╗ ███████╗███╗   ███╗██╗███╗   ██╗██╗
+  ██╔══██╗██╔══██╗██╔════╝████╗ ████║██║████╗  ██║██║
+  ██████╔╝██████╔╝█████╗  ██╔████╔██║██║██╔██╗ ██║██║
+  ██╔═══╝ ██╔══██╗██╔══╝  ██║╚██╔╝██║██║██║╚██╗██║██║
+  ██║     ██║  ██║███████╗██║ ╚═╝ ██║██║██║ ╚████║██║
+  ╚═╝     ╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝
+STATUS
+────────────────────────────────────────────────────────────
+Mode:                   build
+COMMANDS
+────────────────────────────────────────────────────────────
+/start:                 Plan and build from specifications
+/templates:             Browse available templates
+/logout:                Sign out of Codex services
+/version:               Show CLI version
+/help:                  Show command help
+/mcp:                   Manage MCP tools and connections
+SPECIFICATIONS
+────────────────────────────────────────────────────────────
+Have you written the full specification in .codemachine/inputs/specifications.md?
+Add any necessary context files, then run /start to begin."
+`;

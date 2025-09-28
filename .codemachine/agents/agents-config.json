@@ -1,0 +1,50 @@
+[
+  {
+    "id": "uxui-designer",
+    "name": "UX/UI Designer",
+    "description": "Execute Codex for UX and UI design tasks",
+    "promptPath": "/home/moaz2/CodexMachine/projects/codemachine/prompts/ux-ui-designer.md"
+  },
+  {
+    "id": "frontend-dev",
+    "name": "Frontend Developer",
+    "description": "Execute Codex for frontend development tasks",
+    "promptPath": "/home/moaz2/CodexMachine/projects/codemachine/prompts/frontend-developer.md"
+  },
+  {
+    "id": "backend-dev",
+    "name": "Backend Developer",
+    "description": "Execute Codex for backend development tasks",
+    "promptPath": "/home/moaz2/CodexMachine/projects/codemachine/prompts/backend-developer.md"
+  },
+  {
+    "id": "solution-architect",
+    "name": "Solution Architect",
+    "description": "Execute Codex for solution architecture tasks",
+    "promptPath": "/home/moaz2/CodexMachine/projects/codemachine/prompts/solution-architect.md"
+  },
+  {
+    "id": "technical-writer",
+    "name": "Technical Writer / Documentation Specialist",
+    "description": "Execute Codex for documentation and writing tasks",
+    "promptPath": "/home/moaz2/CodexMachine/projects/codemachine/prompts/technical-writer.md"
+  },
+  {
+    "id": "qa-engineer",
+    "name": "QA/Test Engineer",
+    "description": "Execute Codex for testing and QA tasks",
+    "promptPath": "/home/moaz2/CodexMachine/projects/codemachine/prompts/qa-test-engineer.md"
+  },
+  {
+    "id": "performance-engineer",
+    "name": "Performance Engineer",
+    "description": "Execute Codex for performance profiling and optimization tasks",
+    "promptPath": "/home/moaz2/CodexMachine/projects/codemachine/prompts/performance-engineer.md"
+  },
+  {
+    "id": "software-architect",
+    "name": "Software Architect",
+    "description": "Execute Codex for software architecture planning, directory structure design, and project organization tasks",
+    "promptPath": "/home/moaz2/CodexMachine/projects/codemachine/prompts/software-architect.md"
+  }
+]

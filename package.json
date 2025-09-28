@@ -1,0 +1,57 @@
+{
+  "name": "codemachine",
+  "version": "0.1.0",
+  "description": "CLI coding agent orchestrator with multi-agent task planning.",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.10.0",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "build": "tsup src/app/index.ts --format esm,cjs --dts --sourcemap --out-dir dist",
+    "dev": "tsx watch src/app/index.ts",
+    "start": "pnpm -s build && node dist/index.js start",
+    "lint": "eslint --max-warnings=0 \"{src,tests}/**/*.{ts,tsx}\"",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest watch",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "prepare": "husky install",
+    "validate": "scripts/ci/validate.sh",
+    "release": "scripts/ops/publish.sh --tag latest"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "dotenv": "^16.4.5",
+    "execa": "^8.0.1",
+    "fs-extra": "^11.2.0",
+    "ora": "^7.0.1",
+    "pino": "^9.0.0",
+    "prompts": "^2.4.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.12.7",
+    "@types/react": "^18.2.73",
+    "@types/react-dom": "^18.2.23",
+    "@typescript-eslint/eslint-plugin": "^8.44.1",
+    "@typescript-eslint/parser": "^8.44.1",
+    "@vitest/coverage-v8": "^1.5.3",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "husky": "^9.0.7",
+    "prettier": "^3.2.5",
+    "tsup": "^7.2.0",
+    "tsx": "^4.7.2",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^8.44.1",
+    "vitest": "^1.5.0"
+  }
+}

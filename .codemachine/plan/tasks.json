@@ -1,0 +1,13 @@
+{
+  "tasks": [
+    {
+      "id": "T0",
+      "name": "Initialize planning",
+      "details": "Placeholder task; real tasks parsed from spec.",
+      "acceptanceCriteria": "File exists and is non-empty",
+      "phase": "Planning",
+      "done": false,
+      "attempts": 3
+    }
+  ]
+}

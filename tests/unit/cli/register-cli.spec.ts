@@ -1,0 +1,39 @@
+import { Command } from 'commander';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { registerCli } from '../../../src/cli/commands/register-cli.js';
+
+describe('registerCli', () => {
+  let program: Command;
+  let consoleSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    program = new Command();
+    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    registerCli(program);
+  });
+
+  afterEach(() => {
+    consoleSpy.mockRestore();
+  });
+
+  it('registers expected top-level commands', () => {
+    const commandNames = program.commands.map((command) => command.name());
+
+    expect(commandNames).toEqual(
+      expect.arrayContaining(['start', 'templates', 'auth', 'version', 'mcp']),
+    );
+    expect(commandNames).toHaveLength(5);
+  });
+
+  it('attaches login and logout subcommands to auth', () => {
+    const authCommand = program.commands.find((command) => command.name() === 'auth');
+    expect(authCommand).toBeDefined();
+
+    const subcommandNames = authCommand?.commands.map((command) => command.name()) ?? [];
+
+    expect(subcommandNames).toEqual(expect.arrayContaining(['login', 'logout']));
+    expect(subcommandNames).toHaveLength(2);
+  });
+});
