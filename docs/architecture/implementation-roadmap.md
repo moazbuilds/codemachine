@@ -1,6 +1,6 @@
 # Implementation Roadmap
 
-Short, phase-aligned checklist derived from `runner-prompts/user-input.md` → Implementation Priorities.
+Short, phase-aligned checklist derived from `.codemachine/inputs/specifications.md` → Implementation Priorities.
 
 Legend
 - [ ] not started, [x] done
@@ -29,4 +29,3 @@ Legend
 - [ ] Documentation (Tasks: T1)
 - [ ] Package and publish to npm (Tasks: —)
 - [ ] Community feedback integration (Tasks: —)
-

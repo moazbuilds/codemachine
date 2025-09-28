@@ -1,6 +1,6 @@
 # Next Steps — Execution Checklist
 
-Source: runner-prompts/user-input.md (section: Next Steps)
+Source: .codemachine/inputs/specifications.md (section: Next Steps)
 
 Use this checklist to drive near-term execution across owners. Link to scripts/tests helps verify progress.
 
@@ -17,4 +17,3 @@ Use this checklist to drive near-term execution across owners. Link to scripts/t
 Notes
 - Keep updates synchronized with `.codemachine/tasks.json` statuses.
 - Record outcomes and adjustments in `docs/architecture/implementation-roadmap.md` when scope changes.
-

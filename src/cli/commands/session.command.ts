@@ -6,9 +6,10 @@ import type { Command } from 'commander';
 
 import { ensureAuth, clearAuth } from '../../app/services/auth-status.js';
 import { renderMainMenu } from '../presentation/main-menu.js';
+import { SESSION_INSTRUCTION } from '../presentation/onboarding.js';
 import { runWorkflowQueue } from '../../core/workflows/queue-runner.js';
 
-const DEFAULT_SPEC_PATH = 'runner-prompts/user-input.md';
+const DEFAULT_SPEC_PATH = '.codemachine/inputs/specifications.md';
 
 export function registerSessionCommand(program: Command): void {
   program
@@ -26,14 +27,18 @@ interface SessionShellOptions {
   cwd: string;
   specificationPath: string;
   force: boolean;
+  showIntro?: boolean;
 }
 
 export async function runSessionShell(options: SessionShellOptions): Promise<void> {
   const { cwd, specificationPath, force } = options;
+  const showIntro = options.showIntro ?? true;
 
-  const menu = await renderMainMenu();
-  console.log(menu + '\n');
-  console.log('Type /start to begin the workflow, or /help to see all commands.');
+  if (showIntro) {
+    const menu = await renderMainMenu();
+    console.log(menu + '\n');
+    console.log(SESSION_INSTRUCTION);
+  }
 
   const rl = createInterface({ input, output, terminal: true });
   const prompt = () => rl.setPrompt('codemachine> ');

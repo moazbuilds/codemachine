@@ -10,7 +10,7 @@ export async function resolveCodexHome(): Promise<string> {
 }
 
 export function getAuthFilePath(codexHome: string): string {
-  return path.join(codexHome, 'auth', 'auth.json');
+  return path.join(codexHome, 'auth.json');
 }
 
 export async function isAuthenticated(): Promise<boolean> {
@@ -41,7 +41,6 @@ export async function ensureAuth(): Promise<boolean> {
   });
 
   // Ensure the auth credential path exists; create a placeholder if still absent.
-  await mkdir(path.dirname(authPath), { recursive: true });
   try {
     await stat(authPath);
   } catch {
@@ -64,4 +63,3 @@ export async function clearAuth(): Promise<void> {
 export async function nextAuthMenuAction(): Promise<'login' | 'logout'> {
   return (await isAuthenticated()) ? 'logout' : 'login';
 }
-

@@ -2,8 +2,9 @@ import * as path from 'node:path';
 import type { Command } from 'commander';
 
 import { runSessionShell } from './session.command.js';
+import { runStartupFlow } from '../../app/services/startup-flow.js';
 
-const DEFAULT_SPEC_PATH = 'runner-prompts/user-input.md';
+const DEFAULT_SPEC_PATH = '.codemachine/inputs/specifications.md';
 
 type StartCommandOptions = {
   force?: boolean;
@@ -21,7 +22,14 @@ export function registerStartCommand(program: Command): void {
       const specificationPath = path.resolve(process.cwd(), options.spec ?? DEFAULT_SPEC_PATH);
 
       const cwd = process.env.CODEMACHINE_CWD || process.cwd();
-      console.log('Interactive session ready. Type /start when you want to kick off the workflow.');
-      await runSessionShell({ cwd, force, specificationPath });
+      const { mainMenuDisplayed } = await runStartupFlow();
+
+      if (mainMenuDisplayed) {
+        console.log('Interactive session ready.');
+      } else {
+        console.log('Interactive session ready. Type /start when you want to kick off the workflow.');
+      }
+
+      await runSessionShell({ cwd, force, specificationPath, showIntro: !mainMenuDisplayed });
     });
 }

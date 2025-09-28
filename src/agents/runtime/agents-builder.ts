@@ -116,7 +116,7 @@ async function writeTasksJson(
     meta: {
       generatedAt: new Date().toISOString(),
       specPath: opts.specPath ?? null,
-      note: 'TODO: extract tasks from runner-prompts/user-input.md',
+      note: 'TODO: extract tasks from .codemachine/inputs/specifications.md',
     },
     tasks: [
       {

@@ -4,7 +4,7 @@
 - Deliver a cross-platform Codemachine CLI distributed through npm and runnable on macOS, Linux, and Windows shells.
 - Parse `.codemachine/tasks.json` to queue, prioritize, and persist multi-agent task execution states.
 - Orchestrate the Master Mind and specialized agents to translate user input into production-ready project assets across the plan/build/test lifecycle.
-- Apply packaging, testing, and compliance gates defined in `runner-prompts/user-input.md` before finalizing generated outputs.
+- Apply packaging, testing, and compliance gates defined in `.codemachine/inputs/specifications.md` before finalizing generated outputs.
 
 ## Out of Scope
 - Hosting generated projects or offering managed/SaaS runtime environments.
@@ -18,5 +18,5 @@
 - Host operating system filesystem APIs for reading configuration, scaffolding workspaces, and writing generated artifacts.
 
 ## Notes
-- Source reference: `runner-prompts/user-input.md`; execution checkpoints mirror `.codemachine/tasks.json` expectations.
+- Source reference: `.codemachine/inputs/specifications.md`; execution checkpoints mirror `.codemachine/tasks.json` expectations.
 - Requirements synchronized on 2025-09-27T07:01:39+03:00 (ISO 8601).

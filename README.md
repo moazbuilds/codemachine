@@ -19,7 +19,7 @@ Install and run:
   - `npm run build`
   - `node dist/index.js start`
 
-That launches the planning workflow using `runner-prompts/user-input.md` by default and scaffolds `.codemachine/` in your workspace.
+That launches the planning workflow using `.codemachine/inputs/specifications.md` by default and scaffolds `.codemachine/` in your workspace.
 
 Tip: Add `--dir <path>` to target a different workspace directory, e.g. `node dist/index.js --dir ./my-project start`.
 
@@ -44,7 +44,7 @@ Tip: Add `--dir <path>` to target a different workspace directory, e.g. `node di
   - Seeds project‑specific agents and plan, then runs the planner.
   - Options:
     - `--force`: Overwrite existing planning outputs.
-    - `--spec <path>`: Path to the planning spec file. Default: `runner-prompts/user-input.md`.
+    - `--spec <path>`: Path to the planning spec file. Default: `.codemachine/inputs/specifications.md`.
   - Example: `node dist/index.js start --force --spec docs/my-spec.md`
 
 - `ui` [--typewriter]
@@ -57,7 +57,7 @@ Tip: Add `--dir <path>` to target a different workspace directory, e.g. `node di
   - Starts an interactive REPL session that accepts slash commands and keeps you inside the CLI.
   - Commands inside session: `/start`, `/ui`, `/login`, `/logout`, `/version`, `/help`, `/exit`.
   - Options:
-    - `--spec <path>`: Planning spec for `/start`. Default: `runner-prompts/user-input.md`.
+    - `--spec <path>`: Planning spec for `/start`. Default: `.codemachine/inputs/specifications.md`.
   - Example: `node dist/index.js session`
 
 - `templates`
@@ -65,10 +65,10 @@ Tip: Add `--dir <path>` to target a different workspace directory, e.g. `node di
 
 - `auth login`
   - Interactive authentication via Codex CLI with `CODEX_HOME` applied.
-  - On success, credentials live at `~/.codemachine/codex/auth/auth.json` (by default).
+  - On success, credentials live at `~/.codemachine/codex/auth.json` (by default).
 
 - `auth logout`
-  - Removes local credentials at `~/.codemachine/codex/auth/auth.json`.
+  - Removes local credentials at `~/.codemachine/codex/auth.json`.
 
 - `agent <id> <prompt...>` [--profile <name>]
   - Executes a single agent request via Codex with memory support.

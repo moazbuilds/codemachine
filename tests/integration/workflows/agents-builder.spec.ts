@@ -37,8 +37,8 @@ describe('agents-builder integration', () => {
       AGENTS_FIXTURE(join(projectRoot, 'prompts')),
       'utf8',
     );
-    await mkdir(join(projectRoot, 'runner-prompts'), { recursive: true });
-    await writeFile(join(projectRoot, 'runner-prompts', 'user-input.md'), '# Spec\n', 'utf8');
+    await mkdir(join(projectRoot, '.codemachine', 'inputs'), { recursive: true });
+    await writeFile(join(projectRoot, '.codemachine', 'inputs', 'specifications.md'), '# Spec\n', 'utf8');
   });
 
   afterEach(async () => {
@@ -49,7 +49,7 @@ describe('agents-builder integration', () => {
     await runAgentsBuilder({
       workingDir: projectRoot,
       force: true,
-      specPath: join(projectRoot, 'runner-prompts', 'user-input.md'),
+      specPath: join(projectRoot, '.codemachine', 'inputs', 'specifications.md'),
     });
 
     const agent1 = join(projectRoot, '.codemachine', 'agents', 'frontend-dev.md');

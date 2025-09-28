@@ -98,8 +98,7 @@ Global configuration in user's home directory:
 ~/.codemachine/
 ├── codex/
 │   ├── config.toml               # Codex API configuration
-│   └── auth/
-│       └── auth.json            # Authentication credentials
+│   └── auth.json                # Authentication credentials
 ```
 
 ### Project Working Directory Structure
@@ -212,7 +211,7 @@ When user runs `codemachine` in any directory:
    - This happens immediately on run, not just on `/start`
 
 3. **Authentication Check**
-   - Checks for `~/.codemachine/codex/auth/auth.json`
+  - Checks for `~/.codemachine/codex/auth.json`
    - If not found: Shows `/login` option
    - If found: Shows `/logout` option and proceeds to main menu
 
@@ -223,12 +222,11 @@ When auth.json is not found:
    - Executes: `CODEX_HOME="$HOME/.codemachine/codex" codex login`
    - Opens OpenAI login page in browser
    - Codex automatically creates directory structure upon successful login:
-   ```
-   ~/.codemachine/
-   ├── codex/
-   │   ├── config.toml    # Created by Codex
-   │   └── auth/
-   │       └── auth.json  # Created by Codex
+  ```
+  ~/.codemachine/
+  ├── codex/
+  │   ├── config.toml    # Created by Codex
+  │   └── auth.json      # Created by Codex
    ```
 
 2. **Config Modification**

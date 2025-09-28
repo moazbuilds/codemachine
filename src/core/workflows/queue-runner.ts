@@ -134,7 +134,8 @@ export async function runWorkflowQueue(options: RunWorkflowQueueOptions = {}): P
         case 'planning-workflow': {
           await runPlanningWorkflow({
             force: Boolean(options.force),
-            specificationPath: options.specificationPath || path.resolve(cwd, 'runner-prompts', 'user-input.md'),
+            specificationPath:
+              options.specificationPath || path.resolve(cwd, '.codemachine', 'inputs', 'specifications.md'),
           });
           break;
         }
