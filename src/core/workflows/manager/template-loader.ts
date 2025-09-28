@@ -45,10 +45,9 @@ export function isWorkflowTemplate(value: unknown): value is WorkflowTemplate {
   if (!Array.isArray(obj.steps)) return false;
   return obj.steps.every((step) => {
     if (!step || typeof step !== 'object') return false;
-    const candidate = step as { type?: unknown; module?: unknown; agentId?: unknown; agentName?: unknown; promptPath?: unknown };
+    const candidate = step as { type?: unknown; agentId?: unknown; agentName?: unknown; promptPath?: unknown };
     return (
       candidate.type === 'module' &&
-      typeof candidate.module === 'string' &&
       typeof candidate.agentId === 'string' &&
       typeof candidate.agentName === 'string' &&
       typeof candidate.promptPath === 'string'

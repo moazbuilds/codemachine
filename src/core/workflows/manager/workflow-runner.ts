@@ -44,8 +44,8 @@ async function runPlanningStep(cwd: string, options: RunWorkflowOptions): Promis
   );
 }
 
-async function runProjectManagerStep(cwd: string, templateStep: WorkflowTemplate['steps'][number]): Promise<void> {
-  const tasksPath = await resolveTasksPath(cwd, templateStep.options?.tasksPath as string | undefined);
+async function runProjectManagerStep(cwd: string): Promise<void> {
+  const tasksPath = await resolveTasksPath(cwd);
   await runTaskManager({ cwd, tasksPath });
   await generateSummary(tasksPath, path.resolve(cwd, '.codemachine', 'project-summary.md'));
 
@@ -85,18 +85,14 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       const prompt = await readFile(promptPath, 'utf8');
       await runCodexPrompt({ agentId: step.agentId, prompt, cwd });
 
-      switch (step.module) {
-        case 'agents-builder':
-          await runAgentsBuilderStep(cwd);
-          break;
-        case 'planning-workflow':
-          await runPlanningStep(cwd, options);
-          break;
-        case 'project-manager':
-          await runProjectManagerStep(cwd, step);
-          break;
-        default:
-          throw new Error(`Unknown module step: ${step.module}`);
+      const agentName = step.agentName.toLowerCase();
+
+      if (step.agentId === 'agents-builder' || agentName.includes('builder')) {
+        await runAgentsBuilderStep(cwd);
+      } else if (agentName.includes('project manager')) {
+        await runProjectManagerStep(cwd);
+      } else {
+        await runPlanningStep(cwd, options);
       }
 
       console.log(`${step.agentName} has completed their work.`);

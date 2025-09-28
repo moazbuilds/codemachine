@@ -1,14 +1,10 @@
 export type UnknownRecord = Record<string, unknown>;
 
-export type ModuleName = 'agents-builder' | 'planning-workflow' | 'project-manager';
-
 export interface WorkflowStep {
   type: 'module';
-  module: ModuleName;
   agentId: string;
   agentName: string;
   promptPath: string;
-  options?: UnknownRecord;
 }
 
 export interface WorkflowTemplate {

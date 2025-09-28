@@ -9,7 +9,6 @@ const workflow = {
   steps: [
     {
       type: 'module',
-      module: 'planning-workflow',
       agentId: 'master-mind',
       agentName: 'Planner',
       promptPath: path.join(promptsDir, 'master-mind.md'),

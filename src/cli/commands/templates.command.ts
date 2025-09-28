@@ -104,7 +104,7 @@ export async function selectTemplateByNumber(templateNumber: number): Promise<vo
       console.log(`Template path: ${path.relative(process.cwd(), selectedTemplate.value)}`);
       console.log(`\nSteps:`);
       template.steps.forEach((step, index) => {
-        console.log(`  ${index + 1}. ${step.agentName} (${step.module})`);
+        console.log(`  ${index + 1}. ${step.agentName} [${step.agentId}]`);
       });
 
       // Automatically update settings.js
@@ -143,7 +143,7 @@ export async function runTemplatesCommand(inSession: boolean = false): Promise<v
         console.log(`Template path: ${path.relative(process.cwd(), response.selectedTemplate)}`);
         console.log(`\nSteps:`);
         template.steps.forEach((step, index) => {
-          console.log(`  ${index + 1}. ${step.agentName} (${step.module})`);
+        console.log(`  ${index + 1}. ${step.agentName} [${step.agentId}]`);
         });
 
         // Automatically update settings.js
