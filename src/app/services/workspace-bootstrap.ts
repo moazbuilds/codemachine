@@ -116,10 +116,38 @@ async function ensureSpecificationsTemplate(inputsDir: string): Promise<void> {
   await writeFile(specPath, template, 'utf8');
 }
 
+function slugify(value: unknown): string {
+  return String(value ?? '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
+async function ensurePromptFile(filePath: string): Promise<void> {
+  try {
+    await readFile(filePath, 'utf8');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    await writeFile(filePath, '', 'utf8');
+  }
+}
+
 async function mirrorAgentsToJson(agentsDir: string, agents: AgentDefinition[]): Promise<void> {
   await ensureDir(agentsDir);
+
+  const normalizedAgents = await Promise.all(
+    agents.map(async (agent) => {
+      const rawId = agent.id ?? agent.name ?? 'agent';
+      const slugBase = slugify(rawId) || 'agent';
+      const filename = `${slugBase}.md`;
+      const promptFile = path.join(agentsDir, filename);
+      await ensurePromptFile(promptFile);
+      return { ...agent, promptPath: filename };
+    }),
+  );
+
   const target = path.join(agentsDir, 'agents-config.json');
-  const json = `${JSON.stringify(agents, null, 2)}\n`;
+  const json = `${JSON.stringify(normalizedAgents, null, 2)}\n`;
   await writeFileIfChanged(target, json);
 }
 

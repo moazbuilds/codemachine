@@ -96,4 +96,34 @@ describe('syncCodexConfig', () => {
 
     expect(content).toContain('model = "gpt-5-codex"');
   });
+
+  it('appends additional agent ids when provided', async () => {
+    const projectRoot = await createProject(tempDir);
+    const codexHome = join(tempDir, 'codex-extra');
+
+    await syncCodexConfig({
+      projectRoot,
+      codexHome,
+      additionalAgents: [
+        { id: 'agents-builder', modelReasoningEffort: 'high' },
+        { id: 'master-mind', modelReasoningEffort: 'high' },
+        { id: 'custom-agent', modelReasoningEffort: 'low' },
+      ],
+    });
+
+    const configPath = join(codexHome, 'config.toml');
+    const content = await readFile(configPath, 'utf8');
+
+    expect(content).toContain('[profiles.frontend-dev]');
+    expect(content).toContain('[profiles.custom-agent]');
+    expect(content).toContain('[profiles.agents-builder]');
+    expect(content).toContain('[profiles.master-mind]');
+
+    const builderCount = content.split('[profiles.agents-builder]').length - 1;
+    expect(builderCount).toBe(1);
+
+    const customCount = content.split('[profiles.custom-agent]').length - 1;
+    expect(customCount).toBe(1);
+    expect(content).toContain('model_reasoning_effort = "low"');
+  });
 });

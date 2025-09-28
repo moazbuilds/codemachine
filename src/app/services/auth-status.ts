@@ -19,7 +19,7 @@ export async function isAuthenticated(): Promise<boolean> {
   try {
     await stat(authPath);
     return true;
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }
@@ -32,7 +32,9 @@ export async function ensureAuth(): Promise<boolean> {
   try {
     await stat(authPath);
     return true;
-  } catch {}
+  } catch {
+    // Auth file doesn't exist
+  }
 
   if (process.env.CODEMACHINE_SKIP_AUTH === '1') {
     await writeFile(authPath, '{}', { encoding: 'utf8' });
@@ -60,7 +62,7 @@ export async function clearAuth(): Promise<void> {
   const authPath = getAuthFilePath(codexHome);
   try {
     await rm(authPath, { force: true });
-  } catch (error) {
+  } catch (_error) {
     // Ignore removal errors; treat as cleared
   }
 }

@@ -67,7 +67,7 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
 
   let waitingForTemplateSelection = false;
   let templateSelectionIndex = 0;
-  let availableTemplates: any[] = [];
+  const _availableTemplates: unknown[] = [];
 
   // Custom function to handle template selection with arrow keys
   const handleTemplateSelection = async (): Promise<void> => {

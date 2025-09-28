@@ -25,12 +25,16 @@ export async function runCodexPrompt(options: {
     onData: (chunk) => {
       try {
         process.stdout.write(chunk);
-      } catch {}
+      } catch {
+        // Ignore stdout write errors
+      }
     },
     onErrorData: (chunk) => {
       try {
         process.stderr.write(chunk);
-      } catch {}
+      } catch {
+        // Ignore stderr write errors
+      }
     },
   });
 }
@@ -56,12 +60,16 @@ export async function runAgent(
       buffered += chunk;
       try {
         process.stdout.write(chunk);
-      } catch {}
+      } catch {
+        // Ignore stdout write errors
+      }
     },
     onErrorData: (chunk) => {
       try {
         process.stderr.write(chunk);
-      } catch {}
+      } catch {
+        // Ignore stderr write errors
+      }
     },
   });
 

@@ -18,6 +18,8 @@ export interface RunCodexResult {
   stderr: string;
 }
 
+const ANSI_ESCAPE_SEQUENCE = new RegExp(String.raw`\u001B\[[0-9;?]*[ -/]*[@-~]`, 'g');
+
 export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult> {
   const { profile, prompt, workingDir, env, onData, onErrorData, abortSignal } = options;
 
@@ -58,7 +60,7 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
 
     if (plainLogs) {
       // Plain mode: strip all ANSI sequences
-      result = result.replace(/\u001b\[[0-9;?]*[ -/]*[@-~]/g, '');
+      result = result.replace(ANSI_ESCAPE_SEQUENCE, '');
     }
 
     // Clean up line endings

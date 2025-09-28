@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 // Mock runCodex to capture options and simulate output
 vi.mock('../../../src/infra/codex/codex-runner.js', async () => {
   return {
-    runCodex: vi.fn(async (opts: any) => {
+    runCodex: vi.fn(async (opts: { onData?: (chunk: string) => void }) => {
       // simulate some streaming
       opts.onData?.('stream-');
       opts.onData?.('output');
@@ -82,8 +82,9 @@ describe('CLI agent wrapper', () => {
     }
 
     // Verify runCodex call
-    expect((runCodex as any).mock.calls.length).toBe(1);
-    const callOpts = (runCodex as any).mock.calls[0][0];
+    const mockedRunCodex = vi.mocked(runCodex);
+    expect(mockedRunCodex.mock.calls.length).toBe(1);
+    const callOpts = mockedRunCodex.mock.calls[0][0];
     expect(callOpts.profile).toBe(profile);
     expect(callOpts.workingDir).toBe(process.cwd());
     expect(typeof callOpts.onData).toBe('function');

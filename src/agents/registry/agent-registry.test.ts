@@ -15,18 +15,27 @@ describe('agent registry', () => {
     const agents = await listAgents(projectRoot);
 
     const ids = agents.map((agent) => agent.id);
-    expect(ids).toEqual(expect.arrayContaining(['agents-builder', 'master-mind', 'project-summarizer']));
+    expect(ids).toEqual(expect.arrayContaining([
+      'uxui-designer',
+      'frontend-dev',
+      'backend-dev',
+      'solution-architect',
+      'technical-writer',
+      'qa-engineer',
+      'performance-engineer',
+      'software-architect',
+    ]));
 
     agents.forEach((agent) => {
       expect(isAbsolute(agent.promptPath)).toBe(true);
     });
   });
 
-  it('getAgent returns agents-builder with expected prompt path', async () => {
-    const agent = await getAgent('agents-builder', projectRoot);
+  it('getAgent returns frontend-dev with expected prompt path', async () => {
+    const agent = await getAgent('frontend-dev', projectRoot);
     expect(agent).toBeDefined();
-    expect(agent?.id).toBe('agents-builder');
-    expect(toPosix(agent!.promptPath)).toMatch(/\/prompts\/agents\/agents-builder\.md$/);
+    expect(agent?.id).toBe('frontend-dev');
+    expect(toPosix(agent!.promptPath)).toMatch(/\/prompts\/frontend-developer\.md$/);
   });
 
   it('requireAgent throws for unknown id', async () => {

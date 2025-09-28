@@ -45,12 +45,25 @@ export function isWorkflowTemplate(value: unknown): value is WorkflowTemplate {
   if (!Array.isArray(obj.steps)) return false;
   return obj.steps.every((step) => {
     if (!step || typeof step !== 'object') return false;
-    const candidate = step as { type?: unknown; agentId?: unknown; agentName?: unknown; promptPath?: unknown };
+    const candidate = step as {
+      type?: unknown;
+      agentId?: unknown;
+      agentName?: unknown;
+      promptPath?: unknown;
+      model?: unknown;
+      modelReasoningEffort?: unknown;
+    };
     return (
       candidate.type === 'module' &&
       typeof candidate.agentId === 'string' &&
       typeof candidate.agentName === 'string' &&
       typeof candidate.promptPath === 'string'
+      && (candidate.model === undefined || typeof candidate.model === 'string')
+      &&
+        (candidate.modelReasoningEffort === undefined ||
+          candidate.modelReasoningEffort === 'low' ||
+          candidate.modelReasoningEffort === 'medium' ||
+          candidate.modelReasoningEffort === 'high')
     );
   });
 }
@@ -61,7 +74,9 @@ export async function loadWorkflowModule(modPath: string): Promise<unknown> {
     const require = createRequire(import.meta.url);
     try {
       delete require.cache[require.resolve(modPath)];
-    } catch {}
+    } catch {
+      // Ignore cache deletion errors
+    }
     return require(modPath);
   }
 

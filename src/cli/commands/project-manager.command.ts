@@ -27,7 +27,7 @@ async function loadTasks(tasksPath: string): Promise<{ tasks: { done?: boolean }
   return JSON.parse(contents) as { tasks: { done?: boolean }[] };
 }
 
-async function allTasksDone(tasksPath: string): Promise<boolean> {
+async function _allTasksDone(tasksPath: string): Promise<boolean> {
   const { tasks } = await loadTasks(tasksPath);
   return tasks.every((t) => t.done === true);
 }
@@ -136,13 +136,17 @@ export function registerProjectManagerCommand(program: Command): void {
           controller.abort();
         } else {
           // Second interrupt => exit immediately with 130
-          try { kb.stop(); } catch {}
+          try { kb.stop(); } catch {
+            // Ignore keyboard stop errors
+          }
           process.exit(130);
         }
       };
       kb.on('interrupt', handleInterrupt);
       kb.on('exit', () => {
-        try { kb.stop(); } catch {}
+        try { kb.stop(); } catch {
+          // Ignore keyboard stop errors
+        }
         process.exit(130);
       });
       kb.start();
@@ -194,7 +198,9 @@ export function registerProjectManagerCommand(program: Command): void {
       } else {
         console.log('All tasks done and end-to-end tests passed.');
       }
-      try { kb.stop(); } catch {}
+      try { kb.stop(); } catch {
+        // Ignore keyboard stop errors
+      }
     });
 }
  

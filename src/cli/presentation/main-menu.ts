@@ -1,4 +1,4 @@
-import { banner, formatKeyValue, palette, section, center } from './layout.js';
+import { banner, formatKeyValue, palette, section } from './layout.js';
 import { nextAuthMenuAction } from '../../app/services/auth-status.js';
 
 function geminiAscii(): string {

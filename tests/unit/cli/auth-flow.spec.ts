@@ -19,12 +19,12 @@ vi.mock('execa', () => {
 });
 
 describe('auth flow', () => {
-  let execaMock: any;
+  let execaMock: typeof import('execa').execa;
   let prevEnv: string | undefined;
   let tempHome: string;
 
   beforeEach(async () => {
-    execaMock = (await import('execa')).execa as any;
+    execaMock = (await import('execa')).execa;
     prevEnv = process.env.CODEX_HOME;
     tempHome = await mkdtemp(join(tmpdir(), 'codemachine-auth-'));
     process.env.CODEX_HOME = tempHome;

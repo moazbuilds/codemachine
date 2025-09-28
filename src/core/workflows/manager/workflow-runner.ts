@@ -2,9 +2,10 @@ import * as path from 'node:path';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
 import { end } from '../../../agents/runtime/end.js';
-import type { RunWorkflowOptions, WorkflowTemplate } from './types.js';
+import type { RunWorkflowOptions } from './types.js';
 import { loadTemplate } from './template-loader.js';
 import { runCodexPrompt } from './agent-execution.js';
+import { syncCodexConfig } from '../../../app/services/config-sync.js';
 import { ensureProjectScaffold } from './workspace-prep.js';
 import { validateSpecification } from './validation.js';
 import { runTaskManager, resolveTasksPath, generateSummary } from './task-manager.js';
@@ -72,6 +73,27 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
   const template = await loadTemplate(cwd, options.templatePath);
 
   console.log(`Using workflow template: ${template.name}`);
+
+  const workflowAgents = Array.from(
+    template.steps
+      .filter((step) => step.type === 'module')
+      .reduce((acc, step) => {
+        const id = step.agentId?.trim();
+        if (!id) return acc;
+        const existing = acc.get(id) ?? { id };
+        acc.set(id, {
+          ...existing,
+          id,
+          model: step.model ?? existing.model,
+          modelReasoningEffort: step.modelReasoningEffort ?? existing.modelReasoningEffort,
+        });
+        return acc;
+      }, new Map<string, { id: string; model?: unknown; modelReasoningEffort?: unknown }>()).values(),
+  );
+
+  if (workflowAgents.length > 0) {
+    await syncCodexConfig({ additionalAgents: workflowAgents });
+  }
 
   for (const step of template.steps) {
     if (step.type !== 'module') continue;

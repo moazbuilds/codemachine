@@ -9,7 +9,8 @@ vi.mock('../../../../src/app/services/auth-status.js', () => {
 
 describe('renderMainMenu', () => {
   let renderMainMenu: (typeof import('../../../../src/cli/presentation/main-menu.js'))['renderMainMenu'];
-  let authModule: any;
+  let authModule: typeof import('../../../../src/app/services/auth-status.js');
+  const ANSI_COLOR_REGEX = new RegExp(String.raw`\u001B\[[0-9;]*m`, 'g');
 
   beforeEach(async () => {
     // Load modules fresh for each test so mocks apply
@@ -23,16 +24,16 @@ describe('renderMainMenu', () => {
   });
 
   it('renders the branded main menu with login action', async () => {
-    (authModule.nextAuthMenuAction as any).mockResolvedValue('login');
+    vi.mocked(authModule.nextAuthMenuAction).mockResolvedValue('login');
     const output = await renderMainMenu();
-    const normalized = output.replace(/\u001b\[[0-9;]*m/g, '');
+    const normalized = output.replace(ANSI_COLOR_REGEX, '');
     expect(normalized).toMatchSnapshot();
   });
 
   it('renders the branded main menu with logout action', async () => {
-    (authModule.nextAuthMenuAction as any).mockResolvedValue('logout');
+    vi.mocked(authModule.nextAuthMenuAction).mockResolvedValue('logout');
     const output = await renderMainMenu();
-    const normalized = output.replace(/\u001b\[[0-9;]*m/g, '');
+    const normalized = output.replace(ANSI_COLOR_REGEX, '');
     expect(normalized).toMatchSnapshot();
   });
 });

@@ -1,4 +1,4 @@
-import path from 'node:path';
+// Unused import removed
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 

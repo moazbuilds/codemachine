@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
 
 import type { TaskManagerOptions } from './types.js';
 import { runAgent } from './agent-execution.js';
@@ -74,7 +75,7 @@ async function verifyTask(task: TaskItem, cwd: string): Promise<{ ok: boolean; f
 
   for (const cmd of commands) {
     const ok = await new Promise<boolean>((resolve) => {
-      const { spawn } = require('node:child_process');
+      // spawn is imported at the top
       const child = spawn('bash', ['-lc', cmd], { cwd });
       child.on('close', (code: number) => resolve(code === 0));
       child.on('error', () => resolve(false));

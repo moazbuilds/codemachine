@@ -2,6 +2,10 @@ import { EventEmitter } from 'node:events';
 
 type Events = 'interrupt' | 'exit' | 'toggle-expanded';
 
+interface TTYReadStream extends NodeJS.ReadStream {
+  setRawMode(mode: boolean): void;
+}
+
 export interface KeyboardController {
   on(event: Events, fn: (payload?: unknown) => void): void;
   off(event: Events, fn: (payload?: unknown) => void): void;
@@ -46,8 +50,8 @@ export function createKeyboardController(): KeyboardController {
     if (started) return;
     started = true;
     const stdin: NodeJS.ReadStream = process.stdin as unknown as NodeJS.ReadStream;
-    if (stdin.isTTY && typeof (stdin as any).setRawMode === 'function') {
-      (stdin as any).setRawMode(true);
+    if (stdin.isTTY && typeof (stdin as TTYReadStream).setRawMode === 'function') {
+      (stdin as TTYReadStream).setRawMode(true);
     }
     if (typeof stdin.resume === 'function') {
       stdin.resume();
@@ -60,8 +64,8 @@ export function createKeyboardController(): KeyboardController {
     started = false;
     const stdin: NodeJS.ReadStream = process.stdin as unknown as NodeJS.ReadStream;
     stdin.off('data', dataListener);
-    if (stdin.isTTY && typeof (stdin as any).setRawMode === 'function') {
-      (stdin as any).setRawMode(false);
+    if (stdin.isTTY && typeof (stdin as TTYReadStream).setRawMode === 'function') {
+      (stdin as TTYReadStream).setRawMode(false);
     }
     if (typeof stdin.pause === 'function') {
       stdin.pause();

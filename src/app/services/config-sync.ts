@@ -45,22 +45,15 @@ const CLI_ROOT_CANDIDATES = Array.from(
 
 type AgentDefinition = {
   id: string;
+  model?: unknown;
+  modelReasoningEffort?: unknown;
   [key: string]: unknown;
 };
 
 const MODEL = 'gpt-5-codex';
 const MODEL_REASONING_EFFORT = 'high';
 const DEFAULT_MODEL_EFFORT = 'medium';
-const AGENT_EFFORT_MAP: Record<string, 'low' | 'medium' | 'high'> = {
-  'frontend-dev': 'medium',
-  'backend-dev': 'high',
-  'uxui-designer': 'medium',
-  'solution-architect': 'high',
-  'software-architect': 'high',
-  'technical-writer': 'low',
-  'qa-engineer': 'medium',
-  'performance-engineer': 'high'
-};
+const VALID_MODEL_EFFORTS = new Set(['low', 'medium', 'high']);
 
 function resolveProjectRoot(projectRoot?: string): string {
   if (projectRoot) {
@@ -99,6 +92,35 @@ function loadAgents(projectRoot: string): AgentDefinition[] {
   return Array.isArray(loadedAgents) ? (loadedAgents as AgentDefinition[]) : [];
 }
 
+function mergeAdditionalAgents(
+  agents: AgentDefinition[],
+  additionalAgents?: AgentDefinition[]
+): AgentDefinition[] {
+  if (!additionalAgents || additionalAgents.length === 0) {
+    return agents;
+  }
+
+  const byId = new Map<string, AgentDefinition>();
+
+  for (const agent of agents) {
+    if (agent && typeof agent.id === 'string' && agent.id.trim()) {
+      byId.set(agent.id, { ...agent });
+    }
+  }
+
+  for (const candidate of additionalAgents) {
+    if (!candidate || typeof candidate.id !== 'string') {
+      continue;
+    }
+    const id = candidate.id.trim();
+    if (!id) continue;
+    const existing = byId.get(id) ?? {};
+    byId.set(id, { ...existing, ...candidate, id });
+  }
+
+  return Array.from(byId.values());
+}
+
 async function resolveCodexHome(codexHome?: string): Promise<string> {
   const targetHome = codexHome ?? process.env.CODEX_HOME ?? path.join(homedir(), '.codemachine', 'codex');
   await mkdir(targetHome, { recursive: true });
@@ -107,6 +129,32 @@ async function resolveCodexHome(codexHome?: string): Promise<string> {
 
 function toTomlString(value: string): string {
   return JSON.stringify(value);
+}
+
+function resolveModel(agent: AgentDefinition): string {
+  if (typeof agent.model === 'string' && agent.model.trim()) {
+    return agent.model.trim();
+  }
+
+  return MODEL;
+}
+
+function resolveEffort(agent: AgentDefinition): 'low' | 'medium' | 'high' {
+  const candidate =
+    typeof agent.modelReasoningEffort === 'string'
+      ? agent.modelReasoningEffort
+      : typeof agent.model_reasoning_effort === 'string'
+        ? agent.model_reasoning_effort
+        : undefined;
+
+  if (candidate) {
+    const normalized = candidate.trim().toLowerCase();
+    if (VALID_MODEL_EFFORTS.has(normalized)) {
+      return normalized as 'low' | 'medium' | 'high';
+    }
+  }
+
+  return DEFAULT_MODEL_EFFORT;
 }
 
 function buildConfigContent(agents: AgentDefinition[]): string {
@@ -119,10 +167,11 @@ function buildConfigContent(agents: AgentDefinition[]): string {
   const profileSections = agents
     .filter((agent): agent is AgentDefinition & { id: string } => typeof agent?.id === 'string')
     .map((agent) => {
-      const effort = AGENT_EFFORT_MAP[agent.id] ?? DEFAULT_MODEL_EFFORT;
+      const effort = resolveEffort(agent);
+      const model = resolveModel(agent);
       return [
         `[profiles.${agent.id}]`,
-        `model = ${toTomlString(MODEL)}`,
+        `model = ${toTomlString(model)}`,
         `model_reasoning_effort = ${toTomlString(effort)}`
       ].join('\n');
     });
@@ -160,11 +209,12 @@ async function writeConfigIfChanged(configDir: string, content: string): Promise
 export type ConfigSyncOptions = {
   projectRoot?: string;
   codexHome?: string;
+  additionalAgents?: AgentDefinition[];
 };
 
 export async function syncCodexConfig(options?: ConfigSyncOptions): Promise<void> {
   const projectRoot = resolveProjectRoot(options?.projectRoot);
-  const agents = loadAgents(projectRoot);
+  const agents = mergeAdditionalAgents(loadAgents(projectRoot), options?.additionalAgents);
   const codexHome = await resolveCodexHome(options?.codexHome);
   const configContent = buildConfigContent(agents);
 

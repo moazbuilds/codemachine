@@ -14,7 +14,8 @@ const fixturesRoot = path.join(projectRoot, 'tests', 'fixtures');
 const codexFixturesDir = path.join(fixturesRoot, 'codex');
 const activeProcesses = new Set<ChildProcessWithoutNullStreams>();
 
-const stripAnsi = (value: string): string => value.replace(/\u001B\[[0-9;?]*[ -\/]*[@-~]/g, '');
+const ANSI_ESCAPE_REGEX = new RegExp(String.raw`\u001B\[[0-9;?]*[ -/]*[@-~]`, 'g');
+const stripAnsi = (value: string): string => value.replace(ANSI_ESCAPE_REGEX, '');
 
 interface RunResult {
   exitCode: number;

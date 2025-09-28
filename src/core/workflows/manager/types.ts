@@ -5,6 +5,8 @@ export interface WorkflowStep {
   agentId: string;
   agentName: string;
   promptPath: string;
+  model?: string;
+  modelReasoningEffort?: 'low' | 'medium' | 'high';
 }
 
 export interface WorkflowTemplate {

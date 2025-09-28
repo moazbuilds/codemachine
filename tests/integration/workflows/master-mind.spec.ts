@@ -54,7 +54,7 @@ describe('Master Mind Orchestrator', () => {
     await runTaskManager({ cwd: projectRoot, tasksPath, logsPath, parallel: false, execute });
 
     // It updates tasks.json by flipping tasks to done
-    const after = JSON.parse(await fs.readFile(tasksPath, 'utf8')) as { tasks: any[] };
+    const after = JSON.parse(await fs.readFile(tasksPath, 'utf8')) as { tasks: { id: string; done?: boolean }[] };
     const a = after.tasks.find((t) => t.id === 'T_A');
     const b = after.tasks.find((t) => t.id === 'T_B');
     expect(a?.done).toBe(true);

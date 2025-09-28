@@ -12,7 +12,12 @@ describe('Keyboard controls', () => {
   };
 
   beforeEach(() => {
-    mockStdin = new PassThrough() as any;
+    mockStdin = new PassThrough() as PassThrough & {
+      isTTY?: boolean;
+      setRawMode?: (v: boolean) => void;
+      resume?: () => void;
+      pause?: () => void;
+    };
     mockStdin.isTTY = true;
     mockStdin.setRawMode = vi.fn();
     vi.spyOn(process, 'stdin', 'get').mockReturnValue(
@@ -27,7 +32,7 @@ describe('Keyboard controls', () => {
 
   it('start()/stop() add/remove listeners; Ctrl+C twice emits interrupt then exit', () => {
     const kb = createKeyboardController();
-    const events: { type: string; payload?: any }[] = [];
+    const events: { type: string; payload?: unknown }[] = [];
     kb.on('interrupt', (p) => events.push({ type: 'interrupt', payload: p }));
     kb.on('exit', (p) => events.push({ type: 'exit', payload: p }));
 
@@ -66,7 +71,7 @@ describe('Keyboard controls', () => {
   it('Ctrl+E toggles expanded and emits event with state', () => {
     const kb = createKeyboardController();
     const toggles: boolean[] = [];
-    kb.on('toggle-expanded', (p: any) => toggles.push(!!p?.expanded));
+    kb.on('toggle-expanded', (p: unknown) => toggles.push(!!(p as { expanded?: boolean })?.expanded));
 
     kb.start();
 

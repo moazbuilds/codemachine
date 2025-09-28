@@ -34,7 +34,9 @@ describe('bootstrapWorkspace', () => {
   afterEach(async () => {
     try {
       process.chdir(originalCwd);
-    } catch {}
+    } catch {
+      // Ignore chdir errors
+    }
     await rm(tempDir, { recursive: true, force: true });
   });
 
@@ -63,12 +65,14 @@ describe('bootstrapWorkspace', () => {
     ]);
 
     const agentsContent = await readFile(agentsJson, 'utf8');
-    const parsed = JSON.parse(agentsContent);
+    const parsed = JSON.parse(agentsContent) as Array<{ id: string; name?: string; promptPath: string }>;
     expect(Array.isArray(parsed)).toBe(true);
-    expect(parsed).toEqual([
-      { id: 'frontend-dev', name: 'Frontend Developer' },
-      { id: 'custom-agent', name: 'Custom Agent' }
-    ]);
+    expect(parsed.map((a) => a.id)).toEqual(['frontend-dev', 'custom-agent']);
+    expect(parsed[0].promptPath).toBe('frontend-dev.md');
+    expect(parsed[1].promptPath).toBe('custom-agent.md');
+    await Promise.all(
+      parsed.map((agent) => stat(join(desiredCwd, '.codemachine', 'agents', agent.promptPath))),
+    );
   });
 
   it('mirrors config/agents.js to JSON and is idempotent', async () => {
@@ -100,7 +104,13 @@ describe('bootstrapWorkspace', () => {
     expect(third.mtimeMs).toBeGreaterThanOrEqual(second.mtimeMs);
 
     const updatedContent = JSON.parse(await readFile(agentsJson, 'utf8'));
-    expect(updatedContent).toEqual([{ id: 'only-one' }]);
+    expect(updatedContent).toEqual([
+      {
+        id: 'only-one',
+        promptPath: 'only-one.md',
+      },
+    ]);
+    await stat(join(desiredCwd, '.codemachine', 'agents', 'only-one.md'));
   });
 
   it('respects CODEMACHINE_CWD environment override when cwd not provided', async () => {
@@ -132,9 +142,16 @@ describe('bootstrapWorkspace', () => {
     await bootstrapWorkspace({ cwd: desiredCwd });
 
     const agentsJson = join(desiredCwd, '.codemachine', 'agents', 'agents-config.json');
-    const parsedAgents = JSON.parse(await readFile(agentsJson, 'utf8'));
+    const parsedAgents = JSON.parse(await readFile(agentsJson, 'utf8')) as Array<{ id: string; promptPath: string }>;
     const cliAgents = require('../../../config/agents.js');
 
-    expect(parsedAgents).toEqual(cliAgents);
+    expect(parsedAgents.map((agent: { id: string }) => agent.id)).toEqual(cliAgents.map((agent: { id: string }) => agent.id));
+    const expectedDir = join(desiredCwd, '.codemachine', 'agents');
+    await Promise.all(
+      parsedAgents.map(async (agent) => {
+        expect(agent.promptPath.endsWith('.md')).toBe(true);
+        await stat(join(expectedDir, agent.promptPath));
+      }),
+    );
   });
 });
