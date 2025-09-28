@@ -3,8 +3,7 @@ import * as fs from 'node:fs/promises';
 import type { Command } from 'commander';
 import { createKeyboardController } from '../controllers/keyboard-controls.js';
 
-import { orchestrateMasterMind } from '../../core/workflows/master-mind.js';
-import { summarize } from '../../agents/runtime/project-summarizer.js';
+import { runTaskManager, generateSummary } from '../../core/workflows/workflow-manager.js';
 import { retry } from '../../agents/runtime/retry.js';
 import { end } from '../../agents/runtime/end.js';
 
@@ -150,22 +149,21 @@ export function registerProjectManagerCommand(program: Command): void {
 
       process.once('SIGINT', handleInterrupt);
 
-      // Orchestration with runtime agents: summarize after each pass and retry until done
-      const summaryPath = path.resolve(cwd, '.codemachine', 'project-summary.md');
+      // Orchestration with runtime agents: retry until done, guided by Master Mind
       let shouldContinue = true;
       while (shouldContinue) {
         shouldContinue = await retry({
           tasksPath,
           logsPath,
           orchestrate: async ({ tasksPath, logsPath }) => {
-            await orchestrateMasterMind({
-              parallel: Boolean(options.parallel),
+            await runTaskManager({
+              cwd,
               tasksPath,
               logsPath,
-              cwd,
+              parallel: Boolean(options.parallel),
               abortSignal: controller.signal,
             });
-            await summarize({ tasksPath, outputPath: summaryPath });
+            await generateSummary(tasksPath, path.resolve(cwd, '.codemachine', 'project-summary.md'));
           },
         });
 

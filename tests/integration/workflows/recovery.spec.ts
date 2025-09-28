@@ -2,7 +2,6 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
-import { summarize } from '../../../src/agents/runtime/project-summarizer';
 import { retry } from '../../../src/agents/runtime/retry';
 import { end } from '../../../src/agents/runtime/end';
 
@@ -15,7 +14,6 @@ describe('Runtime recovery workflow', () => {
   const testDir = path.join(tmpRoot, `recovery-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
   const cmDir = path.join(testDir, '.codemachine');
   const tasksPath = path.join(cmDir, 'tasks.json');
-  const summaryPath = path.join(cmDir, 'project-summary.md');
 
   beforeAll(async () => {
     await ensureDir(cmDir);
@@ -28,27 +26,6 @@ describe('Runtime recovery workflow', () => {
     } catch {
       // ignore
     }
-  });
-
-  it('generates project-summary.md with correct Completed/Remaining counts', async () => {
-    const tasks = {
-      tasks: [
-        { id: 'T1', name: 'Alpha task', done: true },
-        { id: 'T2', name: 'Beta task', done: false },
-      ],
-    };
-    await fs.writeFile(tasksPath, JSON.stringify(tasks, null, 2), 'utf8');
-
-    await summarize({ tasksPath, outputPath: summaryPath });
-
-    const md = await fs.readFile(summaryPath, 'utf8');
-    expect(md).toContain('# Project Summary');
-    expect(md).toContain('- Completed: 1');
-    expect(md).toContain('- Remaining: 1');
-    expect(md).toContain('## Completed Tasks');
-    expect(md).toContain('## Remaining Tasks');
-    expect(md).toContain('[x] T1: Alpha task');
-    expect(md).toContain('[ ] T2: Beta task');
   });
 
   it('retries orchestration when unfinished tasks exist and returns true', async () => {
@@ -113,4 +90,3 @@ describe('Runtime recovery workflow', () => {
     expect(banner.startsWith('========================================')).toBe(true);
   });
 });
-

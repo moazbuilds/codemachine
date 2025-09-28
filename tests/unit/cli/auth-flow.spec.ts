@@ -53,6 +53,9 @@ describe('auth flow', () => {
   });
 
   it('triggers codex login and creates auth.json when unauthenticated', async () => {
+    const prevSkip = process.env.CODEMACHINE_SKIP_AUTH;
+    delete process.env.CODEMACHINE_SKIP_AUTH;
+
     const codexHome = await resolveCodexHome();
     const authPath = getAuthFilePath(codexHome);
 
@@ -77,6 +80,12 @@ describe('auth flow', () => {
 
     const afterAction = await nextAuthMenuAction();
     expect(afterAction).toBe('logout');
+
+    if (prevSkip === undefined) {
+      process.env.CODEMACHINE_SKIP_AUTH = '1';
+    } else {
+      process.env.CODEMACHINE_SKIP_AUTH = prevSkip;
+    }
   });
 
   it('does not call codex login when already authenticated and supports clearing', async () => {

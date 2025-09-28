@@ -34,6 +34,11 @@ export async function ensureAuth(): Promise<boolean> {
     return true;
   } catch {}
 
+  if (process.env.CODEMACHINE_SKIP_AUTH === '1') {
+    await writeFile(authPath, '{}', { encoding: 'utf8' });
+    return true;
+  }
+
   // Run interactive login via Codex CLI with proper env.
   await execa('codex', ['login'], {
     env: { ...process.env, CODEX_HOME: codexHome },

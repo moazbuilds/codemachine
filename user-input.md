@@ -84,8 +84,6 @@ codemachine/
 │   │   ├── retry.md               # Retry logic prompts
 │   │   ├── end.md                 # Termination prompts
 │   │   └── memory.md              # Context management prompts
-│   └── templates/
-│       └── build.md               # Build template prompt
 └── [other CLI code files]        # TO BE CREATED BY BUILDERS
 ```
 

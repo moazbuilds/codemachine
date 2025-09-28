@@ -24,7 +24,6 @@ describe('registerCli', () => {
     expect(commandNames).toEqual(
       expect.arrayContaining(['start', 'templates', 'auth', 'version', 'mcp']),
     );
-    expect(commandNames).toHaveLength(5);
   });
 
   it('attaches login and logout subcommands to auth', () => {

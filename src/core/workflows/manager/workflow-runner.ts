@@ -1,0 +1,108 @@
+import * as path from 'node:path';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+
+import { end } from '../../../agents/runtime/end.js';
+import type { RunWorkflowOptions, WorkflowTemplate } from './types.js';
+import { loadTemplate } from './template-loader.js';
+import { runCodexPrompt } from './agent-execution.js';
+import { ensureProjectScaffold } from './workspace-prep.js';
+import { validateSpecification } from './validation.js';
+import { runTaskManager, resolveTasksPath, generateSummary } from './task-manager.js';
+
+async function runE2E(cwd: string): Promise<{ ok: boolean; output: string }> {
+  const { spawn } = await import('node:child_process');
+  const runners = [
+    ['pnpm', ['test']],
+    ['npm', ['test']],
+    ['npx', ['vitest', 'run']],
+  ] as const;
+
+  for (const [cmd, args] of runners) {
+    const result = await new Promise<{ ok: boolean; output: string }>((resolve) => {
+      const child = spawn(cmd, args, { cwd });
+      let out = '';
+      let err = '';
+      child.stdout?.on('data', (d: Buffer) => (out += d.toString()));
+      child.stderr?.on('data', (d: Buffer) => (err += d.toString()));
+      child.on('close', (code: number) => resolve({ ok: code === 0, output: out + (err ? `\n${err}` : '') }));
+      child.on('error', () => resolve({ ok: false, output: out }));
+    });
+    if (result.ok) return result;
+  }
+
+  return { ok: false, output: 'No test runner succeeded.' };
+}
+
+async function runAgentsBuilderStep(cwd: string): Promise<void> {
+  await ensureProjectScaffold(cwd);
+}
+
+async function runPlanningStep(cwd: string, options: RunWorkflowOptions): Promise<void> {
+  await validateSpecification(
+    options.specificationPath || path.resolve(cwd, '.codemachine', 'inputs', 'specifications.md'),
+    options.force,
+  );
+}
+
+async function runProjectManagerStep(cwd: string, templateStep: WorkflowTemplate['steps'][number]): Promise<void> {
+  const tasksPath = await resolveTasksPath(cwd, templateStep.options?.tasksPath as string | undefined);
+  await runTaskManager({ cwd, tasksPath });
+  await generateSummary(tasksPath, path.resolve(cwd, '.codemachine', 'project-summary.md'));
+
+  const banner = await end({ tasksPath });
+  if (banner && banner.trim()) console.log(banner);
+
+  try {
+    const e2e = await runE2E(cwd);
+    const e2eFile = path.resolve(cwd, '.codemachine', 'e2e-results.txt');
+    await mkdir(path.dirname(e2eFile), { recursive: true });
+    await writeFile(
+      e2eFile,
+      [`E2E ok: ${e2e.ok}`, '', 'Output:', e2e.output.slice(0, 20000)].join('\n'),
+      'utf8',
+    );
+    if (!e2e.ok) console.warn('End-to-end validation reported issues. See .codemachine/e2e-results.txt');
+  } catch {
+    // ignore e2e failures caused by missing tooling
+  }
+}
+
+export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<void> {
+  const cwd = options.cwd ? path.resolve(options.cwd) : process.cwd();
+  const template = await loadTemplate(cwd, options.templatePath);
+
+  console.log(`Using workflow template: ${template.name}`);
+
+  for (const step of template.steps) {
+    if (step.type !== 'module') continue;
+
+    console.log(`${step.agentName} started to work.`);
+
+    try {
+      const promptPath = path.isAbsolute(step.promptPath)
+        ? step.promptPath
+        : path.resolve(cwd, step.promptPath);
+      const prompt = await readFile(promptPath, 'utf8');
+      await runCodexPrompt({ agentId: step.agentId, prompt, cwd });
+
+      switch (step.module) {
+        case 'agents-builder':
+          await runAgentsBuilderStep(cwd);
+          break;
+        case 'planning-workflow':
+          await runPlanningStep(cwd, options);
+          break;
+        case 'project-manager':
+          await runProjectManagerStep(cwd, step);
+          break;
+        default:
+          throw new Error(`Unknown module step: ${step.module}`);
+      }
+
+      console.log(`${step.agentName} has completed their work.`);
+    } catch (error) {
+      console.error(`${step.agentName} failed: ${error instanceof Error ? error.message : String(error)}`);
+      throw error;
+    }
+  }
+}

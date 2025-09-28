@@ -7,10 +7,10 @@ Integration tests exercise Codemachine workflows end-to-end using real filesyste
 - Refresh the fixture whenever planning metadata changes so workflow assertions reflect current acceptance criteria.
 - Prefer extending the fixture rather than mutating existing entries to preserve historical expectations.
 
-## Master Mind Planning Workflow
-- `tests/integration/workflows/master-mind.spec.ts` provisions a temporary specification file, calls `runPlanningWorkflow({ force: false, specificationPath })`, and asserts the Planning fixture exposes phase metadata.
-- The test spies on `console.log` to avoid noisy output while still exercising the real implementation.
-- Update the workflow test alongside planning fixture edits so assertions stay aligned with the documented tasks.
+## Workflow Manager Coverage
+- `tests/integration/workflows/planning-workflow.spec.ts` provisions a temporary specification file, calls `validateSpecification(specPath, false)`, and asserts the check enforces non-empty specs.
+- `tests/integration/workflows/master-mind.spec.ts` provisions a temporary project workspace, invokes `runTaskManager`, and verifies task sequencing, logging, and completion semantics.
+- Update both workflow tests alongside template or task fixture edits so assertions stay aligned with the documented behaviour.
 
 ## Running the Suite
 - Execute `pnpm vitest run tests/integration/workflows/master-mind.spec.ts` for a focused check, or `pnpm vitest run tests/integration` to cover the full workflow suite.

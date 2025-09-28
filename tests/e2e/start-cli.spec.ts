@@ -153,8 +153,8 @@ describe('codemachine CLI smoke', () => {
     });
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Interactive session ready. Type /start when you want to kick off the workflow.');
-    expect(result.stdout).toContain('Type /start to begin the workflow, or /help to see all commands.');
+    expect(result.stdout).toContain('Interactive session ready.');
+    expect(result.stdout).toContain('Type /start when you want to kick off the workflow, or /help to see all commands.');
     expect(stripAnsi(result.stderr).trim()).toBe('');
   }, 20_000);
 });

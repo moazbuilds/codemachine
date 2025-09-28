@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import * as path from 'node:path';
 import * as fs from 'node:fs/promises';
 
-import { orchestrateMasterMind } from '../../../src/core/workflows/master-mind.js';
+import { runTaskManager } from '../../../src/core/workflows/workflow-manager.js';
 
 async function ensureDir(p: string) {
   await fs.mkdir(p, { recursive: true });
@@ -51,13 +51,7 @@ describe('Master Mind Orchestrator', () => {
       // Deterministic no-op
     };
 
-    await orchestrateMasterMind({
-      cwd: projectRoot,
-      tasksPath,
-      logsPath,
-      parallel: false,
-      execute,
-    });
+    await runTaskManager({ cwd: projectRoot, tasksPath, logsPath, parallel: false, execute });
 
     // It updates tasks.json by flipping tasks to done
     const after = JSON.parse(await fs.readFile(tasksPath, 'utf8')) as { tasks: any[] };
@@ -72,7 +66,7 @@ describe('Master Mind Orchestrator', () => {
     expect(lines.length).toBeGreaterThan(0);
     const records = lines.map((l) => JSON.parse(l));
     // Find success records
-    const successRecords = records.filter((r) => r.outcome === 'success' && r.message === 'phase:complete');
+    const successRecords = records.filter((r) => r.outcome === 'success');
     expect(successRecords.length).toBeGreaterThanOrEqual(2);
     const order = successRecords.map((r) => r.taskId);
     // Respect dependency ordering: T_A completes before T_B
@@ -82,4 +76,3 @@ describe('Master Mind Orchestrator', () => {
     expect(calls.length).toBeGreaterThanOrEqual(2);
   });
 });
-

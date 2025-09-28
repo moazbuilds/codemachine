@@ -7,8 +7,6 @@ import { runCodex } from '../../../src/infra/codex/codex-runner.js';
 
 describe('runCodex', () => {
   const workingDir = '/tmp/workspace/project';
-  const cliPath = path.resolve(workingDir, '..', '..', 'cli', 'codex-cli.js');
-
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -31,10 +29,21 @@ describe('runCodex', () => {
     expect(spawnSpy).toHaveBeenCalledTimes(1);
 
     const callOptions = spawnSpy.mock.calls[0]?.[0];
-    expect(callOptions?.command).toBe(process.execPath);
-    expect(callOptions?.args).toEqual([cliPath, 'run', 'default', 'Hello Codex']);
+    expect(callOptions?.command).toBe('codex');
+    expect(callOptions?.args).toEqual([
+      'exec',
+      '--profile',
+      'default',
+      '--skip-git-repo-check',
+      '--sandbox',
+      'danger-full-access',
+      '--dangerously-bypass-approvals-and-sandbox',
+      '-C',
+      workingDir,
+      'Hello Codex',
+    ]);
     expect(callOptions?.cwd).toBe(workingDir);
-    expect(callOptions?.env).toMatchObject({ CUSTOM: 'value' });
+    expect(callOptions?.env).toMatchObject({ CUSTOM: 'value', CODEX_HOME: expect.any(String) });
     expect(callOptions?.onStdout).toBeTypeOf('function');
     expect(callOptions?.onStderr).toBeTypeOf('function');
   });

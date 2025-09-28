@@ -1,31 +1,34 @@
-// Default workflow template: ordered steps to run at `/start`.
-// Each step is either a `prompt` (run a Codex agent with a prompt file)
-// or a `module` (invoke built-in orchestrators).
-
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const workflow = [
-  {
-    type: 'prompt',
-    name: 'Master Mind PM Spec',
-    // Use an existing architect-like profile to internalize the PM spec prompt
-    agent: 'software-architect',
-    // Prefer prompts folder; fallback path resolves relative to repo root
-    promptPath: path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'prompts', 'master-mind.md'),
-  },
-  {
-    type: 'module',
-    module: 'agents-builder',
-  },
-  {
-    type: 'module',
-    module: 'planning-workflow',
-  },
-  {
-    type: 'module',
-    module: 'project-manager',
-  },
-];
+const dirname = path.dirname(fileURLToPath(import.meta.url));
+const promptsDir = path.resolve(dirname, '..', '..', 'prompts', 'agents');
+
+const workflow = {
+  name: 'Default Workflow',
+  steps: [
+    {
+      type: 'module',
+      module: 'agents-builder',
+      agentId: 'agents-builder',
+      agentName: 'Agent Builder',
+      promptPath: path.join(promptsDir, 'agents-builder.md'),
+    },
+    {
+      type: 'module',
+      module: 'planning-workflow',
+      agentId: 'master-mind',
+      agentName: 'Planner',
+      promptPath: path.join(promptsDir, 'master-mind.md'),
+    },
+    {
+      type: 'module',
+      module: 'project-manager',
+      agentId: 'master-mind',
+      agentName: 'Project Manager',
+      promptPath: path.join(promptsDir, 'master-mind.md'),
+    },
+  ],
+};
 
 export default workflow;

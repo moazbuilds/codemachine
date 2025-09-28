@@ -3,9 +3,9 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { runPlanningWorkflow } from '../../../src/core/workflows/planning-workflow.js';
+import { validateSpecification } from '../../../src/core/workflows/workflow-manager.js';
 
-describe('runPlanningWorkflow', () => {
+describe('validateSpecification', () => {
   let tempDir: string;
   let tempSpecPath: string;
   let consoleSpy: ReturnType<typeof vi.spyOn>;
@@ -24,16 +24,12 @@ describe('runPlanningWorkflow', () => {
   it('resolves when specification file has content', async () => {
     await writeFile(tempSpecPath, '# Planning Spec\n- Outline');
 
-    await expect(
-      runPlanningWorkflow({ force: false, specificationPath: tempSpecPath }),
-    ).resolves.toBeUndefined();
+    await expect(validateSpecification(tempSpecPath, false)).resolves.toBeUndefined();
   });
 
   it('rejects when specification file is empty', async () => {
     await writeFile(tempSpecPath, '');
 
-    await expect(
-      runPlanningWorkflow({ force: false, specificationPath: tempSpecPath }),
-    ).rejects.toThrow(/empty/);
+    await expect(validateSpecification(tempSpecPath, false)).rejects.toThrow(/empty/);
   });
 });
