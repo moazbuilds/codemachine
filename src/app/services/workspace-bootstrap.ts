@@ -9,6 +9,7 @@ import { resolveAgentsModulePath } from '../../shared/agents/paths.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const require = createRequire(import.meta.url);
+const CLI_INSTALL_ROOT = path.resolve(__dirname, '..', '..', '..');
 
 type AgentDefinition = Record<string, unknown>;
 
@@ -17,15 +18,22 @@ export type WorkspaceBootstrapOptions = {
   cwd?: string; // target working directory for this run
 };
 
-function resolveProjectRoot(projectRoot?: string): string {
-  if (projectRoot) return projectRoot;
-  const cwd = process.cwd();
-  // Prefer current workspace if it contains config/agents.js
-  const cwdAgents = path.join(cwd, 'config', 'agents.js');
-  if (existsSync(cwdAgents)) {
-    return cwd;
+function resolveProjectRoot(projectRoot: string | undefined, workspaceRoot: string): string {
+  if (projectRoot) {
+    return projectRoot;
   }
-  return path.resolve(__dirname, '..', '..', '..');
+
+  const workspaceAgents = path.join(workspaceRoot, 'config', 'agents.js');
+  if (existsSync(workspaceAgents)) {
+    return workspaceRoot;
+  }
+
+  const cliAgents = path.join(CLI_INSTALL_ROOT, 'config', 'agents.js');
+  if (existsSync(cliAgents)) {
+    return CLI_INSTALL_ROOT;
+  }
+
+  return workspaceRoot;
 }
 
 function resolveDesiredCwd(explicitCwd?: string): string {
@@ -87,8 +95,11 @@ async function mirrorAgentsToJson(agentsDir: string, agents: AgentDefinition[]):
  * Idempotent and safe to run repeatedly.
  */
 export async function bootstrapWorkspace(options?: WorkspaceBootstrapOptions): Promise<void> {
-  const projectRoot = resolveProjectRoot(options?.projectRoot);
   const desiredCwd = resolveDesiredCwd(options?.cwd);
+  const projectRoot = resolveProjectRoot(options?.projectRoot, desiredCwd);
+
+  // Prepare workspace-rooted scaffolding directory tree.
+  const workspaceRoot = desiredCwd;
 
   // Ensure the working directory exists and use it for this process.
   await ensureDir(desiredCwd);
@@ -98,8 +109,8 @@ export async function bootstrapWorkspace(options?: WorkspaceBootstrapOptions): P
     // If chdir fails, continue without throwing to avoid blocking other bootstrap steps.
   }
 
-  // Prepare .codemachine tree under the project root.
-  const cmRoot = path.join(projectRoot, '.codemachine');
+  // Prepare .codemachine tree under the workspace root.
+  const cmRoot = path.join(workspaceRoot, '.codemachine');
   const agentsDir = path.join(cmRoot, 'agents');
   const inputsDir = path.join(cmRoot, 'inputs');
   const memoryDir = path.join(cmRoot, 'memory');

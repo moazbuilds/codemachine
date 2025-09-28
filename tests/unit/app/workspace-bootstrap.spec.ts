@@ -1,10 +1,13 @@
 import { mkdtemp, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { bootstrapWorkspace } from '../../../src/app/services/workspace-bootstrap.js';
+
+const require = createRequire(import.meta.url);
 
 const AGENTS_FIXTURE = `module.exports = [
   { id: 'frontend-dev', name: 'Frontend Developer' },
@@ -46,10 +49,10 @@ describe('bootstrapWorkspace', () => {
     expect(desiredStat.isDirectory()).toBe(true);
 
     // Directories exist
-    const specsPath = join(projectRoot, '.codemachine', 'inputs', 'specifications.md');
-    const memoryDir = join(projectRoot, '.codemachine', 'memory');
-    const planDir = join(projectRoot, '.codemachine', 'plan');
-    const agentsJson = join(projectRoot, '.codemachine', 'agents', 'agents-config.json');
+    const specsPath = join(desiredCwd, '.codemachine', 'inputs', 'specifications.md');
+    const memoryDir = join(desiredCwd, '.codemachine', 'memory');
+    const planDir = join(desiredCwd, '.codemachine', 'plan');
+    const agentsJson = join(desiredCwd, '.codemachine', 'agents', 'agents-config.json');
 
     // files/dirs existence checks via stat
     await Promise.all([
@@ -74,7 +77,7 @@ describe('bootstrapWorkspace', () => {
 
     await bootstrapWorkspace({ projectRoot, cwd: desiredCwd });
 
-    const agentsJson = join(projectRoot, '.codemachine', 'agents', 'agents-config.json');
+    const agentsJson = join(desiredCwd, '.codemachine', 'agents', 'agents-config.json');
     const first = await stat(agentsJson);
 
     // Short delay to ensure mtime would differ if rewritten
@@ -116,5 +119,22 @@ describe('bootstrapWorkspace', () => {
     // Working directory was created (switching CWD may be disallowed in thread pool)
     const st = await stat(envCwd);
     expect(st.isDirectory()).toBe(true);
+
+    // Ensure .codemachine was created under the env-directed workspace
+    const specsPath = join(envCwd, '.codemachine', 'inputs', 'specifications.md');
+    const agentsJson = join(envCwd, '.codemachine', 'agents', 'agents-config.json');
+    await Promise.all([stat(specsPath), stat(agentsJson)]);
+  });
+
+  it('falls back to the CLI agents catalog when workspace has no config', async () => {
+    const desiredCwd = join(tempDir, 'projects', 'bare-app');
+
+    await bootstrapWorkspace({ cwd: desiredCwd });
+
+    const agentsJson = join(desiredCwd, '.codemachine', 'agents', 'agents-config.json');
+    const parsedAgents = JSON.parse(await readFile(agentsJson, 'utf8'));
+    const cliAgents = require('../../../config/agents.js');
+
+    expect(parsedAgents).toEqual(cliAgents);
   });
 });
