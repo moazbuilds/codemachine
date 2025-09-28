@@ -3,6 +3,8 @@ import { existsSync } from 'node:fs';
 import * as path from 'node:path';
 import { createRequire } from 'node:module';
 
+import { resolveAgentsModulePath } from '../../shared/agents/paths.js';
+
 const require = createRequire(import.meta.url);
 
 export type AgentsBuilderOptions = {
@@ -53,16 +55,13 @@ async function writeIfNeeded(filePath: string, content: string, force?: boolean)
 }
 
 function resolveAgentsModule(projectRoot: string): string | undefined {
-  const candidates = [
-    path.join(projectRoot, 'inputs', 'agents.cjs'),
-    path.join(projectRoot, 'inputs', 'agents.js'),
-  ];
-  return candidates.find((p) => existsSync(p));
+  return resolveAgentsModulePath({ projectRoot });
 }
 
 function loadAgents(projectRoot: string): AgentInput[] {
   const modPath = resolveAgentsModule(projectRoot);
   if (!modPath) return [];
+
   try {
     delete require.cache[require.resolve(modPath)];
   } catch {}
@@ -145,7 +144,7 @@ export async function runAgentsBuilder(options: AgentsBuilderOptions): Promise<v
 
   const agents = loadAgents(projectRoot);
   if (agents.length === 0) {
-    console.log('agents-builder: No agents defined in inputs/agents.{js,cjs}; skipping prompt generation.');
+    console.log('agents-builder: No agents definitions found under config/agents.js.');
   }
 
   // Generate per-agent prompts

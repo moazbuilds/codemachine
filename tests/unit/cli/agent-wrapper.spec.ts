@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Command } from 'commander';
+import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 
 // Mock runCodex to capture options and simulate output
 vi.mock('../../../src/infra/codex/codex-runner.js', async () => {
@@ -29,36 +32,37 @@ vi.mock('../../../src/agents/memory/memory-store.js', async () => {
   };
 });
 
-// Mock Node built-ins used by agent.command to avoid ESM/CJS interop during tests
-vi.mock('node:module', async () => {
-  return {
-    createRequire: () => {
-      // Return a require() stub that supplies the agents list
-      return () => [
-        {
-          id: 'backend-dev',
-          name: 'Backend Developer',
-          promptPath: '/virtual/prompt.md',
-        },
-      ];
-    },
-  };
-});
-
-vi.mock('node:fs', async () => {
-  return {
-    promises: {
-      readFile: vi.fn(async () => 'Template for backend-dev agent'),
-    },
-  };
-});
-
 // We import after mocks
 import { registerAgentCommand } from '../../../src/cli/commands/agent.command.js';
 import { runCodex } from '../../../src/infra/codex/codex-runner.js';
 
 describe('CLI agent wrapper', () => {
   it('builds composite prompt and executes Codex with streaming; updates memory', async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), 'agent-wrapper-'));
+    const configDir = join(tempDir, 'config');
+    const promptsDir = join(tempDir, 'prompts');
+    await mkdir(configDir, { recursive: true });
+    await mkdir(promptsDir, { recursive: true });
+
+    const promptPath = join(promptsDir, 'backend-dev.md');
+    await writeFile(promptPath, 'Template for backend-dev agent', 'utf8');
+    await writeFile(join(configDir, 'package.json'), '{"type":"commonjs"}\n', 'utf8');
+    await writeFile(
+      join(configDir, 'agents.js'),
+      `module.exports = [
+  {
+    id: 'backend-dev',
+    name: 'Backend Developer',
+    promptPath: ${JSON.stringify(promptPath)}
+  }
+];
+`,
+      'utf8',
+    );
+
+    const previousDir = process.env.CODEMACHINE_CWD;
+    process.env.CODEMACHINE_CWD = tempDir;
+
     const program = new Command();
     registerAgentCommand(program);
 
@@ -66,7 +70,16 @@ describe('CLI agent wrapper', () => {
     const profile = 'test-profile';
     const userPrompt = 'Please implement a minimal API';
 
-    await program.parseAsync(['agent', id, userPrompt, '--profile', profile], { from: 'user' });
+    try {
+      await program.parseAsync(['agent', id, userPrompt, '--profile', profile], { from: 'user' });
+    } finally {
+      if (previousDir === undefined) {
+        delete process.env.CODEMACHINE_CWD;
+      } else {
+        process.env.CODEMACHINE_CWD = previousDir;
+      }
+      await rm(tempDir, { recursive: true, force: true });
+    }
 
     // Verify runCodex call
     expect((runCodex as any).mock.calls.length).toBe(1);

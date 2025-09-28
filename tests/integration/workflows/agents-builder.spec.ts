@@ -27,12 +27,13 @@ describe('agents-builder integration', () => {
     await mkdir(baseTmp, { recursive: true });
     projectRoot = await mkdtemp(join(baseTmp, 'agents-builder-'));
     // minimal project layout
-    await mkdir(join(projectRoot, 'inputs'), { recursive: true });
+    await mkdir(join(projectRoot, 'config'), { recursive: true });
+    await writeFile(join(projectRoot, 'config', 'package.json'), '{"type":"commonjs"}\n', 'utf8');
     await mkdir(join(projectRoot, 'prompts'), { recursive: true });
     await writeFile(join(projectRoot, 'prompts', 'frontend-developer.md'), '# Frontend Dev\n', 'utf8');
     await writeFile(join(projectRoot, 'prompts', 'backend-developer.md'), '# Backend Dev\n', 'utf8');
     await writeFile(
-      join(projectRoot, 'inputs', 'agents.cjs'),
+      join(projectRoot, 'config', 'agents.js'),
       AGENTS_FIXTURE(join(projectRoot, 'prompts')),
       'utf8',
     );

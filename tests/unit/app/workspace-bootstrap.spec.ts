@@ -13,8 +13,9 @@ const AGENTS_FIXTURE = `module.exports = [
 
 async function createProject(root: string): Promise<string> {
   const projectRoot = join(root, 'project');
-  await mkdir(join(projectRoot, 'inputs'), { recursive: true });
-  await writeFile(join(projectRoot, 'inputs', 'agents.js'), AGENTS_FIXTURE, 'utf8');
+  await mkdir(join(projectRoot, 'config'), { recursive: true });
+  await writeFile(join(projectRoot, 'config', 'package.json'), '{"type":"commonjs"}\n', 'utf8');
+  await writeFile(join(projectRoot, 'config', 'agents.js'), AGENTS_FIXTURE, 'utf8');
   return projectRoot;
 }
 
@@ -67,7 +68,7 @@ describe('bootstrapWorkspace', () => {
     ]);
   });
 
-  it('mirrors inputs/agents.js to JSON and is idempotent', async () => {
+  it('mirrors config/agents.js to JSON and is idempotent', async () => {
     const projectRoot = await createProject(tempDir);
     const desiredCwd = join(tempDir, 'projects', 'sample-app');
 
@@ -82,12 +83,12 @@ describe('bootstrapWorkspace', () => {
     await bootstrapWorkspace({ projectRoot, cwd: desiredCwd });
     const second = await stat(agentsJson);
 
-    // unchanged when inputs/agents.js unchanged
+    // unchanged when config/agents.js unchanged
     expect(second.mtimeMs).toBe(first.mtimeMs);
 
     // Now, change agents.js and expect JSON to refresh
     const UPDATED_AGENTS = `module.exports = [ { id: 'only-one' } ];`;
-    await writeFile(join(projectRoot, 'inputs', 'agents.js'), UPDATED_AGENTS, 'utf8');
+    await writeFile(join(projectRoot, 'config', 'agents.js'), UPDATED_AGENTS, 'utf8');
 
     // ensure filesystem mtime can change on many FS
     await delay(1100);

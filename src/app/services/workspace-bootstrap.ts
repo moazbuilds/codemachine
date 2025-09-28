@@ -4,9 +4,10 @@ import { createRequire } from 'node:module';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { resolveAgentsModulePath } from '../../shared/agents/paths.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const require = createRequire(import.meta.url);
 
 type AgentDefinition = Record<string, unknown>;
@@ -19,10 +20,9 @@ export type WorkspaceBootstrapOptions = {
 function resolveProjectRoot(projectRoot?: string): string {
   if (projectRoot) return projectRoot;
   const cwd = process.cwd();
-  // Prefer current workspace if it contains inputs/agents.*
-  const cwdAgentsJs = path.join(cwd, 'inputs', 'agents.js');
-  const cwdAgentsCjs = path.join(cwd, 'inputs', 'agents.cjs');
-  if (existsSync(cwdAgentsJs) || existsSync(cwdAgentsCjs)) {
+  // Prefer current workspace if it contains config/agents.js
+  const cwdAgents = path.join(cwd, 'config', 'agents.js');
+  if (existsSync(cwdAgents)) {
     return cwd;
   }
   return path.resolve(__dirname, '..', '..', '..');
@@ -33,16 +33,18 @@ function resolveDesiredCwd(explicitCwd?: string): string {
 }
 
 function loadAgents(projectRoot: string): AgentDefinition[] {
-  const cjsPath = path.join(projectRoot, 'inputs', 'agents.cjs');
-  const jsPath = path.join(projectRoot, 'inputs', 'agents.js');
-  const agentsModulePath = existsSync(cjsPath) ? cjsPath : jsPath;
-  // Bust require cache to reflect latest edits
-  try {
-    delete require.cache[require.resolve(agentsModulePath)];
-  } catch {
-    // ignore if resolution fails
+  const modulePath = resolveAgentsModulePath({ projectRoot });
+  if (!modulePath) {
+    return [];
   }
-  const loadedAgents = require(agentsModulePath);
+
+  try {
+    delete require.cache[require.resolve(modulePath)];
+  } catch {
+    // ignore cache miss
+  }
+
+  const loadedAgents = require(modulePath);
   return Array.isArray(loadedAgents) ? (loadedAgents as AgentDefinition[]) : [];
 }
 

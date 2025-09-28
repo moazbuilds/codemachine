@@ -1,6 +1,8 @@
 import { isAbsolute, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+import { resolveAgentsModulePath } from '../../shared/agents/paths.js';
+
 export interface AgentDefinition {
   id: string;
   name: string;
@@ -23,7 +25,12 @@ async function loadAgents(baseDir: string): Promise<AgentDefinition[]> {
 }
 
 async function importAgents(baseDir: string): Promise<AgentDefinition[]> {
-  const modulePath = resolve(baseDir, 'inputs', 'agents.js');
+  const modulePath = resolveAgentsModulePath({ projectRoot: baseDir });
+
+  if (!modulePath) {
+    throw new Error(`Unable to locate config/agents.js for base directory ${resolve(baseDir)}`);
+  }
+
   const moduleUrl = pathToFileURL(modulePath).href;
   const namespace = await import(moduleUrl);
 

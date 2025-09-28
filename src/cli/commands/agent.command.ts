@@ -6,6 +6,7 @@ import type { Command } from 'commander';
 import { runCodex } from '../../infra/codex/codex-runner.js';
 import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
 import { MemoryStore } from '../../agents/memory/memory-store.js';
+import { resolveAgentsModulePath } from '../../shared/agents/paths.js';
 
 type AgentCommandOptions = {
   profile?: string;
@@ -21,8 +22,20 @@ type AgentConfig = {
 const DEFAULT_PROFILE = 'default';
 
 async function loadAgentTemplate(agentId: string): Promise<string> {
+  const lookupBase = process.env.CODEMACHINE_CWD || process.cwd();
+  const agentsPath = resolveAgentsModulePath({ projectRoot: lookupBase });
+
+  if (!agentsPath) {
+    throw new Error('Unable to locate agents configuration. Expected config/agents.js in the project root.');
+  }
+
   const require = createRequire(import.meta.url);
-  const agentsPath = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../../../inputs/agents.js');
+  try {
+    delete require.cache[require.resolve(agentsPath)];
+  } catch {
+    // ignore cache miss
+  }
+
   const agents = require(agentsPath) as AgentConfig[];
   const config = agents.find((a) => a.id === agentId);
   if (!config) {
@@ -44,7 +57,7 @@ export function registerAgentCommand(program: Command): void {
   program
     .command('agent')
     .description('Execute Codex with an agent wrapper')
-    .argument('<id>', 'Agent id from inputs/agents.js')
+    .argument('<id>', 'Agent id from config/agents.js')
     .argument('<prompt...>', 'User request to send to the agent')
     .option('--profile <profile>', 'Codex profile to use', DEFAULT_PROFILE)
     .action(async (id: string, promptParts: string[], options: AgentCommandOptions) => {
@@ -86,4 +99,3 @@ export function registerAgentCommand(program: Command): void {
       });
     });
 }
-

@@ -2,14 +2,16 @@
   "name": "codemachine",
   "version": "0.1.0",
   "description": "CLI coding agent orchestrator with multi-agent task planning.",
-  "private": true,
   "type": "module",
+  "bin": {
+    "codemachine": "./dist/index.js"
+  },
   "engines": {
     "node": ">=20.10.0",
     "npm": ">=9.0.0"
   },
   "scripts": {
-    "build": "tsup src/app/index.ts --format esm,cjs --dts --sourcemap --out-dir dist",
+    "build": "tsup src/app/index.ts --format esm --dts --sourcemap --out-dir dist",
     "dev": "tsx watch src/app/index.ts",
     "start": "pnpm -s build && node dist/index.js start",
     "lint": "eslint --max-warnings=0 \"{src,tests}/**/*.{ts,tsx}\"",

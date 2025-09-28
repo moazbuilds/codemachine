@@ -16,7 +16,7 @@ export type WorkflowStep =
   | {
       type: 'prompt';
       name?: string;
-      agent: string; // profile id from inputs/agents.js
+      agent: string; // profile id from config/agents.js
       promptPath: string; // absolute or relative to project root
     }
   | {

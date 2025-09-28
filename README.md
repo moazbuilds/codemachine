@@ -72,7 +72,7 @@ Tip: Add `--dir <path>` to target a different workspace directory, e.g. `node di
 
 - `agent <id> <prompt...>` [--profile <name>]
   - Executes a single agent request via Codex with memory support.
-  - `id` must match an entry in `inputs/agents.js` (see “Workspace Files” below).
+  - `id` must match an entry in `config/agents.js`.
   - Options:
     - `--profile <name>`: Codex profile to use (default: `default`). Profiles are generated from agents at `~/.codemachine/codex/config.toml`.
   - Example: `node dist/index.js agent frontend-dev "Implement a responsive Button component" --profile frontend-dev`
@@ -90,17 +90,18 @@ Tip: Add `--dir <path>` to target a different workspace directory, e.g. `node di
 
 ## Workspace Files
 On startup the CLI ensures `.codemachine/` exists and mirrors available agents:
-- `.codemachine/agents/agents-config.json`: Synchronized from `inputs/agents.js` or `inputs/agents.cjs`.
+- `.codemachine/agents/agents-config.json`: Synchronized from `config/agents.js`.
 - `.codemachine/inputs/specifications.md`: Created if missing.
 - `.codemachine/plan/`: Planning artifacts (e.g., `plan.md`, `tasks.json`).
 - `.codemachine/memory/`: Memory written by the `agent` command.
 
 Agent definitions live in:
-- `inputs/agents.js` or `inputs/agents.cjs`: Array of agent configs `{ id, name, promptPath, ... }`.
+- `config/agents.js`: Array of agent configs `{ id, name, promptPath, ... }`.
+  - The companion `config/package.json` keeps this directory in CommonJS mode so runtime code can require the module.
   - These also drive profile entries in `~/.codemachine/codex/config.toml`.
 
 ## Environment Variables
-- `CODEMACHINE_CWD`: Working directory for the current CLI session (auto‑set from `--dir`).
+- `CODEMACHINE_CWD`: Working directory for the current CLI session (auto-set from `--dir`).
 - `CODEX_HOME`: Codex config root (default: `~/.codemachine/codex`).
 - `NODE_ENV`: `development` | `test` | `production` (default: `development`).
 - `LOG_LEVEL`: `debug` | `info` | `warn` | `error` (default: `info`).
@@ -116,7 +117,7 @@ See docs for more: `docs/reference/environment.md`.
 ## Troubleshooting
 - Authentication issues: ensure `codex` is on PATH and `CODEX_HOME` is writable. Run `codemachine auth login` again.
 - Codex health failures in `project-manager`: start/verify the Codex API and ensure the local CLI is available. E2E results are saved to `.codemachine/e2e-results.txt`.
-- Agents not found: verify `inputs/agents.js` contains the expected `id` and `promptPath`.
+- Agents not found: verify `config/agents.js` includes the expected `id` and `promptPath`.
 
 ## Additional Docs
 - Architecture: `docs/architecture/README.md`

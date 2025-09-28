@@ -5,8 +5,11 @@ import * as path from 'node:path';
 import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
+import { resolveAgentsModulePath } from '../../shared/agents/paths.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const require = createRequire(import.meta.url);
 
 type AgentDefinition = {
   id: string;
@@ -27,16 +30,14 @@ const AGENT_EFFORT_MAP: Record<string, 'low' | 'medium' | 'high'> = {
   'performance-engineer': 'high'
 };
 
-const require = createRequire(import.meta.url);
-
 function resolveProjectRoot(projectRoot?: string): string {
   if (projectRoot) {
     return projectRoot;
   }
 
-  // Prefer the current working directory if it contains inputs/agents.js
+  // Prefer the current working directory if it contains config/agents.js so local overrides win
   const cwd = process.cwd();
-  const cwdAgents = path.join(cwd, 'inputs', 'agents.js');
+  const cwdAgents = path.join(cwd, 'config', 'agents.js');
   if (existsSync(cwdAgents)) {
     return cwd;
   }
@@ -46,11 +47,19 @@ function resolveProjectRoot(projectRoot?: string): string {
 }
 
 function loadAgents(projectRoot: string): AgentDefinition[] {
-  const cjsPath = path.join(projectRoot, 'inputs', 'agents.cjs');
-  const jsPath = path.join(projectRoot, 'inputs', 'agents.js');
-  const agentsModulePath = existsSync(cjsPath) ? cjsPath : jsPath;
-  const loadedAgents = require(agentsModulePath);
-  return Array.isArray(loadedAgents) ? loadedAgents : [];
+  const modulePath = resolveAgentsModulePath({ projectRoot });
+  if (!modulePath) {
+    return [];
+  }
+
+  try {
+    delete require.cache[require.resolve(modulePath)];
+  } catch {
+    // ignore cache miss
+  }
+
+  const loadedAgents = require(modulePath);
+  return Array.isArray(loadedAgents) ? (loadedAgents as AgentDefinition[]) : [];
 }
 
 async function resolveCodexHome(codexHome?: string): Promise<string> {
@@ -82,7 +91,7 @@ function buildConfigContent(agents: AgentDefinition[]): string {
     });
 
   if (profileSections.length > 0) {
-    lines.push('', '# Profile configurations (dynamically generated from agents.js)');
+    lines.push('', '# Profile configurations (dynamically generated from config/agents.js)');
     for (const section of profileSections) {
       lines.push('', section);
     }

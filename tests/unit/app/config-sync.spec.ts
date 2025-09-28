@@ -13,8 +13,9 @@ const AGENTS_FIXTURE = `module.exports = [
 
 async function createProject(root: string): Promise<string> {
   const projectRoot = join(root, 'project');
-  await mkdir(join(projectRoot, 'inputs'), { recursive: true });
-  await writeFile(join(projectRoot, 'inputs', 'agents.js'), AGENTS_FIXTURE, 'utf8');
+  await mkdir(join(projectRoot, 'config'), { recursive: true });
+  await writeFile(join(projectRoot, 'config', 'package.json'), '{"type":"commonjs"}\n', 'utf8');
+  await writeFile(join(projectRoot, 'config', 'agents.js'), AGENTS_FIXTURE, 'utf8');
   return projectRoot;
 }
 
@@ -43,7 +44,7 @@ describe('syncCodexConfig', () => {
       'model = "gpt-5-codex"',
       'model_reasoning_effort = "high"',
       '',
-      '# Profile configurations (dynamically generated from agents.js)',
+      '# Profile configurations (dynamically generated from config/agents.js)',
       '',
       '[profiles.frontend-dev]',
       'model = "gpt-5-codex"',
