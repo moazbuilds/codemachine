@@ -6,7 +6,7 @@
       "details": "Placeholder task; real tasks parsed from spec.",
       "acceptanceCriteria": "File exists and is non-empty",
       "phase": "Planning",
-      "done": false,
+      "done": true,
       "attempts": 3
     }
   ]
