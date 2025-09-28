@@ -13,11 +13,14 @@ export function resolveAgentsModulePath(options: AgentsModuleLookupOptions = {})
     return undefined;
   }
 
-  const candidate = join(projectRoot, 'config', AGENT_MODULE_FILENAME);
-  if (existsSync(candidate)) {
-    return candidate;
+  const candidateDirs = ['config', join('dist', 'config')];
+
+  for (const dir of candidateDirs) {
+    const candidate = join(projectRoot, dir, AGENT_MODULE_FILENAME);
+    if (existsSync(candidate)) {
+      return candidate;
+    }
   }
 
   return undefined;
 }
-

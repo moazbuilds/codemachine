@@ -10,6 +10,38 @@ import { resolveAgentsModulePath } from '../../shared/agents/paths.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const require = createRequire(import.meta.url);
+const CLI_BUNDLE_DIR = path.resolve(__dirname);
+const CLI_PACKAGE_ROOT = (() => {
+  let current = CLI_BUNDLE_DIR;
+  const limit = 10;
+
+  for (let i = 0; i < limit; i += 1) {
+    const packageJson = path.join(current, 'package.json');
+    if (existsSync(packageJson)) {
+      try {
+        const pkg = require(packageJson);
+        if (pkg?.name === 'codemachine') {
+          return current;
+        }
+      } catch {
+        // Ignore parse/require errors and attempt the parent directory.
+      }
+    }
+
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+
+  return undefined;
+})();
+const CLI_ROOT_CANDIDATES = Array.from(
+  new Set([
+    CLI_BUNDLE_DIR,
+    CLI_PACKAGE_ROOT,
+    CLI_PACKAGE_ROOT ? path.join(CLI_PACKAGE_ROOT, 'dist') : undefined
+  ].filter((root): root is string => Boolean(root)))
+);
 
 type AgentDefinition = {
   id: string;
@@ -37,13 +69,18 @@ function resolveProjectRoot(projectRoot?: string): string {
 
   // Prefer the current working directory if it contains config/agents.js so local overrides win
   const cwd = process.cwd();
-  const cwdAgents = path.join(cwd, 'config', 'agents.js');
-  if (existsSync(cwdAgents)) {
+  if (resolveAgentsModulePath({ projectRoot: cwd })) {
     return cwd;
   }
 
-  // Fallback to repo root relative to compiled file location
-  return path.resolve(__dirname, '..', '..', '..');
+  // Fallback to the CLI install roots if no local config is present.
+  for (const root of CLI_ROOT_CANDIDATES) {
+    if (resolveAgentsModulePath({ projectRoot: root })) {
+      return root;
+    }
+  }
+
+  return CLI_ROOT_CANDIDATES[0];
 }
 
 function loadAgents(projectRoot: string): AgentDefinition[] {

@@ -9,7 +9,45 @@ import { resolveAgentsModulePath } from '../../shared/agents/paths.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const require = createRequire(import.meta.url);
-const CLI_INSTALL_ROOT = path.resolve(__dirname, '..', '..', '..');
+const CLI_BUNDLE_DIR = path.resolve(__dirname);
+const CLI_PACKAGE_ROOT = (() => {
+  let current = CLI_BUNDLE_DIR;
+  const limit = 10;
+
+  for (let i = 0; i < limit; i += 1) {
+    const packageJson = path.join(current, 'package.json');
+    if (existsSync(packageJson)) {
+      try {
+        const pkg = require(packageJson);
+        if (pkg?.name === 'codemachine') {
+          return current;
+        }
+      } catch {
+        // fall through to climb one level higher
+      }
+    }
+
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+
+  return undefined;
+})();
+const CLI_ROOT_CANDIDATES = Array.from(
+  new Set([
+    CLI_BUNDLE_DIR,
+    CLI_PACKAGE_ROOT,
+    CLI_PACKAGE_ROOT ? path.join(CLI_PACKAGE_ROOT, 'dist') : undefined
+  ].filter((root): root is string => Boolean(root)))
+);
+const SHOULD_DEBUG_BOOTSTRAP = process.env.CODEMACHINE_DEBUG_BOOTSTRAP === '1';
+
+function debugLog(...args: unknown[]): void {
+  if (SHOULD_DEBUG_BOOTSTRAP) {
+    console.debug('[workspace-bootstrap]', ...args);
+  }
+}
 
 type AgentDefinition = Record<string, unknown>;
 
@@ -18,32 +56,15 @@ export type WorkspaceBootstrapOptions = {
   cwd?: string; // target working directory for this run
 };
 
-function resolveProjectRoot(projectRoot: string | undefined, workspaceRoot: string): string {
-  if (projectRoot) {
-    return projectRoot;
-  }
-
-  const workspaceAgents = path.join(workspaceRoot, 'config', 'agents.js');
-  if (existsSync(workspaceAgents)) {
-    return workspaceRoot;
-  }
-
-  const cliAgents = path.join(CLI_INSTALL_ROOT, 'config', 'agents.js');
-  if (existsSync(cliAgents)) {
-    return CLI_INSTALL_ROOT;
-  }
-
-  return workspaceRoot;
-}
-
 function resolveDesiredCwd(explicitCwd?: string): string {
   return explicitCwd ?? process.env.CODEMACHINE_CWD ?? process.cwd();
 }
 
-function loadAgents(projectRoot: string): AgentDefinition[] {
-  const modulePath = resolveAgentsModulePath({ projectRoot });
+function tryLoadAgentsFromRoot(root: string): AgentDefinition[] | undefined {
+  const modulePath = resolveAgentsModulePath({ projectRoot: root });
   if (!modulePath) {
-    return [];
+    debugLog('No agents module found', { root });
+    return undefined;
   }
 
   try {
@@ -52,8 +73,20 @@ function loadAgents(projectRoot: string): AgentDefinition[] {
     // ignore cache miss
   }
 
+  debugLog('Loading agents module', { root, modulePath });
   const loadedAgents = require(modulePath);
   return Array.isArray(loadedAgents) ? (loadedAgents as AgentDefinition[]) : [];
+}
+
+function loadAgents(candidateRoots: string[]): AgentDefinition[] {
+  for (const root of candidateRoots) {
+    const agents = tryLoadAgentsFromRoot(root);
+    if (agents !== undefined) {
+      return agents;
+    }
+  }
+
+  return [];
 }
 
 async function ensureDir(dirPath: string): Promise<void> {
@@ -96,10 +129,17 @@ async function mirrorAgentsToJson(agentsDir: string, agents: AgentDefinition[]):
  */
 export async function bootstrapWorkspace(options?: WorkspaceBootstrapOptions): Promise<void> {
   const desiredCwd = resolveDesiredCwd(options?.cwd);
-  const projectRoot = resolveProjectRoot(options?.projectRoot, desiredCwd);
 
   // Prepare workspace-rooted scaffolding directory tree.
   const workspaceRoot = desiredCwd;
+
+  const agentRoots = Array.from(
+    new Set([
+      options?.projectRoot,
+      workspaceRoot,
+      ...CLI_ROOT_CANDIDATES
+    ].filter((root): root is string => Boolean(root)))
+  );
 
   // Ensure the working directory exists and use it for this process.
   await ensureDir(desiredCwd);
@@ -128,6 +168,7 @@ export async function bootstrapWorkspace(options?: WorkspaceBootstrapOptions): P
   await ensureSpecificationsTemplate(inputsDir);
 
   // Load agents and mirror to JSON.
-  const agents = loadAgents(projectRoot);
+  const agents = loadAgents(agentRoots);
+  debugLog('Mirroring agents', { agentRoots, agentCount: agents.length });
   await mirrorAgentsToJson(agentsDir, agents);
 }
