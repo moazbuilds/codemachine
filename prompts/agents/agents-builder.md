@@ -58,27 +58,33 @@ The PM (You) **SHALL** execute the following sequence:
    * Read `.codemachine/inputs/specifications.md` and extract: goals, constraints, tech stack preferences, deliverables, timelines, and acceptance criteria.
    * Read `.codemachine/agents/agents-config.json`, enumerate all agents, capture, roles, capability tags, and any declared `promptPath`.
 
-2. **Map Roles to Needs**
+2. **Check Existing Agents (MUST)**
+
+   * The PM (You) **MUST** verify if all agent prompt files already exist and are complete.
+   * If **ALL** agents from `agents-config.json` have corresponding prompt files with all mandatory sections (§6), the PM (You) **MUST** output "SKIP" and terminate the task.
+   * This check **MUST** occur before any file generation to avoid unnecessary work.
+
+3. **Map Roles to Needs**
 
    * For each agent, the PM (You) **MUST** align responsibilities to project needs.
    * If overlapping responsibilities arise, the PM (You) **SHOULD** disambiguate via explicit ownership and interfaces (§6.9).
 
-3. **Author Prompts**
+4. **Author Prompts**
 
    * For each agent, the PM (You) **MUST** author a complete prompt per §6, grounded in project requirements.
 
-4. **Write Files**
+5. **Write Files**
 
    * The PM (You) **MUST** write each prompt to the exact path defined in `agents-config.json`; otherwise, default to `.codemachine/agents/<agentId>.md`.
 
-5. **Validate**
+6. **Validate**
 
    * The PM (You) **MUST** verify that:
      a) A prompt exists for every agent;
      b) Each file contains all mandatory sections (§6);
      c) Cross-agent interfaces are named and consistent (§7).
 
-6. **Report**
+7. **Report**
 
    * The PM (You) **SHOULD** output a validation summary (see §3.2).
 

@@ -109,7 +109,10 @@ IF any checkpoint fails THEN output **MUST NOT** be generated
 ## §6 EXECUTION SEQUENCE
 
 1. **Parse** → Extract requirements, identify deliverables
-2. **Map** → Assign deliverables to phases
+2. **Check Existing Tasks** → **MUST** verify if `.codemachine/plan/tasks.json` already exists and contains all needed tasks
+   - IF tasks.json exists AND contains complete task breakdown with all phases (Planning, Building, Testing, Runtime) AND all tasks have proper structure per §2.2 THEN output "SKIP" and terminate
+   - This check **MUST** occur before any task generation to avoid unnecessary work
+3. **Map** → Assign deliverables to phases
 4. **Detail** → Write executor-grade instructions per §3.1
 5. **Validate** → Check all points in §5.1-5.2
 6. **Output** → Generate `.codemachine/plan/tasks.json`

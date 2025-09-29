@@ -19,7 +19,7 @@ const workflow = {
       type: 'module',
       agentId: 'tasks-generator',
       agentName: 'Tasks Generator',
-      promptPath: path.join(promptsDir, 'tasks-generator'),
+      promptPath: path.join(promptsDir, 'tasks-generator.md'),
       model: 'gpt-5-codex',
       modelReasoningEffort: 'high',
     },
