@@ -4,6 +4,7 @@ import { existsSync, readdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import prompts from 'prompts';
 import { loadWorkflowModule, isWorkflowTemplate } from '../../core/workflows/manager/template-loader.js';
+import type { WorkflowTemplate } from '../../core/workflows/manager/types.js';
 
 const packageRoot = (() => {
   const moduleDir = path.dirname(fileURLToPath(import.meta.url));
@@ -18,6 +19,10 @@ const packageRoot = (() => {
 
 const templatesDir = path.resolve(packageRoot, 'templates', 'workflows');
 const settingsPath = path.resolve(packageRoot, 'config', 'settings.js');
+
+export function printAvailableWorkflowTemplatesHeading(): void {
+  console.log('\nAvailable workflow templates:\n');
+}
 
 interface TemplateChoice {
   title: string;
@@ -49,6 +54,20 @@ function updateSettingsFile(templateFileName: string): void {
     console.log(`\nPlease manually update your config/settings.js with:`);
     console.log(`  workflow: { template: '${templateFileName}' }`);
   }
+}
+
+function handleTemplateSelectionSuccess(template: WorkflowTemplate, templateFilePath: string): void {
+  const templateFileName = path.basename(templateFilePath);
+
+  console.log(`\nSelected: ${template.name}`);
+  console.log(`Template path: ${path.relative(process.cwd(), templateFilePath)}`);
+  console.log(`\nSteps:`);
+
+  template.steps.forEach((step, index) => {
+    console.log(`  ${index + 1}. ${step.agentName} [${step.agentId}]`);
+  });
+
+  updateSettingsFile(templateFileName);
 }
 
 export async function getAvailableTemplates(): Promise<TemplateChoice[]> {
@@ -98,17 +117,7 @@ export async function selectTemplateByNumber(templateNumber: number): Promise<vo
     const template = await loadWorkflowModule(selectedTemplate.value);
 
     if (isWorkflowTemplate(template)) {
-      const templateFileName = path.basename(selectedTemplate.value);
-
-      console.log(`\nSelected: ${template.name}`);
-      console.log(`Template path: ${path.relative(process.cwd(), selectedTemplate.value)}`);
-      console.log(`\nSteps:`);
-      template.steps.forEach((step, index) => {
-        console.log(`  ${index + 1}. ${step.agentName} [${step.agentId}]`);
-      });
-
-      // Automatically update settings.js
-      updateSettingsFile(templateFileName);
+      handleTemplateSelectionSuccess(template, selectedTemplate.value);
     }
   } catch (error) {
     console.error('Error selecting template:', error instanceof Error ? error.message : String(error));
@@ -124,7 +133,7 @@ export async function runTemplatesCommand(inSession: boolean = false): Promise<v
       return;
     }
 
-    console.log('\nAvailable workflow templates:\n');
+    printAvailableWorkflowTemplatesHeading();
 
     const response = await prompts({
       type: 'select',
@@ -137,17 +146,7 @@ export async function runTemplatesCommand(inSession: boolean = false): Promise<v
     if (response.selectedTemplate) {
       const template = await loadWorkflowModule(response.selectedTemplate);
       if (isWorkflowTemplate(template)) {
-        const templateFileName = path.basename(response.selectedTemplate);
-
-        console.log(`\nSelected: ${template.name}`);
-        console.log(`Template path: ${path.relative(process.cwd(), response.selectedTemplate)}`);
-        console.log(`\nSteps:`);
-        template.steps.forEach((step, index) => {
-        console.log(`  ${index + 1}. ${step.agentName} [${step.agentId}]`);
-        });
-
-        // Automatically update settings.js
-        updateSettingsFile(templateFileName);
+        handleTemplateSelectionSuccess(template, response.selectedTemplate);
       }
     } else {
       console.log('No template selected.');

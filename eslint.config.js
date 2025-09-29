@@ -23,6 +23,7 @@ export default tseslint.config(
         typescript: {
           project: ['./tsconfig.json', './tests/tsconfig.json'],
           alwaysTryTypes: true,
+          noWarnOnMultipleProjects: true,
         },
         node: {
           extensions: ['.js', '.jsx', '.ts', '.tsx'],

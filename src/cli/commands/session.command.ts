@@ -8,7 +8,7 @@ import { ensureAuth, clearAuth } from '../../app/services/auth-status.js';
 import { renderMainMenu } from '../presentation/main-menu.js';
 import { SESSION_INSTRUCTION } from '../presentation/onboarding.js';
 import { runWorkflowQueue } from '../../core/workflows/queue-runner.js';
-import { selectTemplateByNumber, getAvailableTemplates } from './templates.command.js';
+import { selectTemplateByNumber, getAvailableTemplates, printAvailableWorkflowTemplatesHeading } from './templates.command.js';
 
 const DEFAULT_SPEC_PATH = '.codemachine/inputs/specifications.md';
 
@@ -67,7 +67,6 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
 
   let waitingForTemplateSelection = false;
   let templateSelectionIndex = 0;
-  const _availableTemplates: unknown[] = [];
 
   // Custom function to handle template selection with arrow keys
   const handleTemplateSelection = async (): Promise<void> => {
@@ -77,16 +76,14 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
       return;
     }
 
-    _availableTemplates.length = 0;
-    _availableTemplates.push(...templates);
     templateSelectionIndex = 0;
     waitingForTemplateSelection = true;
 
-    console.log('\nAvailable workflow templates:\n');
+    printAvailableWorkflowTemplatesHeading();
 
     const displayTemplates = () => {
       console.clear();
-      console.log('\nAvailable workflow templates:\n');
+      printAvailableWorkflowTemplatesHeading();
       templates.forEach((template, index) => {
         const prefix = index === templateSelectionIndex ? '❯ ' : '  ';
         const style = index === templateSelectionIndex ? '\x1b[36m\x1b[4m' : '';
