@@ -19,14 +19,12 @@ type AgentConfig = {
   promptPath: string;
 };
 
-const DEFAULT_PROFILE = 'default';
-
 async function loadAgentTemplate(agentId: string): Promise<string> {
   const lookupBase = process.env.CODEMACHINE_CWD || process.cwd();
   const agentsPath = resolveAgentsModulePath({ projectRoot: lookupBase });
 
   if (!agentsPath) {
-    throw new Error('Unable to locate agents configuration. Expected config/agents.js in the project root.');
+    throw new Error('Unable to locate agents configuration. Expected config/agents.js or .codemachine/agents/agents-config.json in the project root.');
   }
 
   const require = createRequire(import.meta.url);
@@ -41,7 +39,10 @@ async function loadAgentTemplate(agentId: string): Promise<string> {
   if (!config) {
     throw new Error(`Unknown agent id: ${agentId}`);
   }
-  const content = await fs.readFile(config.promptPath, 'utf-8');
+
+  const promptBase = path.dirname(agentsPath);
+  const promptPath = path.isAbsolute(config.promptPath) ? config.promptPath : path.resolve(promptBase, config.promptPath);
+  const content = await fs.readFile(promptPath, 'utf-8');
   return content;
 }
 
@@ -59,9 +60,9 @@ export function registerAgentCommand(program: Command): void {
     .description('Execute Codex with an agent wrapper')
     .argument('<id>', 'Agent id from config/agents.js')
     .argument('<prompt...>', 'User request to send to the agent')
-    .option('--profile <profile>', 'Codex profile to use', DEFAULT_PROFILE)
+    .option('--profile <profile>', 'Codex profile to use (defaults to the agent id)')
     .action(async (id: string, promptParts: string[], options: AgentCommandOptions) => {
-      const profile = options.profile ?? DEFAULT_PROFILE;
+      const profile = options.profile ?? id;
       const prompt = promptParts.join(' ').trim();
       if (!prompt) {
         throw new Error('Prompt is required');

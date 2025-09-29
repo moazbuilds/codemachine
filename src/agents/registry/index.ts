@@ -1,5 +1,6 @@
-import { isAbsolute, resolve } from 'node:path';
+import { isAbsolute, resolve, extname, dirname } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { readFile } from 'node:fs/promises';
 
 import { resolveAgentsModulePath } from '../../shared/agents/paths.js';
 
@@ -28,19 +29,26 @@ async function importAgents(baseDir: string): Promise<AgentDefinition[]> {
   const modulePath = resolveAgentsModulePath({ projectRoot: baseDir });
 
   if (!modulePath) {
-    throw new Error(`Unable to locate config/agents.js for base directory ${resolve(baseDir)}`);
+    throw new Error(`Unable to locate agent configuration for base directory ${resolve(baseDir)}`);
   }
 
-  const moduleUrl = pathToFileURL(modulePath).href;
-  const namespace = await import(moduleUrl);
+  const promptBaseDir = modulePath.endsWith('.json') ? dirname(modulePath) : baseDir;
+  let exported: unknown;
 
-  const exported = (namespace as { default?: unknown }).default ?? (namespace as unknown);
+  if (extname(modulePath) === '.json') {
+    const contents = await readFile(modulePath, 'utf8');
+    exported = JSON.parse(contents) as unknown;
+  } else {
+    const moduleUrl = pathToFileURL(modulePath).href;
+    const namespace = await import(moduleUrl);
+    exported = (namespace as { default?: unknown }).default ?? (namespace as unknown);
+  }
 
   if (!Array.isArray(exported)) {
-    throw new TypeError(`Expected agents module at ${modulePath} to export an array`);
+    throw new TypeError(`Expected agents configuration at ${modulePath} to provide an array`);
   }
 
-  const agents = exported.map((raw, index) => normalizeAgent(raw, index, baseDir));
+  const agents = exported.map((raw, index) => normalizeAgent(raw, index, promptBaseDir));
   return agents.map((agent) => ({ ...agent }));
 }
 

@@ -1,10 +1,8 @@
 import * as path from 'node:path';
 import * as fs from 'node:fs/promises';
 import type { Command } from 'commander';
-import { createKeyboardController } from '../controllers/keyboard-controls.js';
 
-import { runTaskManager, generateSummary } from '../../core/workflows/workflow-manager.js';
-import { retry } from '../../agents/runtime/retry.js';
+import { resolveTasksPath, generateSummary } from '../../core/workflows/workflow-manager.js';
 import { end } from '../../agents/runtime/end.js';
 
 type PMOptions = {
@@ -30,28 +28,6 @@ async function loadTasks(tasksPath: string): Promise<{ tasks: { done?: boolean }
 async function _allTasksDone(tasksPath: string): Promise<boolean> {
   const { tasks } = await loadTasks(tasksPath);
   return tasks.every((t) => t.done === true);
-}
-
-async function checkCodexHealth(cwd: string): Promise<boolean> {
-  // Allow bypass in CI/tests
-  if (process.env.SKIP_CODEX_HEALTH === '1') return true;
-  try {
-    const { spawn } = await import('node:child_process');
-
-    // Try 'codex health' first, then fall back to '--version'
-    const tryCmd = (cmd: string, args: string[]) =>
-      new Promise<boolean>((resolve) => {
-        const child = spawn(cmd, args, { cwd, stdio: ['ignore', 'ignore', 'ignore'] });
-        child.on('close', (code: number) => resolve(code === 0));
-        child.on('error', () => resolve(false));
-      });
-
-    if (await tryCmd('codex', ['health'])) return true;
-    if (await tryCmd('codex', ['--version'])) return true;
-    return false;
-  } catch {
-    return false;
-  }
 }
 
 async function runE2E(cwd: string): Promise<{ ok: boolean; output: string }> {
@@ -80,23 +56,27 @@ export function registerProjectManagerCommand(program: Command): void {
   program
     .command('project-manager')
     .alias('pm')
-    .description('RFC-2119-compliant Project Manager & Scrum Master orchestration')
-    .option('--parallel', 'Allow parallel execution when dependencies permit', false)
+    .description('Project summary generation and validation')
+    .option('--parallel', 'Legacy flag (no longer used)', false)
     .option('--plain', 'Render plain logs (strip ANSI/padding)', false)
     .option('--tasks <path>', 'Override tasks.json path (relative to cwd)')
-    .option('--logs <path>', 'Override logs file path (default .codemachine/logs.jsonl)')
+    .option('--logs <path>', 'Legacy logs path option (no longer used)')
     .action(async (options: PMOptions & { plain?: boolean }) => {
       const cwd = process.cwd();
-      const tasksPath = options.tasks
-        ? path.resolve(cwd, options.tasks)
-        : (await fileExists(path.resolve(cwd, '.codemachine', 'plan', 'tasks.json')))
-          ? path.resolve(cwd, '.codemachine', 'plan', 'tasks.json')
-          : path.resolve(cwd, '.codemachine', 'tasks.json');
-      const logsPath = options.logs ?? undefined;
+      const overrideTasks = options.tasks ? path.resolve(cwd, options.tasks) : undefined;
+      const tasksPath = await resolveTasksPath(cwd, overrideTasks);
 
       // Plain logs mode: helpful when terminals render padding oddly
       if (options.plain) {
         process.env.CODEMACHINE_PLAIN_LOGS = '1';
+      }
+
+      if (options.parallel) {
+        console.warn('Note: --parallel is no longer used. Agents now orchestrate task execution.');
+      }
+
+      if (options.logs) {
+        console.warn('Note: --logs is deprecated and ignored.');
       }
 
       // Required inputs (access checks)
@@ -119,65 +99,20 @@ export function registerProjectManagerCommand(program: Command): void {
         }
       }
 
-      // Preflight: ensure Codex API is reachable to avoid infinite loops
-      const healthy = await checkCodexHealth(cwd);
-      if (!healthy) {
-        console.error('Codex API health check failed. Ensure the API server is running and CODEX_API_URL is set if needed.');
-        process.exitCode = 1;
-        return;
-      }
+      if (!tasksPath) {
+        console.warn('No tasks file found. Skipping project summary and completion banner.');
+      } else if (!(await fileExists(tasksPath))) {
+        console.warn(`Tasks file not found at ${path.relative(cwd, tasksPath)}. Skipping summary generation.`);
+      } else {
+        await generateSummary(tasksPath, path.resolve(cwd, '.codemachine', 'project-summary.md'));
 
-      // Keyboard shortcuts: first Ctrl+C aborts current run; second exits
-      const kb = createKeyboardController();
-      const controller = new AbortController();
-      const handleInterrupt = () => {
-        if (!controller.signal.aborted) {
-          console.log('\nInterrupted — stopping current Codex run. Press Ctrl+C again to exit.');
-          controller.abort();
-        } else {
-          // Second interrupt => exit immediately with 130
-          try { kb.stop(); } catch {
-            // Ignore keyboard stop errors
-          }
-          process.exit(130);
+        if (!(await _allTasksDone(tasksPath))) {
+          console.warn('Tasks remain incomplete. Ensure agents finish their work before final validation.');
         }
-      };
-      kb.on('interrupt', handleInterrupt);
-      kb.on('exit', () => {
-        try { kb.stop(); } catch {
-          // Ignore keyboard stop errors
-        }
-        process.exit(130);
-      });
-      kb.start();
 
-      process.once('SIGINT', handleInterrupt);
-
-      // Orchestration with runtime agents: retry until done, guided by Master Mind
-      let shouldContinue = true;
-      while (shouldContinue) {
-        shouldContinue = await retry({
-          tasksPath,
-          logsPath,
-          orchestrate: async ({ tasksPath, logsPath }) => {
-            await runTaskManager({
-              cwd,
-              tasksPath,
-              logsPath,
-              parallel: Boolean(options.parallel),
-              abortSignal: controller.signal,
-            });
-            await generateSummary(tasksPath, path.resolve(cwd, '.codemachine', 'project-summary.md'));
-          },
-        });
-
-        // If aborted, stop looping
-        if (controller.signal.aborted) break;
+        const banner = await end({ tasksPath });
+        if (banner && banner.trim().length > 0) console.log(banner);
       }
-
-      // Confirm completion banner from End agent
-      const banner = await end({ tasksPath });
-      if (banner && banner.trim().length > 0) console.log(banner);
 
       // Run end-to-end validation
       console.log('Running end-to-end validation...');
@@ -197,9 +132,6 @@ export function registerProjectManagerCommand(program: Command): void {
         console.warn('End-to-end validation reported issues. See e2e-results.txt');
       } else {
         console.log('All tasks done and end-to-end tests passed.');
-      }
-      try { kb.stop(); } catch {
-        // Ignore keyboard stop errors
       }
     });
 }

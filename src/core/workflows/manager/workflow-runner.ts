@@ -1,5 +1,5 @@
 import * as path from 'node:path';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 
 import { end } from '../../../agents/runtime/end.js';
 import type { RunWorkflowOptions } from './types.js';
@@ -8,7 +8,53 @@ import { runCodexPrompt } from './agent-execution.js';
 import { syncCodexConfig } from '../../../app/services/config-sync.js';
 import { ensureProjectScaffold } from './workspace-prep.js';
 import { validateSpecification } from './validation.js';
-import { runTaskManager, resolveTasksPath, generateSummary } from './task-manager.js';
+const TASKS_PRIMARY_PATH = path.join('.codemachine', 'plan', 'tasks.json');
+const TASKS_FALLBACK_PATH = path.join('.codemachine', 'tasks.json');
+
+export async function resolveTasksPath(cwd: string, override?: string): Promise<string | null> {
+  if (override) return path.resolve(cwd, override);
+  const candidates = [TASKS_PRIMARY_PATH, TASKS_FALLBACK_PATH].map((p) => path.resolve(cwd, p));
+  for (const candidate of candidates) {
+    try {
+      await access(candidate);
+      return candidate;
+    } catch {
+      // ignore missing candidate
+    }
+  }
+  return null;
+}
+
+interface TaskRecord {
+  id?: string;
+  name?: string;
+  done?: boolean;
+  [key: string]: unknown;
+}
+
+export async function generateSummary(tasksPath: string, outputPath: string): Promise<void> {
+  const contents = await readFile(tasksPath, 'utf8');
+  const parsed = JSON.parse(contents) as { tasks?: TaskRecord[] };
+  const tasks = Array.isArray(parsed.tasks) ? parsed.tasks : [];
+  const completed = tasks.filter((t) => t.done === true);
+  const remaining = tasks.filter((t) => t.done !== true);
+
+  const lines: string[] = [];
+  lines.push('# Project Summary');
+  lines.push('');
+  lines.push(`- Completed: ${completed.length}`);
+  lines.push(`- Remaining: ${remaining.length}`);
+  lines.push('');
+  lines.push('## Completed Tasks');
+  lines.push(...(completed.length ? completed.map((t) => `- [x] ${t.id ?? ''}: ${t.name ?? ''}`) : ['- None']));
+  lines.push('');
+  lines.push('## Remaining Tasks');
+  lines.push(...(remaining.length ? remaining.map((t) => `- [ ] ${t.id ?? ''}: ${t.name ?? ''}`) : ['- None']));
+  lines.push('');
+
+  await mkdir(path.dirname(outputPath), { recursive: true });
+  await writeFile(outputPath, lines.join('\n'), 'utf8');
+}
 
 async function runE2E(cwd: string): Promise<{ ok: boolean; output: string }> {
   const { spawn } = await import('node:child_process');
@@ -47,11 +93,12 @@ async function runPlanningStep(cwd: string, options: RunWorkflowOptions): Promis
 
 async function runProjectManagerStep(cwd: string): Promise<void> {
   const tasksPath = await resolveTasksPath(cwd);
-  await runTaskManager({ cwd, tasksPath });
-  await generateSummary(tasksPath, path.resolve(cwd, '.codemachine', 'project-summary.md'));
+  if (tasksPath) {
+    await generateSummary(tasksPath, path.resolve(cwd, '.codemachine', 'project-summary.md'));
 
-  const banner = await end({ tasksPath });
-  if (banner && banner.trim()) console.log(banner);
+    const banner = await end({ tasksPath });
+    if (banner && banner.trim()) console.log(banner);
+  }
 
   try {
     const e2e = await runE2E(cwd);
