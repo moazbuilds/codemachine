@@ -77,7 +77,8 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
       return;
     }
 
-    availableTemplates = templates;
+    _availableTemplates.length = 0;
+    _availableTemplates.push(...templates);
     templateSelectionIndex = 0;
     waitingForTemplateSelection = true;
 
