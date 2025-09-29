@@ -15,7 +15,7 @@ async function createProject(root: string): Promise<string> {
   const projectRoot = join(root, 'project');
   await mkdir(join(projectRoot, 'config'), { recursive: true });
   await writeFile(join(projectRoot, 'config', 'package.json'), '{"type":"commonjs"}\n', 'utf8');
-  await writeFile(join(projectRoot, 'config', 'agents.js'), AGENTS_FIXTURE, 'utf8');
+  await writeFile(join(projectRoot, 'config', 'sub.agents.js'), AGENTS_FIXTURE, 'utf8');
   return projectRoot;
 }
 
@@ -41,7 +41,7 @@ describe('syncCodexConfig', () => {
 
     expect(content).toContain('# Model configuration');
     expect(content).toContain('model = "gpt-5-codex"');
-    expect(content).toContain('# Profile configurations (dynamically generated from config/agents.js)');
+    expect(content).toContain('# Profile configurations (dynamically generated from workflow templates and agent catalogs)');
     expect(content).toMatch(/\[profiles\.frontend-dev][\s\S]*model_reasoning_effort = "medium"/);
     expect(content).toMatch(/\[profiles\.custom-agent][\s\S]*model_reasoning_effort = "medium"/);
     expect(content).toMatch(/\[profiles\.project-manager][\s\S]*model_reasoning_effort = "high"/);

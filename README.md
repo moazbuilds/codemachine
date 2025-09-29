@@ -72,21 +72,22 @@ Tip: Add `--dir <path>` to target a different workspace directory, e.g. `node di
 
 - `agent <id> <prompt...>` [--profile <name>]
   - Executes a single agent request via Codex with memory support.
-  - `id` must match an entry in `config/agents.js`.
+  - `id` must match an entry in `config/sub.agents.js` or `config/main.agents.js`.
   - Options:
     - `--profile <name>`: Codex profile to use (default: `default`). Profiles are generated from agents at `~/.codemachine/codex/config.toml`.
   - Example: `node dist/index.js agent frontend-dev "Implement a responsive Button component" --profile frontend-dev`
 
 ## Workspace Files
 On startup the CLI ensures `.codemachine/` exists and mirrors available agents:
-- `.codemachine/agents/agents-config.json`: Synchronized from `config/agents.js`.
+- `.codemachine/agents/agents-config.json`: Synchronized from `config/main.agents.js` and `config/sub.agents.js`.
 - `.codemachine/inputs/specifications.md`: Created if missing.
 - `.codemachine/plan/`: Planning artifacts (e.g., `plan.md`, `tasks.json`).
 - `.codemachine/memory/`: Memory written by the `agent` command.
 
 Agent definitions live in:
-- `config/agents.js`: Array of agent configs `{ id, name, promptPath, ... }`.
-  - The companion `config/package.json` keeps this directory in CommonJS mode so runtime code can require the module.
+- `config/main.agents.js`: Primary workflow agents `{ id, name, promptPath, ... }` consumed by workflow templates.
+- `config/sub.agents.js`: Specialized agents `{ id, name, promptPath, model, modelReasoningEffort, ... }` surfaced for direct selection.
+  - The companion `config/package.json` keeps this directory in CommonJS mode so runtime code can require the modules.
   - These also drive profile entries in `~/.codemachine/codex/config.toml`.
 
 ## Environment Variables
@@ -105,7 +106,7 @@ See docs for more: `docs/reference/environment.md`.
 
 ## Troubleshooting
 - Authentication issues: ensure `codex` is on PATH and `CODEX_HOME` is writable. Run `codemachine auth login` again.
-- Agents not found: verify `config/agents.js` includes the expected `id` and `promptPath`.
+- Agents not found: verify `config/sub.agents.js` (or `config/main.agents.js`) includes the expected `id` and `promptPath`.
 
 ## Additional Docs
 - Architecture: `docs/architecture/README.md`

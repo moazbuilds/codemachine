@@ -1,18 +1,28 @@
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
-const dirname = path.dirname(fileURLToPath(import.meta.url));
-const promptsDir = path.resolve(dirname, '..', '..', 'prompts', 'agents');
+const require = createRequire(import.meta.url);
+const mainAgents = require('../../config/main.agents.js');
+
+function resolveStep(id, overrides = {}) {
+  const agent = mainAgents.find((entry) => entry?.id === id);
+  if (!agent) {
+    throw new Error(`Unknown main agent: ${id}`);
+  }
+
+  return {
+    type: 'module',
+    agentId: agent.id,
+    agentName: overrides.agentName ?? agent.name,
+    promptPath: overrides.promptPath ?? agent.promptPath,
+    model: overrides.model ?? agent.model,
+    modelReasoningEffort: overrides.modelReasoningEffort ?? agent.modelReasoningEffort,
+  };
+}
 
 const workflow = {
   name: 'Quick Development',
   steps: [
-    {
-      type: 'module',
-      agentId: 'master-mind',
-      agentName: 'Project Manager',
-      promptPath: path.join(promptsDir, 'master-mind.md'),
-    },
+    resolveStep('master-mind', { agentName: 'Project Manager' }),
   ],
 };
 

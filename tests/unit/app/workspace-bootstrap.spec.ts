@@ -14,11 +14,43 @@ const AGENTS_FIXTURE = `module.exports = [
   { id: 'custom-agent', name: 'Custom Agent' }
 ];`;
 
+function loadAgents(modulePath: string): Array<{ id: string }> {
+  try {
+    delete require.cache[require.resolve(modulePath)];
+  } catch {
+    // ignore cache miss for freshly created modules
+  }
+
+  const loaded = require(modulePath);
+  return Array.isArray(loaded) ? loaded : [];
+}
+
+function buildExpectedOrder(...agentLists: Array<Array<{ id: string }>>): string[] {
+  const order: string[] = [];
+  const seen = new Set<string>();
+
+  for (const list of agentLists) {
+    for (const agent of list) {
+      if (!agent || typeof agent.id !== 'string') {
+        continue;
+      }
+      const id = agent.id;
+      if (seen.has(id)) {
+        continue;
+      }
+      seen.add(id);
+      order.push(id);
+    }
+  }
+
+  return order;
+}
+
 async function createProject(root: string): Promise<string> {
   const projectRoot = join(root, 'project');
   await mkdir(join(projectRoot, 'config'), { recursive: true });
   await writeFile(join(projectRoot, 'config', 'package.json'), '{"type":"commonjs"}\n', 'utf8');
-  await writeFile(join(projectRoot, 'config', 'agents.js'), AGENTS_FIXTURE, 'utf8');
+  await writeFile(join(projectRoot, 'config', 'sub.agents.js'), AGENTS_FIXTURE, 'utf8');
   return projectRoot;
 }
 
@@ -67,7 +99,12 @@ describe('bootstrapWorkspace', () => {
     const agentsContent = await readFile(agentsJson, 'utf8');
     const parsed = JSON.parse(agentsContent) as Array<{ id: string; name?: string; promptPath: string }>;
     expect(Array.isArray(parsed)).toBe(true);
-    expect(parsed.map((a) => a.id)).toEqual(['frontend-dev', 'custom-agent']);
+
+    const projectAgents = loadAgents(join(projectRoot, 'config', 'sub.agents.js'));
+    const cliSubAgents = loadAgents('../../../config/sub.agents.js');
+    const expectedIds = buildExpectedOrder(projectAgents, cliSubAgents);
+
+    expect(parsed.map((a) => a.id)).toEqual(expectedIds);
     expect(parsed[0].promptPath).toBe('frontend-dev.md');
     expect(parsed[1].promptPath).toBe('custom-agent.md');
     await Promise.all(
@@ -75,7 +112,7 @@ describe('bootstrapWorkspace', () => {
     );
   });
 
-  it('mirrors config/agents.js to JSON and is idempotent', async () => {
+  it('mirrors config/sub.agents.js to JSON and is idempotent', async () => {
     const projectRoot = await createProject(tempDir);
     const desiredCwd = join(tempDir, 'projects', 'sample-app');
 
@@ -90,12 +127,12 @@ describe('bootstrapWorkspace', () => {
     await bootstrapWorkspace({ projectRoot, cwd: desiredCwd });
     const second = await stat(agentsJson);
 
-    // unchanged when config/agents.js unchanged
+    // unchanged when config/sub.agents.js unchanged
     expect(second.mtimeMs).toBe(first.mtimeMs);
 
-    // Now, change agents.js and expect JSON to refresh
+    // Now, change sub.agents.js and expect JSON to refresh
     const UPDATED_AGENTS = `module.exports = [ { id: 'only-one' } ];`;
-    await writeFile(join(projectRoot, 'config', 'agents.js'), UPDATED_AGENTS, 'utf8');
+    await writeFile(join(projectRoot, 'config', 'sub.agents.js'), UPDATED_AGENTS, 'utf8');
 
     // ensure filesystem mtime can change on many FS
     await delay(1100);
@@ -104,12 +141,12 @@ describe('bootstrapWorkspace', () => {
     expect(third.mtimeMs).toBeGreaterThanOrEqual(second.mtimeMs);
 
     const updatedContent = JSON.parse(await readFile(agentsJson, 'utf8'));
-    expect(updatedContent).toEqual([
-      {
-        id: 'only-one',
-        promptPath: 'only-one.md',
-      },
-    ]);
+    const latestProjectAgents = loadAgents(join(projectRoot, 'config', 'sub.agents.js'));
+    const cliSubAgents = loadAgents('../../../config/sub.agents.js');
+    const cliAgentsForOrder = buildExpectedOrder(latestProjectAgents, cliSubAgents);
+
+    expect(updatedContent.map((agent: { id: string }) => agent.id)).toEqual(cliAgentsForOrder);
+    expect(updatedContent[0]).toEqual({ id: 'only-one', promptPath: 'only-one.md' });
     await stat(join(desiredCwd, '.codemachine', 'agents', 'only-one.md'));
   });
 
@@ -143,9 +180,10 @@ describe('bootstrapWorkspace', () => {
 
     const agentsJson = join(desiredCwd, '.codemachine', 'agents', 'agents-config.json');
     const parsedAgents = JSON.parse(await readFile(agentsJson, 'utf8')) as Array<{ id: string; promptPath: string }>;
-    const cliAgents = require('../../../config/agents.js');
+    const cliSubAgentsOnly = loadAgents('../../../config/sub.agents.js');
+    const expectedIds = buildExpectedOrder(cliSubAgentsOnly);
 
-    expect(parsedAgents.map((agent: { id: string }) => agent.id)).toEqual(cliAgents.map((agent: { id: string }) => agent.id));
+    expect(parsedAgents.map((agent: { id: string }) => agent.id)).toEqual(expectedIds);
     const expectedDir = join(desiredCwd, '.codemachine', 'agents');
     await Promise.all(
       parsedAgents.map(async (agent) => {

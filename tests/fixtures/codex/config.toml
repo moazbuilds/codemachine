@@ -2,7 +2,7 @@
 model = "gpt-5-codex"
 model_reasoning_effort = "high"
 
-# Profile configurations (dynamically generated from config/agents.js)
+# Profile configurations (dynamically generated from config/main.agents.js and config/sub.agents.js)
 
 [profiles.uxui-designer]
 model = "gpt-5-codex"
@@ -14,15 +14,15 @@ model_reasoning_effort = "medium"
 
 [profiles.backend-dev]
 model = "gpt-5-codex"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 
 [profiles.solution-architect]
 model = "gpt-5-codex"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 
 [profiles.technical-writer]
 model = "gpt-5-codex"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "low"
 
 [profiles.qa-engineer]
 model = "gpt-5-codex"
@@ -30,7 +30,7 @@ model_reasoning_effort = "medium"
 
 [profiles.performance-engineer]
 model = "gpt-5-codex"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 
 [profiles.software-architect]
 model = "gpt-5-codex"

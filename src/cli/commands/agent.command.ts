@@ -24,7 +24,7 @@ async function loadAgentTemplate(agentId: string): Promise<string> {
   const agentsPath = resolveAgentsModulePath({ projectRoot: lookupBase });
 
   if (!agentsPath) {
-    throw new Error('Unable to locate agents configuration. Expected config/agents.js or .codemachine/agents/agents-config.json in the project root.');
+    throw new Error('Unable to locate agents configuration. Expected config/sub.agents.js, config/main.agents.js, or .codemachine/agents/agents-config.json in the project root.');
   }
 
   const require = createRequire(import.meta.url);
@@ -58,7 +58,7 @@ export function registerAgentCommand(program: Command): void {
   program
     .command('agent')
     .description('Execute Codex with an agent wrapper')
-    .argument('<id>', 'Agent id from config/agents.js')
+    .argument('<id>', 'Agent id from config/sub.agents.js or config/main.agents.js')
     .argument('<prompt...>', 'User request to send to the agent')
     .option('--profile <profile>', 'Codex profile to use (defaults to the agent id)')
     .action(async (id: string, promptParts: string[], options: AgentCommandOptions) => {

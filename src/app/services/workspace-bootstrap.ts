@@ -41,6 +41,7 @@ const CLI_ROOT_CANDIDATES = Array.from(
     CLI_PACKAGE_ROOT ? path.join(CLI_PACKAGE_ROOT, 'dist') : undefined
   ].filter((root): root is string => Boolean(root)))
 );
+const AGENT_MODULE_FILENAMES = ['main.agents.js', 'sub.agents.js', 'agents.js'];
 const SHOULD_DEBUG_BOOTSTRAP = process.env.CODEMACHINE_DEBUG_BOOTSTRAP === '1';
 
 function debugLog(...args: unknown[]): void {
@@ -60,24 +61,29 @@ function resolveDesiredCwd(explicitCwd?: string): string {
   return explicitCwd ?? process.env.CODEMACHINE_CWD ?? process.cwd();
 }
 
-async function loadAgents(candidateRoots: string[]): Promise<AgentDefinition[]> {
-  const candidateModules = new Set<string>();
+type LoadedAgent = AgentDefinition & { id: string; source?: 'main' | 'sub' | 'legacy' | 'workflow' };
+
+async function loadAgents(candidateRoots: string[]): Promise<{ allAgents: AgentDefinition[]; subAgents: AgentDefinition[] }>
+{
+  const candidateModules = new Map<string, 'main' | 'sub' | 'legacy'>();
 
   for (const root of candidateRoots) {
     if (!root) continue;
     const resolvedRoot = path.resolve(root);
-    const jsonCandidate = path.join(resolvedRoot, '.codemachine', 'agents', 'agents-config.json');
-    const moduleCandidate = path.join(resolvedRoot, 'config', 'agents.js');
-    const distCandidate = path.join(resolvedRoot, 'dist', 'config', 'agents.js');
+    for (const filename of AGENT_MODULE_FILENAMES) {
+      const moduleCandidate = path.join(resolvedRoot, 'config', filename);
+      const distCandidate = path.join(resolvedRoot, 'dist', 'config', filename);
 
-    if (existsSync(jsonCandidate)) candidateModules.add(jsonCandidate);
-    if (existsSync(moduleCandidate)) candidateModules.add(moduleCandidate);
-    if (existsSync(distCandidate)) candidateModules.add(distCandidate);
+      const tag = filename === 'main.agents.js' ? 'main' : filename === 'sub.agents.js' ? 'sub' : 'legacy';
+
+      if (existsSync(moduleCandidate)) candidateModules.set(moduleCandidate, tag);
+      if (existsSync(distCandidate)) candidateModules.set(distCandidate, tag);
+    }
   }
 
-  const byId = new Map<string, AgentDefinition>();
+  const byId = new Map<string, LoadedAgent>();
 
-  for (const modulePath of candidateModules) {
+  for (const [modulePath, source] of candidateModules.entries()) {
     try {
       delete require.cache[require.resolve(modulePath)];
     } catch {
@@ -92,26 +98,43 @@ async function loadAgents(candidateRoots: string[]): Promise<AgentDefinition[]> 
         continue;
       }
       const id = agent.id.trim();
-      if (!id || byId.has(id)) {
+      if (!id) {
         continue;
       }
-      byId.set(id, { ...agent, id });
+      const existing = byId.get(id);
+      const sourceTag = existing?.source ?? source;
+      const merged: LoadedAgent = {
+        ...(existing ?? {}),
+        ...agent,
+        id,
+        source: sourceTag,
+      };
+      byId.set(id, merged);
     }
   }
 
   const workflowAgents = await collectAgentsFromWorkflows(candidateRoots);
   for (const agent of workflowAgents) {
-    const id = typeof agent.id === 'string' ? agent.id.trim() : '';
+    if (!agent || typeof agent.id !== 'string') continue;
+    const id = agent.id.trim();
     if (!id) continue;
+
     const existing = byId.get(id);
-    if (existing) {
-      byId.set(id, { ...agent, ...existing, id });
-    } else {
-      byId.set(id, { ...agent, id });
-    }
+    const merged: LoadedAgent = {
+      ...(existing ?? {}),
+      ...agent,
+      id,
+      source: existing?.source ?? 'workflow',
+    };
+    byId.set(id, merged);
   }
 
-  return Array.from(byId.values());
+  const allAgents = Array.from(byId.values()).map(({ source, ...agent }) => ({ ...agent }));
+  const subAgents = Array.from(byId.values())
+    .filter((agent) => agent.source === 'sub')
+    .map(({ source, ...agent }) => ({ ...agent }));
+
+  return { allAgents, subAgents };
 }
 
 async function ensureDir(dirPath: string): Promise<void> {
@@ -221,7 +244,7 @@ export async function bootstrapWorkspace(options?: WorkspaceBootstrapOptions): P
   await ensureSpecificationsTemplate(inputsDir);
 
   // Load agents and mirror to JSON.
-  const agents = await loadAgents(agentRoots);
-  debugLog('Mirroring agents', { agentRoots, agentCount: agents.length });
-  await mirrorAgentsToJson(agentsDir, agents);
+  const { subAgents } = await loadAgents(agentRoots);
+  debugLog('Mirroring agents', { agentRoots, agentCount: subAgents.length });
+  await mirrorAgentsToJson(agentsDir, subAgents);
 }

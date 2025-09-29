@@ -42,7 +42,7 @@ A cross-platform CLI coding agent that runs locally and generates complete, test
 | `master-mind` | Project Manager/Scrum Master | Orchestrates agents via `tasks.json`; evaluates results; marks tasks done | `prompts/agents/master-mind.md` |
 | `project-summarizer` | Project Summarizer | Auto-runs when Master Mind stops; delivers final summary to the user | `prompts/agents/project-summarizer.md` |
 
-#### 2. Specialized Agents (Dynamic - Configured via config/agents.js)
+#### 2. Specialized Agents (Dynamic - Configured via config/sub.agents.js)
 
 | Agent Name | Role | Responsibility | Model | Reasoning |
 |------------|------|----------------|-------|-----------|
@@ -50,7 +50,7 @@ A cross-platform CLI coding agent that runs locally and generates complete, test
 | `frontend-dev` | Frontend Developer | Implements client-side code | `gpt-5-codex` | `medium` |
 | `backend-dev` | Backend Developer | Develops server-side logic and APIs | `gpt-5-codex` | `high` |
 | `solution-architect` | Solution Architect | Designs system architecture | `gpt-5-codex` | `high` |
-| `software-architect` | Software Architect | Plans directory structure | `gpt-5-codex` | `high` |
+| `software-architect` | Software Architect | Plans directory structure | `gpt-5-codex` | `medium` |
 | `technical-writer` | Documentation Specialist | Creates documentation | `gpt-5-codex` | `low` |
 | `qa-engineer` | QA/Test Engineer | Writes tests and ensures quality | `gpt-5-codex` | `medium` |
 | `performance-engineer` | Performance Engineer | Optimizes code performance | `gpt-5-codex` | `high` |
@@ -73,7 +73,9 @@ The main codemachine package installed globally via npm:
 ```
 codemachine/
 ├── config/
-│   └── agents.js                 # Agent definitions and configurations
+│   ├── main.agents.js           # Core workflow agent definitions
+│   ├── sub.agents.js            # Specialized agent catalog (tunable model/effort)
+│   └── package.json             # CommonJS mode for agent modules
 ├── settings.js                    # Main app configuration (port, logging, mode)
 ├── prompts/
 │   ├── agents/
@@ -188,7 +190,7 @@ When user runs `codemachine` in any directory:
 
 1. **Config.toml Update (Always)**
    - Navigates to `~/.codemachine/codex/`
-   - Reads the current `config/agents.js` configuration
+   - Reads the current `config/sub.agents.js` configuration
    - Overwrites `config.toml` with latest agent profiles
    - Ensures profiles are always synchronized
 
@@ -197,13 +199,13 @@ When user runs `codemachine` in any directory:
    ```
    .codemachine/
    ├── agents/
-   │   └── agents-config.json    # Mock file with agents data from main agents.js
+   │   └── agents-config.json    # Mock file with agents data from config/main.agents.js and config/sub.agents.js
    ├── inputs/
    │   └── specifications.md
    ├── memory/
    └── plan/
    ```
-   - **Creates `agents-config.json`**: A mock file containing agent data retrieved from main `agents.js`
+   - **Creates `agents-config.json`**: A mock file containing agent data retrieved from `config/main.agents.js` and `config/sub.agents.js`
    - This allows agents-builder to access agent configurations without accessing global files
    - This happens immediately on run, not just on `/start`
 
@@ -228,7 +230,8 @@ When auth.json is not found:
 
 2. **Config Modification**
    - After login success, CodeMachine navigates to `~/.codemachine/codex/`
-   - Overwrites `config.toml` with agent profiles from `agents.js`
+   - Overwrites `config.toml` with agent profiles from `config/main.agents.js` and `config/sub.agents.js`
+   - Respects each agent's `model` and `modelReasoningEffort`, so editing `config/sub.agents.js` tunes the generated profiles
    - Marks login as completed
 
 3. **Main Menu**
@@ -252,8 +255,8 @@ When user selects `/start`:
 
 2. **Team Building**
    - Opens Codex session
-   - Executes `agents-builder.md` prompt (main agent, not in agents.js)
-   - Reads agents.js to understand available specialized agents
+   - Executes `agents-builder.md` prompt (main agent, defined in `config/main.agents.js`)
+   - Reads `config/sub.agents.js` to understand available specialized agents
    - Creates agent-specific prompts in `.codemachine/agents/` based on project needs
    - Populates agent files with project-specific instructions
    - **Creates `tasks.json` in `.codemachine/plan/` folder with all project tasks**

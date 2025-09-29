@@ -1,36 +1,30 @@
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
-const dirname = path.dirname(fileURLToPath(import.meta.url));
-const promptsDir = path.resolve(dirname, '..', '..', 'prompts', 'agents');
+const require = createRequire(import.meta.url);
+const mainAgents = require('../../config/main.agents.js');
+
+function resolveStep(id) {
+  const agent = mainAgents.find((entry) => entry?.id === id);
+  if (!agent) {
+    throw new Error(`Unknown main agent: ${id}`);
+  }
+
+  return {
+    type: 'module',
+    agentId: agent.id,
+    agentName: agent.name,
+    promptPath: agent.promptPath,
+    model: agent.model,
+    modelReasoningEffort: agent.modelReasoningEffort,
+  };
+}
 
 const workflow = {
   name: 'Default Workflow',
   steps: [
-    {
-      type: 'module',
-      agentId: 'agents-builder',
-      agentName: 'Agent Builder',
-      promptPath: path.join(promptsDir, 'agents-builder.md'),
-      model: 'gpt-5-codex',
-      modelReasoningEffort: 'high',
-    },
-    {
-      type: 'module',
-      agentId: 'tasks-generator',
-      agentName: 'Tasks Generator',
-      promptPath: path.join(promptsDir, 'tasks-generator.md'),
-      model: 'gpt-5-codex',
-      modelReasoningEffort: 'high',
-    },
-    {
-      type: 'module',
-      agentId: 'project-manager',
-      agentName: 'Project Manager',
-      promptPath: path.join(promptsDir, 'project-manager.md'),
-      model: 'gpt-5-codex',
-      modelReasoningEffort: 'high',
-    },
+    resolveStep('agents-builder'),
+    resolveStep('tasks-generator'),
+    resolveStep('project-manager'),
   ],
 };
 

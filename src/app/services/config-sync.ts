@@ -44,6 +44,8 @@ const CLI_ROOT_CANDIDATES = Array.from(
   ].filter((root): root is string => Boolean(root)))
 );
 
+const AGENT_MODULE_FILENAMES = ['main.agents.js', 'sub.agents.js', 'agents.js'];
+
 type AgentDefinition = {
   id: string;
   model?: unknown;
@@ -61,7 +63,7 @@ function resolveProjectRoot(projectRoot?: string): string {
     return projectRoot;
   }
 
-  // Prefer the current working directory if it contains config/agents.js so local overrides win
+  // Prefer the current working directory if it contains agent catalog modules so local overrides win
   const cwd = process.cwd();
   if (resolveAgentsModulePath({ projectRoot: cwd })) {
     return cwd;
@@ -95,13 +97,17 @@ async function collectAgentDefinitions(projectRoot: string): Promise<AgentDefini
   for (const root of roots) {
     if (!root) continue;
     const resolvedRoot = path.resolve(root);
-    const jsonCandidate = path.join(resolvedRoot, '.codemachine', 'agents', 'agents-config.json');
-    const moduleCandidate = path.join(resolvedRoot, 'config', 'agents.js');
-    const distCandidate = path.join(resolvedRoot, 'dist', 'config', 'agents.js');
+    for (const filename of AGENT_MODULE_FILENAMES) {
+      const moduleCandidate = path.join(resolvedRoot, 'config', filename);
+      const distCandidate = path.join(resolvedRoot, 'dist', 'config', filename);
 
-    if (existsSync(jsonCandidate)) candidates.add(jsonCandidate);
-    if (existsSync(moduleCandidate)) candidates.add(moduleCandidate);
-    if (existsSync(distCandidate)) candidates.add(distCandidate);
+      if (existsSync(moduleCandidate)) {
+        candidates.add(moduleCandidate);
+      }
+      if (existsSync(distCandidate)) {
+        candidates.add(distCandidate);
+      }
+    }
   }
 
   const byId = new Map<string, AgentDefinition>();
@@ -120,13 +126,15 @@ async function collectAgentDefinitions(projectRoot: string): Promise<AgentDefini
     }
   }
 
-  const workflowAgents = await collectAgentsFromWorkflows(Array.from(roots));
+  const workflowAgents = await collectAgentsFromWorkflows(roots);
   for (const agent of workflowAgents) {
+    if (!agent || typeof agent.id !== 'string') continue;
     const id = agent.id.trim();
     if (!id) continue;
+
     const existing = byId.get(id);
     if (existing) {
-      byId.set(id, { ...agent, ...existing, id });
+      byId.set(id, { ...existing, ...agent, id });
     } else {
       byId.set(id, { ...agent, id });
     }
@@ -220,7 +228,7 @@ function buildConfigContent(agents: AgentDefinition[]): string {
     });
 
   if (profileSections.length > 0) {
-    lines.push('', '# Profile configurations (dynamically generated from config/agents.js)');
+    lines.push('', '# Profile configurations (dynamically generated from workflow templates and agent catalogs)');
     for (const section of profileSections) {
       lines.push('', section);
     }
