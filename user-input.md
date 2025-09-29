@@ -40,7 +40,7 @@ A cross-platform CLI coding agent that runs locally and generates complete, test
 |------------|------|----------------|----------|
 | `agents-builder` | Team Builder | Creates specialized agents based on project; generates `tasks.json` | `prompts/agents/agents-builder.md` |
 | `master-mind` | Project Manager/Scrum Master | Orchestrates agents via `tasks.json`; evaluates results; marks tasks done | `prompts/agents/master-mind.md` |
-| `project-summarizer` | Project Summarizer | Auto-runs when Master Mind stops; creates `project-summary.md` | `prompts/agents/project-summarizer.md` |
+| `project-summarizer` | Project Summarizer | Auto-runs when Master Mind stops; delivers final summary to the user | `prompts/agents/project-summarizer.md` |
 
 #### 2. Specialized Agents (Dynamic - Configured via config/agents.js)
 
@@ -122,7 +122,6 @@ Generated in each project where codemachine is run:
 │   │   ├── .frontend-memory.md   # Frontend agent's memory
 │   │   ├── .backend-memory.md    # Backend agent's memory
 │   │   └── .qa-memory.md         # QA agent's memory
-│   └── project-summary.md        # Auto-generated project summary
 └── [generated project files]
 ```
 
@@ -301,7 +300,7 @@ When user selects `/start`:
    - Provides clean interface for Master Mind to orchestrate
 7. **Automatic recovery:**
    - If Master Mind stops → **Project Summarizer** automatically runs
-   - Creates `project-summary.md` in `.codemachine/`
+   - Provides final status summary to the user
    - System checks `tasks.json` completion status:
      - If all tasks done → Run **End Agent** (confirms completion)
      - If tasks pending → Run **Retry Agent** (restarts Master Mind with context)

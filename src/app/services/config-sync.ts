@@ -6,6 +6,7 @@ import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 import { resolveAgentsModulePath } from '../../shared/agents/paths.js';
+import { collectAgentsFromWorkflows } from '../../shared/agents/workflow-discovery.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -76,12 +77,7 @@ function resolveProjectRoot(projectRoot?: string): string {
   return CLI_ROOT_CANDIDATES[0];
 }
 
-function loadAgents(projectRoot: string): AgentDefinition[] {
-  const modulePath = resolveAgentsModulePath({ projectRoot });
-  if (!modulePath) {
-    return [];
-  }
-
+function loadAgentsFromModule(modulePath: string): AgentDefinition[] {
   try {
     delete require.cache[require.resolve(modulePath)];
   } catch {
@@ -90,6 +86,53 @@ function loadAgents(projectRoot: string): AgentDefinition[] {
 
   const loadedAgents = require(modulePath);
   return Array.isArray(loadedAgents) ? (loadedAgents as AgentDefinition[]) : [];
+}
+
+async function collectAgentDefinitions(projectRoot: string): Promise<AgentDefinition[]> {
+  const candidates = new Set<string>();
+  const roots = [projectRoot, ...CLI_ROOT_CANDIDATES.filter((root) => root && root !== projectRoot)];
+
+  for (const root of roots) {
+    if (!root) continue;
+    const resolvedRoot = path.resolve(root);
+    const jsonCandidate = path.join(resolvedRoot, '.codemachine', 'agents', 'agents-config.json');
+    const moduleCandidate = path.join(resolvedRoot, 'config', 'agents.js');
+    const distCandidate = path.join(resolvedRoot, 'dist', 'config', 'agents.js');
+
+    if (existsSync(jsonCandidate)) candidates.add(jsonCandidate);
+    if (existsSync(moduleCandidate)) candidates.add(moduleCandidate);
+    if (existsSync(distCandidate)) candidates.add(distCandidate);
+  }
+
+  const byId = new Map<string, AgentDefinition>();
+
+  for (const modulePath of candidates) {
+    const agents = loadAgentsFromModule(modulePath);
+    for (const agent of agents) {
+      if (!agent || typeof agent.id !== 'string') {
+        continue;
+      }
+      const id = agent.id.trim();
+      if (!id || byId.has(id)) {
+        continue;
+      }
+      byId.set(id, { ...agent, id });
+    }
+  }
+
+  const workflowAgents = await collectAgentsFromWorkflows(Array.from(roots));
+  for (const agent of workflowAgents) {
+    const id = agent.id.trim();
+    if (!id) continue;
+    const existing = byId.get(id);
+    if (existing) {
+      byId.set(id, { ...agent, ...existing, id });
+    } else {
+      byId.set(id, { ...agent, id });
+    }
+  }
+
+  return Array.from(byId.values());
 }
 
 function mergeAdditionalAgents(
@@ -214,7 +257,7 @@ export type ConfigSyncOptions = {
 
 export async function syncCodexConfig(options?: ConfigSyncOptions): Promise<void> {
   const projectRoot = resolveProjectRoot(options?.projectRoot);
-  const agents = mergeAdditionalAgents(loadAgents(projectRoot), options?.additionalAgents);
+  const agents = mergeAdditionalAgents(await collectAgentDefinitions(projectRoot), options?.additionalAgents);
   const codexHome = await resolveCodexHome(options?.codexHome);
   const configContent = buildConfigContent(agents);
 

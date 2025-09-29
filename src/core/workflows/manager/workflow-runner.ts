@@ -1,7 +1,6 @@
 import * as path from 'node:path';
-import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 
-import { end } from '../../../agents/runtime/end.js';
 import type { RunWorkflowOptions } from './types.js';
 import { loadTemplate } from './template-loader.js';
 import { runCodexPrompt } from './agent-execution.js';
@@ -25,61 +24,6 @@ export async function resolveTasksPath(cwd: string, override?: string): Promise<
   return null;
 }
 
-interface TaskRecord {
-  id?: string;
-  name?: string;
-  done?: boolean;
-  [key: string]: unknown;
-}
-
-export async function generateSummary(tasksPath: string, outputPath: string): Promise<void> {
-  const contents = await readFile(tasksPath, 'utf8');
-  const parsed = JSON.parse(contents) as { tasks?: TaskRecord[] };
-  const tasks = Array.isArray(parsed.tasks) ? parsed.tasks : [];
-  const completed = tasks.filter((t) => t.done === true);
-  const remaining = tasks.filter((t) => t.done !== true);
-
-  const lines: string[] = [];
-  lines.push('# Project Summary');
-  lines.push('');
-  lines.push(`- Completed: ${completed.length}`);
-  lines.push(`- Remaining: ${remaining.length}`);
-  lines.push('');
-  lines.push('## Completed Tasks');
-  lines.push(...(completed.length ? completed.map((t) => `- [x] ${t.id ?? ''}: ${t.name ?? ''}`) : ['- None']));
-  lines.push('');
-  lines.push('## Remaining Tasks');
-  lines.push(...(remaining.length ? remaining.map((t) => `- [ ] ${t.id ?? ''}: ${t.name ?? ''}`) : ['- None']));
-  lines.push('');
-
-  await mkdir(path.dirname(outputPath), { recursive: true });
-  await writeFile(outputPath, lines.join('\n'), 'utf8');
-}
-
-async function runE2E(cwd: string): Promise<{ ok: boolean; output: string }> {
-  const { spawn } = await import('node:child_process');
-  const runners = [
-    ['pnpm', ['test']],
-    ['npm', ['test']],
-    ['npx', ['vitest', 'run']],
-  ] as const;
-
-  for (const [cmd, args] of runners) {
-    const result = await new Promise<{ ok: boolean; output: string }>((resolve) => {
-      const child = spawn(cmd, args, { cwd });
-      let out = '';
-      let err = '';
-      child.stdout?.on('data', (d: Buffer) => (out += d.toString()));
-      child.stderr?.on('data', (d: Buffer) => (err += d.toString()));
-      child.on('close', (code: number) => resolve({ ok: code === 0, output: out + (err ? `\n${err}` : '') }));
-      child.on('error', () => resolve({ ok: false, output: out }));
-    });
-    if (result.ok) return result;
-  }
-
-  return { ok: false, output: 'No test runner succeeded.' };
-}
-
 async function runAgentsBuilderStep(cwd: string): Promise<void> {
   await ensureProjectScaffold(cwd);
 }
@@ -89,30 +33,6 @@ async function runPlanningStep(cwd: string, options: RunWorkflowOptions): Promis
     options.specificationPath || path.resolve(cwd, '.codemachine', 'inputs', 'specifications.md'),
     options.force,
   );
-}
-
-async function runProjectManagerStep(cwd: string): Promise<void> {
-  const tasksPath = await resolveTasksPath(cwd);
-  if (tasksPath) {
-    await generateSummary(tasksPath, path.resolve(cwd, '.codemachine', 'project-summary.md'));
-
-    const banner = await end({ tasksPath });
-    if (banner && banner.trim()) console.log(banner);
-  }
-
-  try {
-    const e2e = await runE2E(cwd);
-    const e2eFile = path.resolve(cwd, '.codemachine', 'e2e-results.txt');
-    await mkdir(path.dirname(e2eFile), { recursive: true });
-    await writeFile(
-      e2eFile,
-      [`E2E ok: ${e2e.ok}`, '', 'Output:', e2e.output.slice(0, 20000)].join('\n'),
-      'utf8',
-    );
-    if (!e2e.ok) console.warn('End-to-end validation reported issues. See .codemachine/e2e-results.txt');
-  } catch {
-    // ignore e2e failures caused by missing tooling
-  }
 }
 
 export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<void> {
@@ -158,8 +78,6 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
       if (step.agentId === 'agents-builder' || agentName.includes('builder')) {
         await runAgentsBuilderStep(cwd);
-      } else if (agentName.includes('project manager')) {
-        await runProjectManagerStep(cwd);
       } else {
         await runPlanningStep(cwd, options);
       }

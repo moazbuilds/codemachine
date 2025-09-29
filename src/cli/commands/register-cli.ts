@@ -8,7 +8,6 @@ import { registerTemplatesCommand } from './templates.command.js';
 import { registerAuthCommands } from './auth.command.js';
 import { registerAgentCommand } from './agent.command.js';
 import { registerUiCommand } from './ui.command.js';
-import { registerProjectManagerCommand } from './project-manager.command.js';
 import { registerSessionCommand } from './session.command.js';
 
 export function registerCli(program: Command): void {
@@ -34,7 +33,6 @@ export function registerCli(program: Command): void {
   registerTemplatesCommand(program);
   registerAuthCommands(program);
   registerAgentCommand(program);
-  registerProjectManagerCommand(program);
   registerSessionCommand(program);
 }
 

@@ -77,17 +77,6 @@ Tip: Add `--dir <path>` to target a different workspace directory, e.g. `node di
     - `--profile <name>`: Codex profile to use (default: `default`). Profiles are generated from agents at `~/.codemachine/codex/config.toml`.
   - Example: `node dist/index.js agent frontend-dev "Implement a responsive Button component" --profile frontend-dev`
 
-- `project-manager` (alias: `pm`) [--parallel] [--tasks <path>] [--logs <path>]
-  - RFC‑2119‑compliant project orchestrator. Drives tasks, summarizes after each pass, retries until complete, then runs E2E validation.
-  - Options:
-    - `--parallel`: Allow parallel execution when dependencies permit.
-    - `--tasks <path>`: Override tasks file (default: `.codemachine/plan/tasks.json` or `.codemachine/tasks.json`).
-    - `--logs <path>`: Override logs output (default: `.codemachine/logs.jsonl`).
-  - Outputs:
-    - Writes project summary to `.codemachine/project-summary.md`.
-    - Writes E2E results to `.codemachine/e2e-results.txt`.
-  - Example: `node dist/index.js pm --parallel`
-
 ## Workspace Files
 On startup the CLI ensures `.codemachine/` exists and mirrors available agents:
 - `.codemachine/agents/agents-config.json`: Synchronized from `config/agents.js`.
@@ -116,7 +105,6 @@ See docs for more: `docs/reference/environment.md`.
 
 ## Troubleshooting
 - Authentication issues: ensure `codex` is on PATH and `CODEX_HOME` is writable. Run `codemachine auth login` again.
-- Codex health failures in `project-manager`: start/verify the Codex API and ensure the local CLI is available. E2E results are saved to `.codemachine/e2e-results.txt`.
 - Agents not found: verify `config/agents.js` includes the expected `id` and `promptPath`.
 
 ## Additional Docs

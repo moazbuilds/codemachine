@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { resolveAgentsModulePath } from '../../shared/agents/paths.js';
+import { collectAgentsFromWorkflows } from '../../shared/agents/workflow-discovery.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -60,33 +60,58 @@ function resolveDesiredCwd(explicitCwd?: string): string {
   return explicitCwd ?? process.env.CODEMACHINE_CWD ?? process.cwd();
 }
 
-function tryLoadAgentsFromRoot(root: string): AgentDefinition[] | undefined {
-  const modulePath = resolveAgentsModulePath({ projectRoot: root });
-  if (!modulePath) {
-    debugLog('No agents module found', { root });
-    return undefined;
-  }
+async function loadAgents(candidateRoots: string[]): Promise<AgentDefinition[]> {
+  const candidateModules = new Set<string>();
 
-  try {
-    delete require.cache[require.resolve(modulePath)];
-  } catch {
-    // ignore cache miss
-  }
-
-  debugLog('Loading agents module', { root, modulePath });
-  const loadedAgents = require(modulePath);
-  return Array.isArray(loadedAgents) ? (loadedAgents as AgentDefinition[]) : [];
-}
-
-function loadAgents(candidateRoots: string[]): AgentDefinition[] {
   for (const root of candidateRoots) {
-    const agents = tryLoadAgentsFromRoot(root);
-    if (agents !== undefined) {
-      return agents;
+    if (!root) continue;
+    const resolvedRoot = path.resolve(root);
+    const jsonCandidate = path.join(resolvedRoot, '.codemachine', 'agents', 'agents-config.json');
+    const moduleCandidate = path.join(resolvedRoot, 'config', 'agents.js');
+    const distCandidate = path.join(resolvedRoot, 'dist', 'config', 'agents.js');
+
+    if (existsSync(jsonCandidate)) candidateModules.add(jsonCandidate);
+    if (existsSync(moduleCandidate)) candidateModules.add(moduleCandidate);
+    if (existsSync(distCandidate)) candidateModules.add(distCandidate);
+  }
+
+  const byId = new Map<string, AgentDefinition>();
+
+  for (const modulePath of candidateModules) {
+    try {
+      delete require.cache[require.resolve(modulePath)];
+    } catch {
+      // ignore cache miss
+    }
+
+    const loadedAgents = require(modulePath);
+    const agents = Array.isArray(loadedAgents) ? (loadedAgents as AgentDefinition[]) : [];
+
+    for (const agent of agents) {
+      if (!agent || typeof agent.id !== 'string') {
+        continue;
+      }
+      const id = agent.id.trim();
+      if (!id || byId.has(id)) {
+        continue;
+      }
+      byId.set(id, { ...agent, id });
     }
   }
 
-  return [];
+  const workflowAgents = await collectAgentsFromWorkflows(candidateRoots);
+  for (const agent of workflowAgents) {
+    const id = typeof agent.id === 'string' ? agent.id.trim() : '';
+    if (!id) continue;
+    const existing = byId.get(id);
+    if (existing) {
+      byId.set(id, { ...agent, ...existing, id });
+    } else {
+      byId.set(id, { ...agent, id });
+    }
+  }
+
+  return Array.from(byId.values());
 }
 
 async function ensureDir(dirPath: string): Promise<void> {
@@ -196,7 +221,7 @@ export async function bootstrapWorkspace(options?: WorkspaceBootstrapOptions): P
   await ensureSpecificationsTemplate(inputsDir);
 
   // Load agents and mirror to JSON.
-  const agents = loadAgents(agentRoots);
+  const agents = await loadAgents(agentRoots);
   debugLog('Mirroring agents', { agentRoots, agentCount: agents.length });
   await mirrorAgentsToJson(agentsDir, agents);
 }

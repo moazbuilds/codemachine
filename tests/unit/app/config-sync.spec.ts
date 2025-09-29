@@ -39,24 +39,14 @@ describe('syncCodexConfig', () => {
     const configPath = join(codexHome, 'config.toml');
     const content = await readFile(configPath, 'utf8');
 
-    const expected = [
-      '# Model configuration',
-      'model = "gpt-5-codex"',
-      'model_reasoning_effort = "high"',
-      '',
-      '# Profile configurations (dynamically generated from config/agents.js)',
-      '',
-      '[profiles.frontend-dev]',
-      'model = "gpt-5-codex"',
-      'model_reasoning_effort = "medium"',
-      '',
-      '[profiles.custom-agent]',
-      'model = "gpt-5-codex"',
-      'model_reasoning_effort = "medium"',
-      '',
-    ].join('\n');
-
-    expect(content).toBe(expected);
+    expect(content).toContain('# Model configuration');
+    expect(content).toContain('model = "gpt-5-codex"');
+    expect(content).toContain('# Profile configurations (dynamically generated from config/agents.js)');
+    expect(content).toMatch(/\[profiles\.frontend-dev][\s\S]*model_reasoning_effort = "medium"/);
+    expect(content).toMatch(/\[profiles\.custom-agent][\s\S]*model_reasoning_effort = "medium"/);
+    expect(content).toMatch(/\[profiles\.project-manager][\s\S]*model_reasoning_effort = "high"/);
+    expect(content).toMatch(/\[profiles\.tasks-generator][\s\S]*model_reasoning_effort = "high"/);
+    expect(content).toMatch(/\[profiles\.master-mind][\s\S]*model_reasoning_effort = "medium"/);
   });
 
   it('does not rewrite the config when content is unchanged', async () => {
