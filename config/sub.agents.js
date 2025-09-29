@@ -6,7 +6,7 @@ module.exports = [
     name: 'UX/UI Designer',
     description: 'Execute Codex for UX and UI design tasks',
     promptPath: path.join(__dirname, '..', 'prompts', 'ux-ui-designer.md'),
-    model: 'gpt-5-codex',
+    model: 'gpt-5',
     modelReasoningEffort: 'medium',
   },
   {
@@ -14,7 +14,7 @@ module.exports = [
     name: 'Frontend Developer',
     description: 'Execute Codex for frontend development tasks',
     promptPath: path.join(__dirname, '..', 'prompts', 'frontend-developer.md'),
-    model: 'gpt-5-codex',
+    model: 'gpt-5',
     modelReasoningEffort: 'medium',
   },
   {
@@ -22,7 +22,7 @@ module.exports = [
     name: 'Backend Developer',
     description: 'Execute Codex for backend development tasks',
     promptPath: path.join(__dirname, '..', 'prompts', 'backend-developer.md'),
-    model: 'gpt-5-codex',
+    model: 'gpt-5',
     modelReasoningEffort: 'high',
   },
   {
@@ -30,7 +30,7 @@ module.exports = [
     name: 'Solution Architect',
     description: 'Execute Codex for solution architecture tasks',
     promptPath: path.join(__dirname, '..', 'prompts', 'solution-architect.md'),
-    model: 'gpt-5-codex',
+    model: 'gpt-5',
     modelReasoningEffort: 'high',
   },
   {
@@ -38,7 +38,7 @@ module.exports = [
     name: 'Technical Writer / Documentation Specialist',
     description: 'Execute Codex for documentation and writing tasks',
     promptPath: path.join(__dirname, '..', 'prompts', 'technical-writer.md'),
-    model: 'gpt-5-codex',
+    model: 'gpt-5',
     modelReasoningEffort: 'low',
   },
   {
@@ -54,7 +54,7 @@ module.exports = [
     name: 'Performance Engineer',
     description: 'Execute Codex for performance profiling and optimization tasks',
     promptPath: path.join(__dirname, '..', 'prompts', 'performance-engineer.md'),
-    model: 'gpt-5-codex',
+    model: 'gpt-5',
     modelReasoningEffort: 'high',
   },
   {
@@ -63,7 +63,7 @@ module.exports = [
     description:
       'Execute Codex for software architecture planning, directory structure design, and project organization tasks',
     promptPath: path.join(__dirname, '..', 'prompts', 'software-architect.md'),
-    model: 'gpt-5-codex',
+    model: 'gpt-5',
     modelReasoningEffort: 'medium',
   },
 ];

@@ -2,6 +2,7 @@
 
 **Status:** Final  
 **Target:** AI Task Generator Agent  
+**Input:** `.codemachine/inputs/specifications.md`
 **Output:** `.codemachine/plan/tasks.json`
 
 ## §1 CORE RULES
@@ -12,9 +13,8 @@
 - You **SHALL NOT** generate ambiguous or incomplete instructions
 
 ### 1.2 Input Processing
-- You **MUST** parse user requirements for scope, constraints, and success criteria
-- IF ambiguous THEN you **SHALL** document assumptions AND proceed
-- You **MAY** use optional project context when available
+- You **MUST** extract user requirements exclusively from `.codemachine/inputs/specifications.md`
+- Other files may provide context, yet they **MUST NOT** influence decisions; authoritative requirements reside solely in `.codemachine/inputs/specifications.md`
 
 ## §2 OUTPUT REQUIREMENTS
 

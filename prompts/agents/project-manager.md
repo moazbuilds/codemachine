@@ -17,6 +17,9 @@
   2. Select appropriate agent for fixes
   3. Issue precise modification instructions
   4. Re-evaluate until criteria are met
+  
+  ✓ The Agents SHALL receive only small, atomic tasks per request. The Task Executor MUST NOT be given complex or multi-step operations. The Agent MUST complete each task independently without awareness of the broader context.
+  ✓ You MUST verify all data output from Agents. You MUST NOT trust the Task Executor's output without verification. You SHALL check if the output matches what was originally requested. You MUST reject any output that does not conform to the specified requirements.
 
 ### Required Inputs
 - `.codemachine/plan/tasks.json` - Task definitions and status
