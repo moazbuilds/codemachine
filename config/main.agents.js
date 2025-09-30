@@ -16,15 +16,15 @@ module.exports = [
     name: 'Tasks Generator',
     description: 'Breaks project requirements into actionable tasks with acceptance criteria',
     promptPath: path.join(promptsDir, 'tasks-generator.md'),
-    model: 'gpt-5-codex',
-    modelReasoningEffort: 'high',
+    model: 'gpt-5',
+    modelReasoningEffort: 'medium',
   },
   {
     id: 'project-manager',
     name: 'Project Manager',
     description: 'Prioritizes and sequences tasks, delegating work to other agents as needed',
     promptPath: path.join(promptsDir, 'project-manager.md'),
-    model: 'gpt-5-codex',
+    model: 'gpt-5',
     modelReasoningEffort: 'high',
   },
   {
