@@ -1,4 +1,4 @@
-import { resolveStep } from '../../src/core/workflows/workflow-utils.js';
+import { resolveStep } from '../../src/core/workflows/workflow-utils.ts';
 
 const workflow = {
   name: 'Simple Workflow',
