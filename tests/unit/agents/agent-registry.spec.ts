@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { dirname, isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { getAgent, listAgents, requireAgent } from './index.js';
+import { getAgent, listAgents, requireAgent } from '../../../src/agents/registry/index.js';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -35,7 +35,7 @@ describe('agent registry', () => {
     const agent = await getAgent('frontend-dev', projectRoot);
     expect(agent).toBeDefined();
     expect(agent?.id).toBe('frontend-dev');
-    expect(toPosix(agent!.promptPath)).toMatch(/\/prompts\/frontend-developer\.md$/);
+    expect(toPosix(agent!.promptPath)).toMatch(/\/.codemachine\/agents\/frontend-dev\.md$/);
   });
 
   it('requireAgent throws for unknown id', async () => {
