@@ -1,20 +1,69 @@
 import * as path from 'node:path';
 import { readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const require = createRequire(import.meta.url);
+
+/**
+ * Finds the codemachine package root by looking for package.json
+ */
+function findPackageRoot(): string | null {
+  let current = __dirname;
+  const limit = 10;
+
+  for (let i = 0; i < limit; i++) {
+    const packageJson = path.join(current, 'package.json');
+    if (existsSync(packageJson)) {
+      try {
+        const pkg = require(packageJson);
+        if (pkg?.name === 'codemachine') {
+          return current;
+        }
+      } catch {
+        // Continue searching
+      }
+    }
+
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+
+  return null;
+}
 
 /**
  * Loads the prompt placeholders configuration
  */
-function loadPlaceholdersConfig(projectRoot: string): Record<string, string> {
+function loadPlaceholdersConfig(): Record<string, string> {
   try {
-    const configPath = path.join(projectRoot, 'config', 'prompt-placeholders.js');
+    const packageRoot = findPackageRoot();
+    if (!packageRoot) {
+      console.warn('Warning: Could not find codemachine package root');
+      return {};
+    }
+
+    const configPath = path.join(packageRoot, 'config', 'prompt-placeholders.js');
+
+    if (!existsSync(configPath)) {
+      console.warn(`Warning: Placeholder config not found at ${configPath}`);
+      return {};
+    }
+
     // Clear cache to allow dynamic reloading
-    delete require.cache[require.resolve(configPath)];
+    try {
+      delete require.cache[require.resolve(configPath)];
+    } catch {
+      // Ignore if not in cache
+    }
+
     return require(configPath);
   } catch (error) {
-    // If config doesn't exist, return empty object
+    console.warn(`Warning: Failed to load placeholder config: ${error instanceof Error ? error.message : String(error)}`);
     return {};
   }
 }
@@ -43,9 +92,8 @@ async function loadPlaceholderContent(
 async function replacePlaceholders(
   prompt: string,
   cwd: string,
-  projectRoot: string,
 ): Promise<string> {
-  const config = loadPlaceholdersConfig(projectRoot);
+  const config = loadPlaceholdersConfig();
   let processedPrompt = prompt;
 
   // Find all placeholders in the format {placeholder_name}
@@ -85,15 +133,12 @@ async function replacePlaceholders(
 export async function processPrompt(
   promptPath: string,
   cwd: string,
-  projectRoot?: string,
 ): Promise<string> {
-  const resolvedProjectRoot = projectRoot || cwd;
-
   // Load the prompt file
   const prompt = await readFile(promptPath, 'utf8');
 
   // Replace all placeholders
-  return replacePlaceholders(prompt, cwd, resolvedProjectRoot);
+  return replacePlaceholders(prompt, cwd);
 }
 
 /**
@@ -102,8 +147,6 @@ export async function processPrompt(
 export async function processPromptString(
   prompt: string,
   cwd: string,
-  projectRoot?: string,
 ): Promise<string> {
-  const resolvedProjectRoot = projectRoot || cwd;
-  return replacePlaceholders(prompt, cwd, resolvedProjectRoot);
+  return replacePlaceholders(prompt, cwd);
 }
