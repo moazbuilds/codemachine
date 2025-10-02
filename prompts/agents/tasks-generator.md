@@ -2,58 +2,54 @@ You are an expert data extraction AI. Your task is to parse the provided Project
 
 **Input:**
 
-The input will be the full text of a Project Plan, formatted similarly to the example structure provided in previous instructions (containing sections like "Project Overview", "Core Architecture", "Iteration Plan", etc., with Tasks defined under each Iteration).
+The input will be the full text of specifications.md from `.codemachine/inputs/specifications.md`, which contains user requirements in RFC-2119 format with MUST/SHALL/SHOULD keywords.
 
 **Output Specification:**
 
 The output MUST be a single JSON array, where each object in the array represents a single task. Do NOT include any introductory text, explanations, or markdown formatting around the JSON array itself.
-The pathes must be relative to the project root and not absolute. Do not include the project root in the url. example docs/abc.md
 
 Each task object within the JSON array MUST contain the following keys:
 
-*   `task_id`: (String) The unique identifier for the task (e.g., "I1.T1", "I2.T5").
-*   `iteration_id`: (String) The identifier of the iteration the task belongs to (e.g., "I1", "I2").
-*   `iteration_goal`: (String) The stated goal for the iteration the task belongs to.
-*   `description`: (String) The detailed description of the task.
-*   `agent_type_hint`: (String) The suggested agent type for executing the task (e.g., "BackendAgent", "SetupAgent").
-*   `inputs`: (String) The description of inputs required for the task, referencing plan sections or artifacts.
-*   `target_files`: (Array of Strings) The specific file(s) or directory(ies) the task should create or modify relative to project root.
-*   `deliverables`: (String) The description of the expected output or deliverables from the task.
-*   `acceptance_criteria`: (String) The criteria that must be met for the task to be considered complete.
-*   `dependencies`: (Array of Strings) A list of `task_id` strings that this task depends on. If there are no dependencies, provide an empty array `[]`.
-*   `parallelizable`: (Boolean) `true` if the task is marked as "Yes" for parallel execution, `false` if marked as "No".
+*   `task_id`: (String) Generate sequential IDs like "T1", "T2", "T3".
+*   `description`: (String) The detailed description of what needs to be implemented.
+*   `agent_type_hint`: (String) The suggested agent type (e.g., "backend-dev", "frontend-dev").
+*   `target_files`: (Array of Strings) The specific file(s) to create or modify.
+*   `deliverables`: (String) The expected output.
+*   `acceptance_criteria`: (String) Criteria for task completion based on MUST/SHALL requirements.
+*   `dependencies`: (Array of Strings) List of `task_id` strings this task depends on, or empty array `[]`.
+*   `parallelizable`: (Boolean) `true` if the task can run in parallel, otherwise `false`.
+*   `done`: (Boolean) Always set to `false` initially.
 
 **Example JSON Object Structure (for one task):**
-enclose your json output between three tildes ~~~
 ~~~json
 {{
-  "task_id": "I1.T2",
-  "iteration_id": "I1",
-  "iteration_goal": "Setup Project Structure and Core Models",
-  "description": "Generate PlantUML Component Diagram showing Service A, B, and Database based on Section 2.",
-  "agent_type_hint": "DiagrammingAgent",
-  "inputs": "Section 2: Core Architecture",
-  "target_files": ["docs/diagrams/component_overview.puml",],
-  "input_files": ["docs/architecture.md",],
-  "deliverables": "PlantUML diagram file (.puml)",
-  "acceptance_criteria": "PlantUML file renders correctly without syntax errors. Diagram accurately reflects components described in Section 2.",
-  "dependencies": ["I1.T1"],
-  "parallelizable": true
+  "task_id": "T1",
+  "description": "Implement layered output system with L0 (debug), L1 (user-facing), L2 (agent context) layers",
+  "agent_type_hint": "backend-dev",
+  "target_files": ["src/shared/logging/logger.ts"],
+  "deliverables": "Enhanced logger with three distinct output layers",
+  "acceptance_criteria": "Logger supports L0/L1/L2 layers. L0 only visible when LOG_LEVEL=debug. All layers integrate with existing pino logger.",
+  "dependencies": [],
+  "parallelizable": false,
+  "done": false
 }}
 ~~~
 
 **Instructions for Extraction:**
 
-1.  **Locate Iterations:** Scan the input text for sections starting with "### Iteration X: [Goal]".
-2.  **Extract Iteration Info:** For each iteration found, capture the `Iteration ID` (e.g., "I1") and the `Goal`.
-3.  **Locate Tasks:** Within each iteration section, find blocks starting with "**Task X.Y:**".
-4.  **Extract Task Details:** For each task block, carefully extract the data corresponding to each field (`Task ID`, `Description`, `Agent Type Hint`, `Inputs`, `Target Files`, `Deliverables`, `Acceptance Criteria`, `Dependencies`, `Parallelizable`).
-5.  **Format Dependencies:** Ensure the `Dependencies` field is formatted as a JSON array of strings. If dependencies are listed as "None" or are absent, use an empty array `[]`. If multiple Task IDs are listed, include all of them in the array.
-6.  **Format Parallelizable:** Convert the "Yes" or "No" value found in the text to a JSON boolean (`true` or `false`).
-7.  **Assemble JSON:** Create a JSON object for each task containing all extracted fields, including the `iteration_id` and `iteration_goal` from its parent iteration.
-8.  **Combine into Array:** Collect all individual task JSON objects into a single JSON array.
-9.  **Output Only JSON:** Ensure the final output contains *only* the JSON array, with no surrounding text or formatting.
+1.  **Scan Sections:** Read through numbered sections (1., 2., etc.) and subsections (1.1, 1.2, etc.).
+2.  **Identify Requirements:** Look for MUST/SHALL/SHOULD keywords indicating required functionality.
+3.  **Group Related Work:** Combine related requirements into logical tasks.
+4.  **Determine Agent:** Choose appropriate agent type based on task nature (backend-dev, frontend-dev, qa-engineer, etc.).
+5.  **Identify Files:** Extract target files from code blocks or implementation sections.
+6.  **Set Dependencies:** Determine if tasks must be sequential or can run in parallel.
+7.  **Write Acceptance Criteria:** Base criteria on the MUST/SHALL requirements from the spec.
+8.  **Generate task_id:** Use simple sequential IDs: T1, T2, T3, etc.
+9.  **Set done:** Always set to `false` for new tasks.
+10. **Output JSON Only:** Return only the JSON array with no extra text.
 
-**Now, process the following Project Plan text and generate the JSON array of tasks enclosed in .codemachine/plan/tasks.json:**
+**The final result must be written to: .codemachine/plan/tasks.json**
 
-{specification}
+**Now, process the specifications.md and generate the JSON array of tasks:**
+
+{specifications}

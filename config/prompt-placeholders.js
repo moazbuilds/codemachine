@@ -16,7 +16,7 @@
 
 module.exports = {
   // Project specification document
-  specification: '.codemachine/inputs/specifications.md',
+  specifications: '.codemachine/inputs/specifications.md',
 
   // Add more placeholders as needed:
   // requirements: '.codemachine/inputs/requirements.md',

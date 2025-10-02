@@ -22,7 +22,7 @@ function resolveStep(id, overrides = {}) {
 const workflow = {
   name: 'Simple Workflow',
   steps: [
-    resolveStep('master-mind', { agentName: 'Planner' }),
+    resolveStep('project-manager', { agentName: 'Project Manager' }),
   ],
 };
 

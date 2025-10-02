@@ -1,5 +1,5 @@
 module.exports = {
   workflow: {
-    template: 'default.workflow.js',
+    template: 'quick-dev.workflow.js',
   },
 };
