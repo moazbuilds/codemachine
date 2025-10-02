@@ -70,7 +70,7 @@ export function registerAgentCommand(program: Command): void {
 
       const workingDir = process.cwd();
 
-      const memoryDir = path.resolve(workingDir, 'memory');
+      const memoryDir = path.resolve(workingDir, '.codemachine', 'memory');
       const adapter = new MemoryAdapter(memoryDir);
       const store = new MemoryStore(adapter);
 
