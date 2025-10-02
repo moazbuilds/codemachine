@@ -1,23 +1,4 @@
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
-const mainAgents = require('../../config/main.agents.js');
-
-function resolveStep(id) {
-  const agent = mainAgents.find((entry) => entry?.id === id);
-  if (!agent) {
-    throw new Error(`Unknown main agent: ${id}`);
-  }
-
-  return {
-    type: 'module',
-    agentId: agent.id,
-    agentName: agent.name,
-    promptPath: agent.promptPath,
-    model: agent.model,
-    modelReasoningEffort: agent.modelReasoningEffort,
-  };
-}
+import { resolveStep } from '../../src/core/workflows/workflow-utils.js';
 
 const workflow = {
   name: 'Default Workflow',
