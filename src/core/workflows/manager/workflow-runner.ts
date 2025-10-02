@@ -7,6 +7,7 @@ import { runCodexPrompt } from './agent-execution.js';
 import { syncCodexConfig } from '../../../app/services/config-sync.js';
 import { ensureProjectScaffold } from './workspace-prep.js';
 import { validateSpecification } from './validation.js';
+import { processPromptString } from './prompt-processor.js';
 const TASKS_PRIMARY_PATH = path.join('.codemachine', 'plan', 'tasks.json');
 const TASKS_FALLBACK_PATH = path.join('.codemachine', 'tasks.json');
 
@@ -71,7 +72,8 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       const promptPath = path.isAbsolute(step.promptPath)
         ? step.promptPath
         : path.resolve(cwd, step.promptPath);
-      const prompt = await readFile(promptPath, 'utf8');
+      const rawPrompt = await readFile(promptPath, 'utf8');
+      const prompt = await processPromptString(rawPrompt, cwd);
       await runCodexPrompt({ agentId: step.agentId, prompt, cwd });
 
       const agentName = step.agentName.toLowerCase();

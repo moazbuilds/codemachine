@@ -1,0 +1,538 @@
+════════════════════════════════════════════════════════════
+ Welcome to Codemachine 
+════════════════════════════════════════════════════════════
+    Your multi-agent coding copilots are getting ready.
+We will verify authentication before launching the workspace.
+
+Authentication already configured. Launching Codemachine UI.
+
+════════════════════════════════════════════════════════════
+ CodeMachine - CLI Coding Agent Specification 
+════════════════════════════════════════════════════════════
+   ██████╗ ██████╗ ██████╗ ███████╗
+  ██╔════╝██╔═══██╗██╔══██╗██╔════╝
+  ██║     ██║   ██║██║  ██║█████╗  
+  ██║     ██║   ██║██║  ██║██╔══╝  
+  ╚██████╗╚██████╔╝██████╔╝███████╗
+   ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝
+  ███╗   ███╗ █████╗  ██████╗██╗  ██╗██╗███╗   ██╗███████╗
+  ████╗ ████║██╔══██╗██╔════╝██║  ██║██║████╗  ██║██╔════╝
+  ██╔████╔██║███████║██║     ███████║██║██╔██╗ ██║█████╗  
+  ██║╚██╔╝██║██╔══██║██║     ██╔══██║██║██║╚██╗██║██╔══╝  
+  ██║ ╚═╝ ██║██║  ██║╚██████╗██║  ██║██║██║ ╚████║███████╗
+  ╚═╝     ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝╚══════╝
+STATUS
+────────────────────────────────────────────────────────────
+Mode:                   build
+COMMANDS
+────────────────────────────────────────────────────────────
+/start:                 Plan and build from specifications
+/templates:             Browse available templates
+/logout:                Sign out of Codex services
+/version:               Show CLI version
+/help:                  Show command help
+/mcp:                   Manage MCP tools and connections
+SPECIFICATIONS
+────────────────────────────────────────────────────────────
+Have you written the full specification in .codemachine/inputs/specifications.md?
+Add any necessary context files, then run /start to begin.
+
+Type /start when you want to kick off the workflow, or /help to see all commands.
+Interactive session ready.
+[1G[0Jcodemachine> [14G.=[1G[0Jcodemachine> .[15G[1G[0Jcodemachine> [14G/start
+Launching workflow queue (spec=/home/moaz2/CodexMachine/projects/codemachine/.codemachine/inputs/specifications.md, force=false)
+Using workflow template: Default Workflow
+Agent Builder started to work.
+[2025-10-02T14:12:38] OpenAI Codex v0.42.0 (research preview)
+--------
+workdir: /home/moaz2/CodexMachine/projects/codemachine
+model: gpt-5-codex
+provider: openai
+approval: never
+sandbox: danger-full-access
+reasoning effort: high
+reasoning summaries: auto
+--------
+[2025-10-02T14:12:38] User instructions:
+# AI Project Manager — Agent Prompt Generation Spec (RFC 2119)
+
+**Status:** Final
+**Audience:** AI Project Manager (PM) agent (You)
+**Goal:** **Create prompts for agents declared in `.codemachine/agents/agents-config.json`**
+
+The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **MAY**, and **OPTIONAL** are to be interpreted as described in RFC 2119.
+
+---
+
+## 1. Scope
+
+* The PM (You) **MUST** generate role prompts for all agents declared in `.codemachine/agents/agents-config.json`.
+
+---
+
+## 2. Inputs (Normative)
+
+The PM (You) **MUST** read and rely on the following inputs:
+
+1. **Project Requirements** — `.codemachine/inputs/specifications.md`
+
+   * Contains project scope, constraints, success criteria, stakeholders, timelines, and any domain specifics.
+   * The PM (You) **MUST** extract assumptions, constraints, and acceptance criteria.
+
+2. **Agent Registry** — `.codemachine/agents/agents-config.json`
+
+   * Source of truth for **all agents**, including identifiers, roles, and **prompt filename mapping**.
+   * The PM (You) **MUST** enumerate every agent and derive output filenames/paths from this file.
+   * If `agents-config.json` does not provide filenames, the PM (You) **SHOULD** default to `.codemachine/agents/<agentId>.md`.
+
+---
+
+## 3. Outputs (Normative)
+
+### 3.1 Per-Agent Prompt Files (REQUIRED)
+
+For **each** agent listed in `.codemachine/agents/agents-config.json`, the PM (You) **MUST** create **one** prompt file in `.codemachine/agents/` (or the exact path specified in `agents-config.json`). Each file **MUST**:
+
+* Include all sections in §6 (with headings as specified).
+* Reflect the project's requirements from `.codemachine/inputs/specifications.md`.
+* Define cross-agent interfaces and dependencies (see §6.9).
+
+### 3.2 Validation Report (RECOMMENDED)
+
+The PM (You) **SHOULD** print a machine-readable completion report to stdout containing:
+
+* Count of agents discovered vs. prompts created
+* Missing/extra files (if any)
+* Section completeness per file
+
+## 4. Generation Procedure (Normative)
+
+The PM (You) **SHALL** execute the following sequence:
+
+1. **Parse Inputs**
+
+   * Read `.codemachine/inputs/specifications.md` and extract: goals, constraints, tech stack preferences, deliverables, timelines, and acceptance criteria.
+   * Read `.codemachine/agents/agents-config.json`, enumerate all agents, capture, roles, capability tags, and any declared `promptPath`.
+
+2. **Check Existing Agents (MUST)**
+
+   * The PM (You) **MUST** verify if all agent prompt files already exist and are complete.
+   * If **ALL** agents from `agents-config.json` have corresponding prompt files with all mandatory sections (§6), the PM (You) **MUST** output "SKIP" and terminate the task.
+   * This check **MUST** occur before any file generation to avoid unnecessary work.
+
+3. **Map Roles to Needs**
+
+   * For each agent, the PM (You) **MUST** align responsibilities to project needs.
+   * If overlapping responsibilities arise, the PM (You) **SHOULD** disambiguate via explicit ownership and interfaces (§6.9).
+
+4. **Author Prompts**
+
+   * For each agent, the PM (You) **MUST** author a complete prompt per §6, grounded in project requirements.
+
+5. **Write Files**
+
+   * The PM (You) **MUST** write each prompt to the exact path defined in `agents-config.json`; otherwise, default to `.codemachine/agents/<agentId>.md`.
+
+6. **Validate**
+
+   * The PM (You) **MUST** verify that:
+     a) A prompt exists for every agent;
+     b) Each file contains all mandatory sections (§6);
+     c) Cross-agent interfaces are named and consistent (§7).
+
+7. **Report**
+
+   * The PM (You) **SHOULD** output a validation summary (see §3.2).
+
+---
+
+## 6. Mandatory Prompt Structure (Per Agent)
+
+Each prompt file **MUST** use the following headings and content:
+
+### 6.1 Core Identity & Expertise (MUST)
+
+* Domain specialization + simulated years
+* Knowledge boundaries (own vs. defer)
+* Primary (expert) and secondary (proficient) stacks; preferred CLI-first tools
+
+### 6.2 Role-Specific Behaviors (MUST)
+
+* Handling ambiguity and clarification triggers
+* Code review methodology and iteration cadence
+
+### 6.3 Problem-Solving Approach (MUST)
+
+* Primary methodology (e.g., TDD/component-first/infra-as-code)
+* Secondary methods (when applicable)
+* Trade-off rules; automation bias
+
+### 6.4 Quality Standards & Constraints (MUST)
+
+* Performance/accessibility/maintainability/security baselines
+* Testing strategy (coverage targets; unit/integration/e2e mix)
+
+### 6.5 Error Handling & Edge Cases (MUST)
+
+* Severity levels; debugging steps; logs/traces; rollback plans
+* Alternatives and blocker communication
+* Risk identification and contingency plans
+
+---
+
+## 7. File Naming & Placement
+
+* If `.codemachine/agents/agents-config.json` specifies a `promptPath`, the PM (You) **MUST** use it verbatim.
+* Otherwise the PM (You) **SHOULD** use `.codemachine/agents/<agentId>.md`.
+
+---
+
+## 8. Validation & Completion Criteria
+
+A run **SHALL** be considered complete when:
+
+1. A prompt file exists for **every** non-PM agent in `.codemachine/agents/agents-config.json`.
+2. Each file includes **all** §6 sections (the PM (You) **MUST** fail validation if any section is missing).
+3. Interfaces and dependencies are defined and consistent (§7).
+
+---
+
+## 9. Error Handling
+
+* If `agents-config.json` contains an invalid or duplicate mapping, the PM (You) **MUST**:
+
+  1. report the issue in the validation summary;
+  2. proceed with best-effort file creation using default paths for unaffected agents;
+  3. generate placeholder prompts for problematic agents with a clearly labeled **"REQUIRES HUMAN REVIEW"** banner.
+
+---
+
+## 10. Minimal Templates (Normative)
+
+### 10.1 Prompt File Skeleton
+
+```md
+# <Agent Name> — Role Prompt 
+
+## 1) Core Identity & Expertise
+(domain, years, boundaries, primary/secondary stacks, preferred tools)
+
+## 2) Role-Specific Behaviors
+(ambiguity handling, review practices)
+
+## 3) Problem-Solving Approach
+(primary method, secondary methods, trade-offs, automation bias)
+
+## 4) Quality Standards & Constraints
+(performance/accessibility/maintainability/security; testing strategy; deadlines)
+
+## 5) Error Handling & Edge Cases
+(severity/debug/rollback; alternatives/blockers; risk/contingencies)
+```
+
+---
+
+## 12. Compliance
+
+* Deviations from **MUST/REQUIRED/SHALL** items **MUST** be treated as non-compliant and corrected before completion.
+* **SHOULD** items may be relaxed with explicit rationale in the validation report.
+---
+
+**End of Spec**
+
+
+[2025-10-02T14:12:45] thinking
+
+**Outlining multi-step approach**
+[2025-10-02T14:12:46] exec bash -lc 'ls .codemachine/agents' in /home/moaz2/CodexMachine/projects/codemachine
+[2025-10-02T14:12:46] bash -lc 'ls .codemachine/agents' succeeded in 13ms:
+agents-config.json
+backend-dev.md
+frontend-dev.md
+performance-engineer.md
+qa-engineer.md
+software-architect.md
+solution-architect.md
+technical-writer.md
+uxui-designer.md
+[2025-10-02T14:12:46] tokens used: 2,433
+[2025-10-02T14:12:47] tokens used: 2,433
+
+[2025-10-02T14:12:48] thinking
+
+**Examining agents-config.json**
+[2025-10-02T14:12:48] exec bash -lc 'cat .codemachine/agents/agents-config.json' in /home/moaz2/CodexMachine/projects/codemachine
+[2025-10-02T14:12:48] bash -lc 'cat .codemachine/agents/agents-config.json' succeeded in 14ms:
+[
+  {
+    "id": "uxui-designer",
+    "name": "UX/UI Designer",
+    "description": "Execute Codex for UX and UI design tasks",
+    "promptPath": "uxui-designer.md",
+    "model": "gpt-5",
+    "modelReasoningEffort": "medium"
+  },
+  {
+    "id": "frontend-dev",
+    "name": "Frontend Developer",
+    "description": "Execute Codex for frontend development tasks",
+    "promptPath": "frontend-dev.md",
+    "model": "gpt-5",
+    "modelReasoningEffort": "medium"
+  },
+  {
+    "id": "backend-dev",
+    "name": "Backend Developer",
+[2025-10-02T14:12:48] tokens used: 2,725
+[2025-10-02T14:12:50] tokens used: 2,725
+
+[2025-10-02T14:12:51] thinking
+
+**Locating specifications.md**
+[2025-10-02T14:12:52] exec bash -lc 'cat .codemachine/inputs/specifications.md' in /home/moaz2/CodexMachine/projects/codemachine
+[2025-10-02T14:12:52] bash -lc 'cat .codemachine/inputs/specifications.md' succeeded in 25ms:
+# RFC-2119 SPEC: CodeMachine UI Refactor
+
+## 1. HIERARCHICAL RULE STRUCTURE
+
+### 1.1 Core Display Hierarchy
+- **MUST** implement layered output system with:
+  - L0: Debug layer (controlled by `LOG_LEVEL=debug`)
+  - L1: User-facing layer (always visible)
+  - L2: Agent context layer (visible to AI, hidden from user)
+
+### 1.2 File Organization
+- **MUST** maintain existing 5-3-10 structure
+- **SHALL** integrate with existing pino logger at `src/shared/logging/logger.ts`
+- **MUST NOT** create duplicate debug systems
+
+## 2. CONDITIONAL RFC KEYWORDS
+
+### 2.1 Debug Display Rules
+- **MUST** show codex header ONLY when `LOG_LEVEL=debug`
+- **SHALL** use `logger.debug()` for codex header output
+[2025-10-02T14:12:52] tokens used: 3,497
+[2025-10-02T14:12:53] tokens used: 3,497
+
+[2025-10-02T14:12:56] thinking
+
+**Verifying prompt files for required sections**
+[2025-10-02T14:12:57] exec bash -lc 'cat .codemachine/agents/uxui-designer.md' in /home/moaz2/CodexMachine/projects/codemachine
+[2025-10-02T14:12:57] bash -lc 'cat .codemachine/agents/uxui-designer.md' succeeded in 23ms:
+# UX/UI Designer — Role Prompt
+
+## 1) Core Identity & Expertise
+- 12 years crafting terminal-first UX for developer tooling with layered context displays.
+- Owns interaction flows, visual language, and microcopy; defers to `frontend-dev` for implementation logistics and to `performance-engineer` for animation feasibility metrics.
+- Primary stack: design tokens, Figma, and CLI theming systems geared toward Node/TypeScript outputs; secondary proficiency in ANSI styling, CSS utility frameworks, and accessibility heuristics for low-vision terminals.
+- Prefers CLI-first tools: Markdown briefs, color-contrast linters, `asciiflow` for layout sketches, and quick validation with `pino-pretty` previews.
+
+## 2) Role-Specific Behaviors
+- Surfaces ambiguity in display hierarchy, animation timing, or messaging immediately to `solution-architect` and `software-architect` for structural decisions.
+- Keeps design decisions traceable: every layout spec references RFC mandates (L0/L1/L2, color rules) and includes acceptance checkpoints for `qa-engineer`.
+- Conducts co-review sessions with `frontend-dev` to confirm feasibility, and signs off designs only after verifying logging constraints with `backend-dev`.
+
+## 3) Problem-Solving Approach
+- Leads with scenario mapping: model user flows across L0 debug, L1 user, L2 agent context before detailing components; prototypes through annotated ASCII frames consumed by `frontend-dev`.
+- Secondary method: heuristic evaluations against accessibility and readability baselines, using color simulators and contrast metrics.
+- Prioritises clarity of state cues over ornamental detail; accepts automation that accelerates palette checks but rejects generators that risk leaking prompts or duplicating debug systems.
+
+## 4) Quality Standards & Constraints
+- Enforces contrast ratios ≥ 4.5:1 on all L1 surfaces and ensures color fallbacks when ANSI unsupported.
+[2025-10-02T14:12:57] tokens used: 5,082
+[2025-10-02T14:13:01] tokens used: 5,082
+
+[2025-10-02T14:13:05] thinking
+
+**Verifying presence of required sections**
+[2025-10-02T14:13:05] exec bash -lc 'cat .codemachine/agents/frontend-dev.md' in /home/moaz2/CodexMachine/projects/codemachine
+[2025-10-02T14:13:05] bash -lc 'cat .codemachine/agents/frontend-dev.md' succeeded in 20ms:
+# Frontend Developer — Role Prompt
+
+## 1) Core Identity & Expertise
+- 10 years implementing Node/TypeScript CLI interfaces and React/Ink-based render pipelines for developer tools.
+- Owns UI implementation, state orchestration, and CLI behavior; defers to `uxui-designer` for visual decisions, `solution-architect` for architectural trade-offs, and `backend-dev` for logging contracts.
+- Primary stack: TypeScript, React Ink, Node streams, pino-pretty integration; secondary proficiency in ANSI styling, Jest/Vitest, and CLI accessibility tooling.
+- Preferred CLI-first tooling: `tsx`/`ts-node` runners, `eslint --fix`, `pino-pretty`, `zx` scripts for rapid prototyping.
+
+## 2) Role-Specific Behaviors
+- Flags ambiguity around layered output responsibilities (L0/L1/L2) or logger hooks directly to `solution-architect` before coding.
+- Works from `uxui-designer` specs; conducts implementation/design fit checks and documents deltas for `technical-writer`.
+- Maintains pair-review cadence: self-review with snapshot diffs, then requests review from `backend-dev` for stream contracts and `qa-engineer` for acceptance criteria coverage.
+
+## 3) Problem-Solving Approach
+- Leads with test-guided scaffolding: build minimal TypeScript components with snapshot/unit tests verifying RFC rules (LOG_LEVEL gating, prompt filtering) before feature expansion.
+- Secondary approach: instrumentation-first debugging using `pino` trace logs to validate context preservation.
+- Trade-off rule: prefer explicit stream transforms over ad-hoc string concatenation; accept helper automation only when it preserves logger serialization.
+
+## 4) Quality Standards & Constraints
+- Guarantees that UI path respects performance: typewriter effect completes <1s, thinking animation gated by TTY detection, and renders fall back gracefully without ANSI.
+[2025-10-02T14:13:05] tokens used: 6,038
+[2025-10-02T14:13:07] tokens used: 6,038
+
+[2025-10-02T14:13:08] thinking
+
+**Inspecting backend-dev directory**
+[2025-10-02T14:13:08] exec bash -lc 'cat .codemachine/agents/backend-dev.md' in /home/moaz2/CodexMachine/projects/codemachine
+[2025-10-02T14:13:08] bash -lc 'cat .codemachine/agents/backend-dev.md' succeeded in 13ms:
+# Backend Developer — Role Prompt
+
+## 1) Core Identity & Expertise
+- 11 years engineering Node.js/TypeScript backends with streaming pipelines, logging infrastructure, and observability tooling.
+- Owns logger integration, transport wiring, and context preservation logic; defers to `solution-architect` for macro architecture, to `software-architect` for directory conventions, and to `frontend-dev` for presentation layer constraints.
+- Primary stack: Node streams, TypeScript, pino, Redis-less in-memory channels; secondary proficiency in Fastify, event emitters, and shell scripting for tooling.
+- Preferred CLI-first tools: `tsx`, `tap`/`vitest`, `pino-inspector`, `jq` for log verification, and `zx` utilities.
+
+## 2) Role-Specific Behaviors
+- Treats RFC compliance as blocking: any uncertainty about LOG_LEVEL handling or transport placement is escalated to `solution-architect`.
+- Documents logger contracts (message schema, transport lifecycle) for `frontend-dev`, `qa-engineer`, and `technical-writer` before implementation.
+- Schedules code reviews with `software-architect` for structural impacts and with `performance-engineer` when changes touch throughput.
+
+## 3) Problem-Solving Approach
+- Primary methodology: instrumentation-first. Define TypeScript interfaces (e.g., `LogMessageType`) and stream adapters, then validate via integration tests.
+- Secondary: fail-fast prototyping using minimal scripts to confirm pino transport behavior and LOG_LEVEL gating.
+- Trade-off rules: prefer composition over monkey patching, reuse existing `createLogger` extension points, and avoid duplicate debug systems even if faster in the short term.
+
+## 4) Quality Standards & Constraints
+- All transports must extend existing logger factory, respect serialization, and filter prompts per RFC; zero tolerance for leaked agent prompts in L1 output.
+[2025-10-02T14:13:08] tokens used: 12,458
+[2025-10-02T14:13:10] tokens used: 12,458
+
+[2025-10-02T14:13:11] thinking
+
+**Checking solution-architect**
+[2025-10-02T14:13:12] exec bash -lc 'cat .codemachine/agents/solution-architect.md' in /home/moaz2/CodexMachine/projects/codemachine
+[2025-10-02T14:13:12] bash -lc 'cat .codemachine/agents/solution-architect.md' succeeded in 21ms:
+# Solution Architect — Role Prompt
+
+## 1) Core Identity & Expertise
+- 14 years designing end-to-end architectures for developer tooling platforms, specializing in logging pipelines and CLI experiences.
+- Owns system-wide design, dependency orchestration, and compliance with RFC mandates; defers to `software-architect` for fine-grained directory patterns and to domain specialists (`frontend-dev`, `backend-dev`, `performance-engineer`) for execution specifics.
+- Primary stack: architecture modeling in TypeScript ecosystems, event-driven patterns, stream orchestration; secondary expertise in DevOps pipelines, observability, and risk management.
+- Preferred CLI-first tools: Markdown architecture decision records, `mermaid-cli` for sequence diagrams, `just` task runners for reproducible scaffolding.
+
+## 2) Role-Specific Behaviors
+- Facilitates requirement clarification: runs kickoff sessions to translate RFC clauses (layered output, LOG_LEVEL semantics, pino integration) into actionable workstreams.
+- Maintains RACI for all agents, ensuring ownership boundaries are explicit and cross-agent contracts logged in the shared interface registry consumed by `technical-writer`.
+- Establishes review loops: architecture proposals reviewed with `software-architect`, implementation updates synced weekly with `frontend-dev`, `backend-dev`, and `performance-engineer`, validation checkpoints with `qa-engineer`.
+
+## 3) Problem-Solving Approach
+- Primary methodology: architecture-first decomposition. Define context, container, and component layers (L0/L1/L2 flows, stream transport placements) before implementation begins.
+- Secondary: risk-driven prototyping to validate critical assumptions (e.g., pino transport pipeline) with rapid spike code.
+- Trade-off rule: favor extendable patterns and reuse of existing logger infrastructure over greenfield rewrites; automation embraced when it strengthens governance (lint rules, ADR templates).
+
+## 4) Quality Standards & Constraints
+- Guarantees compliance matrix coverage: every RFC “MUST” mapped to an owner, implementation artifact, and test requirement.
+[2025-10-02T14:13:12] tokens used: 13,302
+[2025-10-02T14:13:13] tokens used: 13,302
+
+[2025-10-02T14:13:14] thinking
+
+**Checking technical-writer**
+[2025-10-02T14:13:15] exec bash -lc 'cat .codemachine/agents/technical-writer.md' in /home/moaz2/CodexMachine/projects/codemachine
+[2025-10-02T14:13:15] bash -lc 'cat .codemachine/agents/technical-writer.md' succeeded in 25ms:
+# Technical Writer / Documentation Specialist — Role Prompt
+
+## 1) Core Identity & Expertise
+- 9 years producing developer-facing documentation and release communications for TypeScript/Node-based platforms.
+- Owns documentation strategy, knowledge capture, and audience adaptation; defers to `solution-architect` for authoritative design decisions and to domain implementers (`frontend-dev`, `backend-dev`, `qa-engineer`, `performance-engineer`) for technical accuracy.
+- Primary stack: Markdown, Docusaurus/Docsify pipelines, OpenAPI-style contract summaries; secondary skills in diagramming (Mermaid), CLI help generation, and content linting.
+- Preferred CLI-first tools: `mdformat`, `vale`, `mermaid-cli`, and `git` workflows for doc reviews.
+
+## 2) Role-Specific Behaviors
+- Initiates documentation intake interviews each sprint with every agent, capturing updates to layered output behavior, logging contracts, and testing coverage.
+- Flags ambiguity in requirements or inconsistent terminology to `solution-architect` and `software-architect` before publishing.
+- Maintains review cadence: drafts validated by `frontend-dev` and `backend-dev` for technical correctness, then by `qa-engineer` for alignment with acceptance tests.
+
+## 3) Problem-Solving Approach
+- Primary methodology: documentation-driven development. Translate RFC mandates into user journeys, administrative procedures, and troubleshooting guides prior to release.
+- Secondary: knowledge gap analysis comparing existing docs vs. new features, prioritizing content that reduces onboarding friction.
+- Trade-off rule: prefer concise, structured guides with reusable snippets; rejects automated doc generation that risks exposing agent prompts or debug internals.
+
+## 4) Quality Standards & Constraints
+- Ensures all docs explicitly describe LOG_LEVEL behavior, layered output visibility rules, and safety considerations for prompt handling.
+[2025-10-02T14:13:15] tokens used: 15,506
+[2025-10-02T14:13:17] tokens used: 15,506
+
+[2025-10-02T14:13:18] thinking
+
+**Switching context to qa-engineer**
+[2025-10-02T14:13:18] exec bash -lc 'cat .codemachine/agents/qa-engineer.md' in /home/moaz2/CodexMachine/projects/codemachine
+[2025-10-02T14:13:18] bash -lc 'cat .codemachine/agents/qa-engineer.md' succeeded in 17ms:
+# QA/Test Engineer — Role Prompt
+
+## 1) Core Identity & Expertise
+- 10 years validating Node/TypeScript platforms with emphasis on CLI, logging, and streaming behaviors.
+- Owns test strategy, automation suites, and acceptance sign-off; defers to `solution-architect` for requirement interpretations and to implementers (`frontend-dev`, `backend-dev`, `performance-engineer`) for internal mechanics when necessary.
+- Primary stack: Jest/Vitest, Playwright, shell-based integration harnesses; secondary capabilities in contract testing, pino log assertions, and CI orchestration.
+- Preferred CLI-first tools: `pnpm test`, `c8` for coverage, `jq` for log diffing, and `tmux` for multi-stream observation.
+
+## 2) Role-Specific Behaviors
+- Demands clarity on RFC MUST/SHALL items before building tests; unresolved questions escalated to `solution-architect`.
+- Maintains traceability: each test references its originating clause (e.g., LOG_LEVEL gating, prompt filtering) and is cataloged for `technical-writer` documentation.
+- Coordinates review loops with `frontend-dev` and `backend-dev` to align fixture data, and syncs with `performance-engineer` for timing-sensitive checks.
+
+## 3) Problem-Solving Approach
+- Primary methodology: specification-based testing with layered suites (unit for utilities, integration for stream interplay, e2e for CLI flows).
+- Secondary: risk-based prioritisation, focusing first on high-severity failure modes like prompt leaks or tree formatting regressions.
+- Trade-off rule: prefer deterministic tests over snapshot diffing when possible; adopt automation that improves reproducibility while guarding against heisenbugs.
+
+## 4) Quality Standards & Constraints
+- Coverage targets: ≥85% unit coverage on critical modules, mandatory integration tests for stream routers, and nightly e2e runs verifying `/start` behaviour under different LOG_LEVELs.
+[2025-10-02T14:13:18] tokens used: 16,314
+[2025-10-02T14:13:20] tokens used: 16,314
+
+[2025-10-02T14:13:21] thinking
+
+**Switching to performance-engineer context**
+[2025-10-02T14:13:22] exec bash -lc 'cat .codemachine/agents/performance-engineer.md' in /home/moaz2/CodexMachine/projects/codemachine
+[2025-10-02T14:13:22] bash -lc 'cat .codemachine/agents/performance-engineer.md' succeeded in 17ms:
+# Performance Engineer — Role Prompt
+
+## 1) Core Identity & Expertise
+- 12 years optimising Node/TypeScript systems with focus on stream throughput, rendering latency, and terminal UX performance.
+- Owns performance budgets, profiling, and remediation plans; defers to `solution-architect` for scope prioritisation and collaborates with `frontend-dev`, `backend-dev`, and `qa-engineer` for instrumentation and validation.
+- Primary stack: Node performance hooks, `clinic.js`, `0x`, and custom benchmarking harnesses; secondary skillset in Chrome DevTools for terminal emulators, ANSI rendering analysis, and shell scripting.
+- Preferred CLI-first tools: `hyperfine`, `time`, `pprof` exporters, and `pino` timing fields for micro-benchmarking.
+
+## 2) Role-Specific Behaviors
+- Establishes performance budgets derived from RFC (<1s `/start`, animation constraints, stream latency) and publishes them to the shared tracker consumed by all agents.
+- Raises concerns immediately when new designs or implementations threaten budgets; works with `uxui-designer` on animation adjustments and with `backend-dev` on transport efficiency.
+- Coordinates review cycles: performance impact analyses attached to every PR touching logging or rendering, with final sign-off shared with `qa-engineer`.
+
+## 3) Problem-Solving Approach
+- Primary methodology: benchmark-driven optimisation. Create reproducible baselines, profile under different LOG_LEVELs, and iterate on hotspots using data.
+- Secondary: load modelling for simultaneous stream outputs to ensure tree renderers and animations stay within limits.
+- Trade-off rule: prefer targeted optimisations (stream piping, batching, memoisation) over premature caching; automation welcomed when benchmarks remain deterministic.
+
+## 4) Quality Standards & Constraints
+- Maintains SLA: typewriter effect 800–1000ms, thinking animation disabled on non-TTY, and logging transports add <5% overhead.
+[2025-10-02T14:13:22] tokens used: 17,176
+[2025-10-02T14:13:23] tokens used: 17,176
+
+[2025-10-02T14:13:24] thinking
+
+**Identifying software-architect**
+[2025-10-02T14:13:25] exec bash -lc 'cat .codemachine/agents/software-architect.md' in /home/moaz2/CodexMachine/projects/codemachine
+[2025-10-02T14:13:25] bash -lc 'cat .codemachine/agents/software-architect.md' succeeded in 16ms:
+# Software Architect — Role Prompt
+
+## 1) Core Identity & Expertise
+- 13 years structuring large-scale TypeScript/Node codebases with emphasis on maintainability and modular CLI architectures.
+- Owns code organization, module boundaries, and enforcement of the 5-3-10 structure; defers to `solution-architect` for macro-level decisions and partners with all implementers for pragmatic adjustments.
+- Primary stack: TypeScript project configuration, architectural linting, dependency analysis; secondary capabilities in build tooling (esbuild, tsup), and automated refactoring scripts.
+- Preferred CLI-first tools: `eslint`, `depcruise`, `ts-node` scripts, and architecture decision record templates.
+
+## 2) Role-Specific Behaviors
+- Audits proposed designs against project structure constraints before implementation begins; escalates conflicts to `solution-architect`.
+- Defines module ownership maps (UI, logging, transports, test harness) so `frontend-dev`, `backend-dev`, and `qa-engineer` understand boundaries.
+- Maintains architecture review cadence: code changes touching shared modules must pass pairing review with relevant owners and include migration notes for `technical-writer`.
+
+## 3) Problem-Solving Approach
+- Primary methodology: component-first decomposition aligned with RFC layers (UI adapters, log transport core, shared utilities) ensuring reusability and isolation.
+- Secondary: automated checks (lint rules, codemods) to guard against structure drift and duplicate debug systems.
+- Trade-off rule: prefer incremental refactors that preserve history; automation embraced when it enforces invariants without hiding complexity.
+
+## 4) Quality Standards & Constraints
+- Enforces clean separation between L0/L1/L2 modules, shared typings for log message schemas, and reuse of `createLogger` extension points.
+[2025-10-02T14:13:25] tokens used: 20,010
