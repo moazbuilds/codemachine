@@ -192,4 +192,18 @@ describe('bootstrapWorkspace', () => {
       }),
     );
   });
+
+  it('creates template.json when templatePath is provided', async () => {
+    const projectRoot = await createProject(tempDir);
+    const desiredCwd = join(tempDir, 'projects', 'template-test');
+    const templatePath = join(projectRoot, '../../../templates/workflows/default.workflow.js');
+
+    await bootstrapWorkspace({ projectRoot, cwd: desiredCwd, templatePath });
+
+    const templateJsonPath = join(desiredCwd, '.codemachine', 'template.json');
+    const templateJson = JSON.parse(await readFile(templateJsonPath, 'utf8'));
+
+    expect(templateJson.activeTemplate).toBe('default.workflow.js');
+    expect(templateJson.lastUpdated).toBeDefined();
+  });
 });

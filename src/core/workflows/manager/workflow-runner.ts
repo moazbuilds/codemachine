@@ -10,6 +10,7 @@ import { validateSpecification } from './validation.js';
 import { processPromptString } from './prompt-processor.js';
 import { evaluateLoopBehavior } from '../modules/loop-behavior.js';
 import { getAgentLoggers, formatAgentLog } from './agent-loggers.js';
+import { getTemplatePathFromTracking } from '../../../shared/agents/template-tracking.js';
 const TASKS_PRIMARY_PATH = path.join('.codemachine', 'plan', 'tasks.json');
 const TASKS_FALLBACK_PATH = path.join('.codemachine', 'tasks.json');
 
@@ -40,7 +41,12 @@ async function runPlanningStep(cwd: string, options: RunWorkflowOptions): Promis
 
 export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<void> {
   const cwd = options.cwd ? path.resolve(options.cwd) : process.cwd();
-  const { template, resolvedPath } = await loadTemplateWithPath(cwd, options.templatePath);
+
+  // Load template from .codemachine/template.json or use provided path
+  const cmRoot = path.join(cwd, '.codemachine');
+  const templatePath = options.templatePath || await getTemplatePathFromTracking(cmRoot);
+
+  const { template, resolvedPath } = await loadTemplateWithPath(cwd, templatePath);
 
   console.log(`Using workflow template: ${template.name}`);
 

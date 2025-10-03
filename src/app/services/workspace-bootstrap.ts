@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 import { collectAgentsFromWorkflows } from '../../shared/agents/workflow-discovery.js';
 import { loadWorkflowModule, isWorkflowTemplate } from '../../core/workflows/manager/template-loader.js';
+import { setActiveTemplate } from '../../shared/agents/template-tracking.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -261,6 +262,10 @@ export async function bootstrapWorkspace(options?: WorkspaceBootstrapOptions): P
       if (isWorkflowTemplate(template)) {
         const templateName = path.basename(options.templatePath);
         agentIdsToLoad = template.subAgentIds;
+
+        // Save template to template.json
+        await setActiveTemplate(cmRoot, templateName);
+
         debugLog('Loaded template with sub-agents', { templateName, subAgentIds: agentIdsToLoad });
       }
     } catch (error) {

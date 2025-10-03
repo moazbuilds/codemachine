@@ -6,7 +6,20 @@ import * as path from 'node:path';
 import { registerCli } from '../cli/commands/register-cli.js';
 import { syncCodexConfig } from './services/config-sync.js';
 import { bootstrapWorkspace } from './services/workspace-bootstrap.js';
-import { resolveTemplateFromSettings } from '../core/workflows/manager/template-loader.js';
+
+// Resolve package root to find templates directory
+const packageRoot = (() => {
+  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  let current = moduleDir;
+  while (true) {
+    if (existsSync(path.join(current, 'package.json'))) return current;
+    const parent = path.dirname(current);
+    if (parent === current) return moduleDir;
+    current = parent;
+  }
+})();
+
+const templatesDir = path.resolve(packageRoot, 'templates', 'workflows');
 
 export async function runCodemachineCli(argv: string[] = process.argv): Promise<void> {
   const program = new Command()
@@ -25,9 +38,9 @@ export async function runCodemachineCli(argv: string[] = process.argv): Promise<
     // Only bootstrap if .codemachine folder doesn't exist
     const cmRoot = path.join(cwd, '.codemachine');
     if (!existsSync(cmRoot)) {
-      // First run: create workspace with template from settings.js
-      const templatePath = resolveTemplateFromSettings();
-      await bootstrapWorkspace({ cwd, templatePath });
+      // First run: create workspace with default template
+      const defaultTemplate = path.join(templatesDir, 'default.workflow.js');
+      await bootstrapWorkspace({ cwd, templatePath: defaultTemplate });
     }
     // If .codemachine exists, skip bootstrap (don't regenerate or modify)
   });

@@ -1,6 +1,6 @@
 import type { Command } from 'commander';
 import * as path from 'node:path';
-import { existsSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import prompts from 'prompts';
@@ -21,7 +21,6 @@ const packageRoot = (() => {
 })();
 
 const templatesDir = path.resolve(packageRoot, 'templates', 'workflows');
-const settingsPath = path.resolve(packageRoot, 'config', 'settings.js');
 
 export function printAvailableWorkflowTemplatesHeading(): void {
   console.log('\nAvailable workflow templates:\n');
@@ -33,31 +32,6 @@ interface TemplateChoice {
   description?: string;
 }
 
-function updateSettingsFile(templateFileName: string): void {
-  try {
-    // Ensure config directory exists
-    const configDir = path.dirname(settingsPath);
-    if (!existsSync(configDir)) {
-      throw new Error(`Config directory does not exist: ${configDir}`);
-    }
-
-    // Create the new settings content
-    const settingsContent = `module.exports = {
-  workflow: {
-    template: '${templateFileName}',
-  },
-};
-`;
-
-    // Write the updated settings
-    writeFileSync(settingsPath, settingsContent, 'utf8');
-    console.log(`✅ Updated config/settings.js with template: ${templateFileName}`);
-  } catch (error) {
-    console.error('❌ Failed to update settings.js:', error instanceof Error ? error.message : String(error));
-    console.log(`\nPlease manually update your config/settings.js with:`);
-    console.log(`  workflow: { template: '${templateFileName}' }`);
-  }
-}
 
 async function handleTemplateSelectionSuccess(template: WorkflowTemplate, templateFilePath: string): Promise<void> {
   const templateFileName = path.basename(templateFilePath);
@@ -100,7 +74,7 @@ async function handleTemplateSelectionSuccess(template: WorkflowTemplate, templa
     await setActiveTemplate(cmRoot, templateFileName);
   }
 
-  updateSettingsFile(templateFileName);
+  console.log(`\n✅ Template saved to .codemachine/template.json`);
 }
 
 export async function getAvailableTemplates(): Promise<TemplateChoice[]> {

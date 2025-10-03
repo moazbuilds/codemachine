@@ -41,23 +41,13 @@ const packageRoot = (() => {
 
 const templatesDir = path.resolve(packageRoot, 'templates', 'workflows');
 
+/**
+ * @deprecated This function is deprecated. Templates are now loaded from .codemachine/template.json
+ * Use getTemplatePathFromTracking from template-tracking.ts instead
+ */
 export function resolveTemplateFromSettings(): string | undefined {
-  const settingsPath = path.resolve(packageRoot, 'config', 'settings.js');
-  const require = createRequire(import.meta.url);
-  try {
-    delete require.cache[require.resolve(settingsPath)];
-    const settings = require(settingsPath) as UnknownRecord;
-    const workflowSettings = (settings?.workflow ?? {}) as UnknownRecord;
-    const templateValue = workflowSettings.template;
-    if (typeof templateValue === 'string' && templateValue.trim().length > 0) {
-      const candidate = templateValue.endsWith('.workflow.js') ? templateValue : `${templateValue}.workflow.js`;
-      return path.isAbsolute(candidate)
-        ? candidate
-        : path.resolve(templatesDir, candidate);
-    }
-  } catch {
-    // fall through to defaults
-  }
+  // Settings.js is no longer used for template configuration
+  // Templates are now managed per-project in .codemachine/template.json
   return undefined;
 }
 
@@ -173,14 +163,13 @@ export async function loadWorkflowModule(modPath: string): Promise<unknown> {
 }
 
 export async function loadTemplate(cwd: string, templatePath?: string): Promise<WorkflowTemplate> {
-  const selectedFromSettings = resolveTemplateFromSettings();
   const resolvedTemplateOverride = templatePath
     ? path.isAbsolute(templatePath)
       ? templatePath
       : path.resolve(packageRoot, templatePath)
     : undefined;
   const defaultTemplate = path.resolve(templatesDir, 'default.workflow.js');
-  const candidates = [resolvedTemplateOverride, selectedFromSettings, defaultTemplate].filter(Boolean) as string[];
+  const candidates = [resolvedTemplateOverride, defaultTemplate].filter(Boolean) as string[];
 
   for (const modPath of candidates) {
     try {
@@ -198,14 +187,13 @@ export async function loadTemplate(cwd: string, templatePath?: string): Promise<
 }
 
 export async function loadTemplateWithPath(cwd: string, templatePath?: string): Promise<{ template: WorkflowTemplate; resolvedPath: string }> {
-  const selectedFromSettings = resolveTemplateFromSettings();
   const resolvedTemplateOverride = templatePath
     ? path.isAbsolute(templatePath)
       ? templatePath
       : path.resolve(packageRoot, templatePath)
     : undefined;
   const defaultTemplate = path.resolve(templatesDir, 'default.workflow.js');
-  const candidates = [resolvedTemplateOverride, selectedFromSettings, defaultTemplate].filter(Boolean) as string[];
+  const candidates = [resolvedTemplateOverride, defaultTemplate].filter(Boolean) as string[];
 
   for (const modPath of candidates) {
     try {

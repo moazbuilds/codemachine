@@ -1,8 +1,23 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const TEMPLATE_TRACKING_FILE = 'template.json';
+
+// Resolve package root to find templates directory
+const packageRoot = (() => {
+  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  let current = moduleDir;
+  while (true) {
+    if (existsSync(path.join(current, 'package.json'))) return current;
+    const parent = path.dirname(current);
+    if (parent === current) return moduleDir;
+    current = parent;
+  }
+})();
+
+const templatesDir = path.resolve(packageRoot, 'templates', 'workflows');
 
 interface TemplateTracking {
   activeTemplate: string;
@@ -58,4 +73,20 @@ export async function hasTemplateChanged(cmRoot: string, templateName: string): 
 
   // Check if the template is different
   return activeTemplate !== templateName;
+}
+
+/**
+ * Gets the full template path from the tracking file.
+ * Returns the default template if no template is tracked.
+ */
+export async function getTemplatePathFromTracking(cmRoot: string): Promise<string> {
+  const activeTemplate = await getActiveTemplate(cmRoot);
+
+  if (!activeTemplate) {
+    // No template tracked, return default
+    return path.join(templatesDir, 'default.workflow.js');
+  }
+
+  // Return full path from template name
+  return path.join(templatesDir, activeTemplate);
 }
