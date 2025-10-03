@@ -6,7 +6,6 @@ import { loadTemplateWithPath } from './template-loader.js';
 import { runAgent } from './agent-execution.js';
 import { syncCodexConfig } from '../../../app/services/config-sync.js';
 import { ensureProjectScaffold } from './workspace-prep.js';
-import { validateSpecification } from './validation.js';
 import { processPromptString } from './prompt-processor.js';
 import { evaluateLoopBehavior } from '../modules/loop-behavior.js';
 import { getAgentLoggers, formatAgentLog } from './agent-loggers.js';
@@ -30,13 +29,6 @@ export async function resolveTasksPath(cwd: string, override?: string): Promise<
 
 async function runAgentsBuilderStep(cwd: string): Promise<void> {
   await ensureProjectScaffold(cwd);
-}
-
-async function runPlanningStep(cwd: string, options: RunWorkflowOptions): Promise<void> {
-  await validateSpecification(
-    options.specificationPath || path.resolve(cwd, '.codemachine', 'inputs', 'specifications.md'),
-    options.force,
-  );
 }
 
 export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<void> {
@@ -81,6 +73,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
     const { stdout: stdoutLogger, stderr: stderrLogger } = getAgentLoggers(step.agentId);
 
+    console.log('═'.repeat(80));
     console.log(formatAgentLog(step.agentId, `${step.agentName} started to work.`));
 
     try {
@@ -98,8 +91,6 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
       if (step.agentId === 'agents-builder' || agentName.includes('builder')) {
         await runAgentsBuilderStep(cwd);
-      } else {
-        await runPlanningStep(cwd, options);
       }
 
       const loopKey = `${step.module?.id ?? step.agentId}:${index}`;
@@ -148,6 +139,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       loopCounters.set(loopKey, 0);
 
       console.log(formatAgentLog(step.agentId, `${step.agentName} has completed their work.`));
+      console.log('\n' + '═'.repeat(80) + '\n');
     } catch (error) {
       console.error(
         formatAgentLog(

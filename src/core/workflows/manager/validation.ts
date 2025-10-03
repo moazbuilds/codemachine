@@ -1,32 +1,32 @@
 import * as path from 'node:path';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 
-const DEFAULT_PHASE_MAP = {
-  Planning: { next: 'Building' },
-  Building: { next: 'Testing' },
-  Testing: { next: 'Runtime' },
-  Runtime: { next: 'Completed' },
-} as const;
+const DEFAULT_SPEC_TEMPLATE = `# Project Specifications
+
+- Describe goals, constraints, and context.
+- Link any relevant docs or tickets.
+- This file is created by workspace bootstrap and can be safely edited.
+`;
 
 export async function validateSpecification(specificationPath: string, force?: boolean): Promise<void> {
-  const absolute = path.resolve(specificationPath);
-  console.log(`Validating planning specification at ${absolute}`);
-
   if (force) return;
 
+  const absolute = path.resolve(specificationPath);
   let specificationContents: string;
+
   try {
     specificationContents = await readFile(absolute, { encoding: 'utf8' });
   } catch (error) {
-    throw new Error(`Planning specification missing at "${absolute}".`, {
-      cause: error instanceof Error ? error : undefined,
-    });
+    // File doesn't exist - create it with default template
+    await mkdir(path.dirname(absolute), { recursive: true });
+    await writeFile(absolute, DEFAULT_SPEC_TEMPLATE, { encoding: 'utf8' });
+    throw new Error('Please write your spec file before starting');
   }
 
-  if (specificationContents.trim().length === 0) {
-    throw new Error(`Planning specification at "${absolute}" is empty. Provide a populated spec before continuing.`);
-  }
+  const trimmed = specificationContents.trim();
 
-  const nextPhase = DEFAULT_PHASE_MAP.Planning?.next ?? 'Building';
-  console.log(`Advancing Planning workflow to next phase: ${nextPhase}`);
+  // Check if empty or still has default template content
+  if (trimmed.length === 0 || trimmed === DEFAULT_SPEC_TEMPLATE.trim()) {
+    throw new Error('Please write your spec file before starting');
+  }
 }
