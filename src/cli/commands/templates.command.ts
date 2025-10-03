@@ -96,6 +96,8 @@ async function handleTemplateSelectionSuccess(template: WorkflowTemplate, templa
     console.log('✅ Agents regenerated successfully');
   } else {
     console.log('\n✓ Template unchanged, agents folder up to date');
+    // Still update tracking even if unchanged (in case this is first time setting)
+    await setActiveTemplate(cmRoot, templateFileName);
   }
 
   updateSettingsFile(templateFileName);

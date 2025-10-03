@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { realpathSync } from 'node:fs';
+import { realpathSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import * as path from 'node:path';
 import { registerCli } from '../cli/commands/register-cli.js';
 import { syncCodexConfig } from './services/config-sync.js';
 import { bootstrapWorkspace } from './services/workspace-bootstrap.js';
+import { resolveTemplateFromSettings } from '../core/workflows/manager/template-loader.js';
 
 export async function runCodemachineCli(argv: string[] = process.argv): Promise<void> {
   const program = new Command()
@@ -15,9 +17,19 @@ export async function runCodemachineCli(argv: string[] = process.argv): Promise<
   program.hook('preAction', async () => {
     const { dir } =
       typeof program.optsWithGlobals === 'function' ? program.optsWithGlobals() : program.opts();
-    process.env.CODEMACHINE_CWD = dir || process.cwd();
+    const cwd = dir || process.cwd();
+    process.env.CODEMACHINE_CWD = cwd;
+
     await syncCodexConfig();
-    await bootstrapWorkspace();
+
+    // Only bootstrap if .codemachine folder doesn't exist
+    const cmRoot = path.join(cwd, '.codemachine');
+    if (!existsSync(cmRoot)) {
+      // First run: create workspace with template from settings.js
+      const templatePath = resolveTemplateFromSettings();
+      await bootstrapWorkspace({ cwd, templatePath });
+    }
+    // If .codemachine exists, skip bootstrap (don't regenerate or modify)
   });
 
   registerCli(program);
