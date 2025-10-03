@@ -35,4 +35,14 @@ module.exports = [
     model: 'gpt-5-codex',
     modelReasoningEffort: 'medium',
   },
+  // Folder configurations - applies settings to all agents in the folder
+  {
+    type: 'folder',
+    id: 'spec-kit',
+    name: 'Spec Kit',
+    description: 'Specification and planning agents for project setup',
+    folderPath: path.join(promptsDir, 'spec-kit'),
+    model: 'gpt-5-codex',
+    modelReasoningEffort: 'high',
+  },
 ];
