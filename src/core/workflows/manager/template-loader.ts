@@ -15,7 +15,7 @@ const templateGlobals = {
 } satisfies Record<string, TemplateGlobalProvider>;
 
 function ensureTemplateGlobals(): void {
-  const target = globalThis as Record<string, TemplateGlobalProvider>;
+  const target = globalThis as unknown as Record<string, TemplateGlobalProvider | undefined>;
   for (const [key, fn] of Object.entries(templateGlobals)) {
     if (typeof target[key] !== 'function') {
       Object.defineProperty(target, key, {

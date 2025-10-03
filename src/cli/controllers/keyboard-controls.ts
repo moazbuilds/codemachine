@@ -2,9 +2,7 @@ import { EventEmitter } from 'node:events';
 
 type Events = 'interrupt' | 'exit' | 'toggle-expanded';
 
-interface TTYReadStream extends NodeJS.ReadStream {
-  setRawMode(mode: boolean): void;
-}
+type TTYReadStream = NodeJS.ReadStream & { setRawMode(mode: boolean): TTYReadStream };
 
 export interface KeyboardController {
   on(event: Events, fn: (payload?: unknown) => void): void;
@@ -80,4 +78,3 @@ export function createKeyboardController(): KeyboardController {
     state,
   };
 }
-
