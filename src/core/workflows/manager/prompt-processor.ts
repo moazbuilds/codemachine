@@ -47,7 +47,7 @@ function loadPlaceholdersConfig(): Record<string, string> {
       return {};
     }
 
-    const configPath = path.join(packageRoot, 'config', 'prompt-placeholders.js');
+    const configPath = path.join(packageRoot, 'config', 'placeholders.js');
 
     if (!existsSync(configPath)) {
       console.warn(`Warning: Placeholder config not found at ${configPath}`);
@@ -108,7 +108,7 @@ async function replacePlaceholders(
 
     if (!filePath) {
       console.warn(
-        `Warning: Placeholder {${placeholderName}} found in prompt but not defined in config/prompt-placeholders.js`
+        `Warning: Placeholder {${placeholderName}} found in prompt but not defined in config/placeholders.js`
       );
       continue;
     }
