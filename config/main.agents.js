@@ -35,6 +35,14 @@ module.exports = [
     model: 'gpt-5-codex',
     modelReasoningEffort: 'medium',
   },
+  {
+    id: 'test-agent',
+    name: 'Test Agent',
+    description: 'A simple agent that returns "Hello World!"',
+    promptPath: path.join(promptsDir, 'test-agent.md'),
+    model: 'gpt-5',
+    modelReasoningEffort: 'low',
+  },
   // Folder configurations - applies settings to all agents in the folder
   {
     type: 'folder',

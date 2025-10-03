@@ -52,19 +52,80 @@ export function isWorkflowTemplate(value: unknown): value is WorkflowTemplate {
       promptPath?: unknown;
       model?: unknown;
       modelReasoningEffort?: unknown;
+      module?: unknown;
     };
-    return (
-      candidate.type === 'module' &&
-      typeof candidate.agentId === 'string' &&
-      typeof candidate.agentName === 'string' &&
-      typeof candidate.promptPath === 'string'
-      && (candidate.model === undefined || typeof candidate.model === 'string')
-      &&
-        (candidate.modelReasoningEffort === undefined ||
-          candidate.modelReasoningEffort === 'low' ||
-          candidate.modelReasoningEffort === 'medium' ||
-          candidate.modelReasoningEffort === 'high')
-    );
+    if (
+      candidate.type !== 'module' ||
+      typeof candidate.agentId !== 'string' ||
+      typeof candidate.agentName !== 'string' ||
+      typeof candidate.promptPath !== 'string'
+    ) {
+      return false;
+    }
+
+    if (candidate.model !== undefined && typeof candidate.model !== 'string') {
+      return false;
+    }
+
+    if (
+      candidate.modelReasoningEffort !== undefined &&
+      candidate.modelReasoningEffort !== 'low' &&
+      candidate.modelReasoningEffort !== 'medium' &&
+      candidate.modelReasoningEffort !== 'high'
+    ) {
+      return false;
+    }
+
+    if (candidate.module === undefined) {
+      return true;
+    }
+
+    if (!candidate.module || typeof candidate.module !== 'object') {
+      return false;
+    }
+
+    const moduleMeta = candidate.module as {
+      id?: unknown;
+      behavior?: unknown;
+    };
+
+    if (typeof moduleMeta.id !== 'string') {
+      return false;
+    }
+
+    if (moduleMeta.behavior === undefined) {
+      return true;
+    }
+
+    if (!moduleMeta.behavior || typeof moduleMeta.behavior !== 'object') {
+      return false;
+    }
+
+    const behavior = moduleMeta.behavior as {
+      type?: unknown;
+      action?: unknown;
+      steps?: unknown;
+      trigger?: unknown;
+      maxIterations?: unknown;
+    };
+
+    if (behavior.type !== 'loop' || behavior.action !== 'stepBack') {
+      return false;
+    }
+
+    if (typeof behavior.steps !== 'number' || behavior.steps <= 0) {
+      return false;
+    }
+
+    if (typeof behavior.trigger !== 'string') {
+      return false;
+    }
+
+    if (behavior.maxIterations !== undefined && typeof behavior.maxIterations !== 'number') {
+      return false;
+    }
+
+    return true;
   });
 }
 

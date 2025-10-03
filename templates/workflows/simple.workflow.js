@@ -1,9 +1,10 @@
-import { resolveStep } from '../../src/core/workflows/workflow-utils.ts';
+import { resolveModule, resolveStep } from '../../src/core/workflows/workflow-utils.ts';
 
 const workflow = {
   name: 'Simple Workflow',
   steps: [
-    resolveStep('project-manager', { agentName: 'Project Manager' }),
+    resolveStep('test-agent', { agentName: 'Test Agent' }),
+    resolveModule('check-task', { agentName: 'Tasks Complete Checker', loopTrigger: 'TASKS_COMPLETED=FALSE',}),
   ],
 };
 

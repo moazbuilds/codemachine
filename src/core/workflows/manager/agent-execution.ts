@@ -73,7 +73,7 @@ export async function runAgent(
     },
   });
 
-  const stdout = result.stdout || buffered;
+  const stdout = buffered || result.stdout || '';
   try {
     const memoryDir = path.resolve(cwd, '.codemachine', 'memory');
     const adapter = new MemoryAdapter(memoryDir);

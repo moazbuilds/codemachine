@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const mainAgents = require('../../../config/main.agents.js');
+const moduleCatalog = require('../../../config/modules.js');
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const packageRoot = (() => {
@@ -31,6 +32,26 @@ interface WorkflowStep {
   promptPath: string;
   model: string;
   modelReasoningEffort?: string;
+  module?: ModuleMetadata;
+}
+
+interface LoopBehaviorConfig {
+  type: 'loop';
+  action: 'stepBack';
+  steps: number;
+  trigger: string;
+  maxIterations?: number;
+}
+
+interface ModuleMetadata {
+  id: string;
+  behavior?: LoopBehaviorConfig;
+}
+
+interface ModuleOverrides extends StepOverrides {
+  loopTrigger?: string;
+  loopSteps?: number;
+  loopMaxIterations?: number;
 }
 
 function extractOrderPrefix(filename: string): number | null {
@@ -51,6 +72,73 @@ export function resolveStep(id: string, overrides: StepOverrides = {}): Workflow
     promptPath: overrides.promptPath ?? agent.promptPath,
     model: overrides.model ?? agent.model,
     modelReasoningEffort: overrides.modelReasoningEffort ?? agent.modelReasoningEffort,
+  };
+}
+
+function resolveLoopBehavior(
+  base: any,
+  overrides: ModuleOverrides,
+): LoopBehaviorConfig | undefined {
+  if (!base || base.type !== 'loop' || base.action !== 'stepBack') {
+    return undefined;
+  }
+
+  const trigger = overrides.loopTrigger ?? (typeof base.trigger === 'string' ? base.trigger : undefined);
+  if (!trigger || !trigger.trim()) {
+    return undefined;
+  }
+
+  const overrideSteps = typeof overrides.loopSteps === 'number' ? overrides.loopSteps : undefined;
+  const baseSteps = typeof base.steps === 'number' ? base.steps : undefined;
+  const stepsCandidate = overrideSteps ?? baseSteps ?? 1;
+  const steps = stepsCandidate > 0 ? Math.floor(stepsCandidate) : 1;
+  const maxIterationsCandidate = overrides.loopMaxIterations ?? base.maxIterations;
+  const maxIterations = typeof maxIterationsCandidate === 'number' && maxIterationsCandidate > 0
+    ? Math.floor(maxIterationsCandidate)
+    : undefined;
+
+  return {
+    type: 'loop',
+    action: 'stepBack',
+    steps,
+    trigger,
+    maxIterations,
+  };
+}
+
+export function resolveModule(id: string, overrides: ModuleOverrides = {}): WorkflowStep {
+  const moduleEntry = moduleCatalog.find((entry: any) => entry?.id === id);
+
+  if (!moduleEntry) {
+    throw new Error(`Unknown workflow module: ${id}`);
+  }
+
+  const agentName = overrides.agentName ?? moduleEntry.name ?? moduleEntry.id;
+  const promptPath = overrides.promptPath ?? moduleEntry.promptPath;
+  const model = overrides.model ?? moduleEntry.model;
+  const modelReasoningEffort = overrides.modelReasoningEffort ?? moduleEntry.modelReasoningEffort;
+
+  if (typeof promptPath !== 'string' || !promptPath.trim()) {
+    throw new Error(`Module ${id} is missing a promptPath configuration.`);
+  }
+
+  if (typeof model !== 'string' || !model.trim()) {
+    throw new Error(`Module ${id} is missing a model configuration.`);
+  }
+
+  const behavior = resolveLoopBehavior(moduleEntry.behavior, overrides);
+
+  return {
+    type: 'module',
+    agentId: moduleEntry.id,
+    agentName,
+    promptPath,
+    model,
+    modelReasoningEffort,
+    module: {
+      id: moduleEntry.id,
+      behavior,
+    },
   };
 }
 

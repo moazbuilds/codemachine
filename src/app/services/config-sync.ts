@@ -44,7 +44,7 @@ const CLI_ROOT_CANDIDATES = Array.from(
   ].filter((root): root is string => Boolean(root)))
 );
 
-const AGENT_MODULE_FILENAMES = ['main.agents.js', 'sub.agents.js', 'agents.js'];
+const AGENT_MODULE_FILENAMES = ['main.agents.js', 'sub.agents.js', 'modules.js', 'agents.js'];
 
 type AgentDefinition = {
   id: string;

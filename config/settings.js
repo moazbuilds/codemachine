@@ -1,5 +1,5 @@
 module.exports = {
   workflow: {
-    template: 'spec-kit.workflow.js',
+    template: 'simple.workflow.js',
   },
 };

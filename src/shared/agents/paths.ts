@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
-const AGENT_MODULE_FILENAMES = ['sub.agents.js', 'main.agents.js', 'agents.js'];
+const AGENT_MODULE_FILENAMES = ['sub.agents.js', 'main.agents.js', 'modules.js', 'agents.js'];
 const AGENT_JSON_RELATIVE_PATH = join('.codemachine', 'agents', 'agents-config.json');
 
 export type AgentsModuleLookupOptions = {

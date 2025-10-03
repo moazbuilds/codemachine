@@ -3,11 +3,12 @@ import { access, readFile } from 'node:fs/promises';
 
 import type { RunWorkflowOptions } from './types.js';
 import { loadTemplate } from './template-loader.js';
-import { runCodexPrompt } from './agent-execution.js';
+import { runAgent } from './agent-execution.js';
 import { syncCodexConfig } from '../../../app/services/config-sync.js';
 import { ensureProjectScaffold } from './workspace-prep.js';
 import { validateSpecification } from './validation.js';
 import { processPromptString } from './prompt-processor.js';
+import { evaluateLoopBehavior } from '../modules/loop-behavior.js';
 const TASKS_PRIMARY_PATH = path.join('.codemachine', 'plan', 'tasks.json');
 const TASKS_FALLBACK_PATH = path.join('.codemachine', 'tasks.json');
 
@@ -63,8 +64,13 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     await syncCodexConfig({ additionalAgents: workflowAgents });
   }
 
-  for (const step of template.steps) {
-    if (step.type !== 'module') continue;
+  const loopCounters = new Map<string, number>();
+
+  for (let index = 0; index < template.steps.length; index += 1) {
+    const step = template.steps[index];
+    if (step.type !== 'module') {
+      continue;
+    }
 
     console.log(`${step.agentName} started to work.`);
 
@@ -74,7 +80,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         : path.resolve(cwd, step.promptPath);
       const rawPrompt = await readFile(promptPath, 'utf8');
       const prompt = await processPromptString(rawPrompt, cwd);
-      await runCodexPrompt({ agentId: step.agentId, prompt, cwd });
+      const output = await runAgent(step.agentId, prompt, cwd);
 
       const agentName = step.agentName.toLowerCase();
 
@@ -83,6 +89,44 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       } else {
         await runPlanningStep(cwd, options);
       }
+
+      const loopKey = `${step.module?.id ?? step.agentId}:${index}`;
+      const iterationCount = loopCounters.get(loopKey) ?? 0;
+      const loopDecision = evaluateLoopBehavior({
+        behavior: step.module?.behavior,
+        output,
+        iterationCount,
+      });
+
+      if (process.env.CODEMACHINE_DEBUG_LOOPS === '1') {
+        const tail = output.trim().split(/\n/).slice(-1)[0] ?? '';
+        console.log(
+          `[loop] step=${step.agentName} behavior=${JSON.stringify(step.module?.behavior)} iteration=${iterationCount} lastLine=${tail}`,
+        );
+      }
+
+      if (loopDecision?.shouldRepeat) {
+        const nextIterationCount = iterationCount + 1;
+        loopCounters.set(loopKey, nextIterationCount);
+        const stepsBack = Math.max(1, loopDecision.stepsBack);
+        const rewindIndex = Math.max(-1, index - stepsBack - 1);
+        console.log(
+          `${step.agentName} triggered a loop (match: ${step.module?.behavior?.trigger}); repeating previous step. ` +
+            `Iteration ${nextIterationCount}${
+              step.module?.behavior?.maxIterations
+                ? `/${step.module.behavior.maxIterations}`
+                : ''
+            }.`,
+        );
+        index = rewindIndex;
+        continue;
+      }
+
+      if (loopDecision?.reason) {
+        console.log(`${step.agentName} loop skipped: ${loopDecision.reason}.`);
+      }
+
+      loopCounters.set(loopKey, 0);
 
       console.log(`${step.agentName} has completed their work.`);
     } catch (error) {
