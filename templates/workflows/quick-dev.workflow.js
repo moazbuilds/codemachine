@@ -1,10 +1,6 @@
-import { resolveStep } from '../../src/core/workflows/workflow-utils.ts';
-
-const workflow = {
+export default {
   name: 'Quick Development',
   steps: [
     resolveStep('tasks-generator'),
   ],
 };
-
-export default workflow;

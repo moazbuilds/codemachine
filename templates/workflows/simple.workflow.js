@@ -1,11 +1,7 @@
-import { resolveModule, resolveStep } from '../../src/core/workflows/workflow-utils.ts';
-
-const workflow = {
+export default {
   name: 'Simple Workflow',
   steps: [
     resolveStep('test-agent', { agentName: 'Test Agent' }),
-    resolveModule('check-task', { agentName: 'Tasks Complete Checker', loopTrigger: 'TASKS_COMPLETED=FALSE',}),
+    resolveModules('check-task', { agentName: 'Tasks Complete Checker', loopTrigger: 'TASKS_COMPLETED=FALSE' }),
   ],
 };
-
-export default workflow;

@@ -1,6 +1,4 @@
-import { resolveStep } from '../../src/core/workflows/workflow-utils.ts';
-
-const workflow = {
+export default {
   name: 'Default Workflow',
   steps: [
     resolveStep('agents-builder'),
@@ -8,5 +6,3 @@ const workflow = {
     resolveStep('project-manager'),
   ],
 };
-
-export default workflow;

@@ -191,3 +191,5 @@ export function resolveFolder(folderName: string, overrides: StepOverrides = {})
     };
   });
 }
+
+export const resolveModules = resolveModule;

@@ -4,6 +4,29 @@ import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import type { UnknownRecord, WorkflowTemplate } from './types.js';
+import { resolveFolder, resolveModules, resolveStep } from '../workflow-utils.js';
+
+type TemplateGlobalProvider = typeof resolveStep | typeof resolveFolder | typeof resolveModules;
+
+const templateGlobals = {
+  resolveStep,
+  resolveFolder,
+  resolveModules,
+} satisfies Record<string, TemplateGlobalProvider>;
+
+function ensureTemplateGlobals(): void {
+  const target = globalThis as Record<string, TemplateGlobalProvider>;
+  for (const [key, fn] of Object.entries(templateGlobals)) {
+    if (typeof target[key] !== 'function') {
+      Object.defineProperty(target, key, {
+        configurable: true,
+        enumerable: false,
+        writable: false,
+        value: fn,
+      });
+    }
+  }
+}
 
 const packageRoot = (() => {
   const moduleDir = path.dirname(fileURLToPath(import.meta.url));
@@ -130,6 +153,7 @@ export function isWorkflowTemplate(value: unknown): value is WorkflowTemplate {
 }
 
 export async function loadWorkflowModule(modPath: string): Promise<unknown> {
+  ensureTemplateGlobals();
   const ext = path.extname(modPath).toLowerCase();
   if (ext === '.cjs' || ext === '.cts') {
     const require = createRequire(import.meta.url);
