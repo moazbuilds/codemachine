@@ -3,10 +3,6 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const require = createRequire(import.meta.url);
-const mainAgents = require('../../../config/main.agents.js');
-const moduleCatalog = require('../../../config/modules.js');
-
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const packageRoot = (() => {
   let current = moduleDir;
@@ -17,6 +13,10 @@ const packageRoot = (() => {
     current = parent;
   }
 })();
+
+const require = createRequire(import.meta.url);
+const mainAgents = require(path.resolve(packageRoot, 'config', 'main.agents.js'));
+const moduleCatalog = require(path.resolve(packageRoot, 'config', 'modules.js'));
 
 interface StepOverrides {
   agentName?: string;
