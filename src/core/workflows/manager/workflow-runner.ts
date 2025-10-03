@@ -9,6 +9,7 @@ import { ensureProjectScaffold } from './workspace-prep.js';
 import { validateSpecification } from './validation.js';
 import { processPromptString } from './prompt-processor.js';
 import { evaluateLoopBehavior } from '../modules/loop-behavior.js';
+import { getAgentLoggers, formatAgentLog } from './agent-loggers.js';
 const TASKS_PRIMARY_PATH = path.join('.codemachine', 'plan', 'tasks.json');
 const TASKS_FALLBACK_PATH = path.join('.codemachine', 'tasks.json');
 
@@ -72,7 +73,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       continue;
     }
 
-    console.log(`${step.agentName} started to work.`);
+    const { stdout: stdoutLogger, stderr: stderrLogger } = getAgentLoggers(step.agentId);
+
+    console.log(formatAgentLog(step.agentId, `${step.agentName} started to work.`));
 
     try {
       const promptPath = path.isAbsolute(step.promptPath)
@@ -80,7 +83,10 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         : path.resolve(cwd, step.promptPath);
       const rawPrompt = await readFile(promptPath, 'utf8');
       const prompt = await processPromptString(rawPrompt, cwd);
-      const output = await runAgent(step.agentId, prompt, cwd);
+      const output = await runAgent(step.agentId, prompt, cwd, {
+        logger: stdoutLogger,
+        stderrLogger,
+      });
 
       const agentName = step.agentName.toLowerCase();
 
@@ -101,7 +107,11 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       if (process.env.CODEMACHINE_DEBUG_LOOPS === '1') {
         const tail = output.trim().split(/\n/).slice(-1)[0] ?? '';
         console.log(
-          `[loop] step=${step.agentName} behavior=${JSON.stringify(step.module?.behavior)} iteration=${iterationCount} lastLine=${tail}`,
+          formatAgentLog(
+            step.agentId,
+            `[loop] step=${step.agentName} behavior=${JSON.stringify(step.module?.behavior)} ` +
+              `iteration=${iterationCount} lastLine=${tail}`,
+          ),
         );
       }
 
@@ -111,26 +121,34 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         const stepsBack = Math.max(1, loopDecision.stepsBack);
         const rewindIndex = Math.max(-1, index - stepsBack - 1);
         console.log(
-          `${step.agentName} triggered a loop (match: ${step.module?.behavior?.trigger}); repeating previous step. ` +
-            `Iteration ${nextIterationCount}${
-              step.module?.behavior?.maxIterations
-                ? `/${step.module.behavior.maxIterations}`
-                : ''
-            }.`,
+          formatAgentLog(
+            step.agentId,
+            `${step.agentName} triggered a loop (match: ${step.module?.behavior?.trigger}); ` +
+              `repeating previous step. Iteration ${nextIterationCount}${
+                step.module?.behavior?.maxIterations
+                  ? `/${step.module.behavior.maxIterations}`
+                  : ''
+              }.`,
+          ),
         );
         index = rewindIndex;
         continue;
       }
 
       if (loopDecision?.reason) {
-        console.log(`${step.agentName} loop skipped: ${loopDecision.reason}.`);
+        console.log(formatAgentLog(step.agentId, `${step.agentName} loop skipped: ${loopDecision.reason}.`));
       }
 
       loopCounters.set(loopKey, 0);
 
-      console.log(`${step.agentName} has completed their work.`);
+      console.log(formatAgentLog(step.agentId, `${step.agentName} has completed their work.`));
     } catch (error) {
-      console.error(`${step.agentName} failed: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(
+        formatAgentLog(
+          step.agentId,
+          `${step.agentName} failed: ${error instanceof Error ? error.message : String(error)}`,
+        ),
+      );
       throw error;
     }
   }

@@ -4,6 +4,12 @@ import { runCodex } from '../../../infra/codex/codex-runner.js';
 import { MemoryAdapter } from '../../../infra/fs/memory-adapter.js';
 import { MemoryStore } from '../../../agents/memory/memory-store.js';
 
+export interface RunAgentOptions {
+  abortSignal?: AbortSignal;
+  logger?: (chunk: string) => void;
+  stderrLogger?: (chunk: string) => void;
+}
+
 export function shouldSkipCodex(): boolean {
   return process.env.CODEMACHINE_SKIP_CODEX === '1';
 }
@@ -43,10 +49,27 @@ export async function runAgent(
   agentId: string,
   prompt: string,
   cwd: string,
-  abortSignal?: AbortSignal,
+  options: RunAgentOptions = {},
 ): Promise<string> {
+  const logStdout: (chunk: string) => void = options.logger
+    ?? ((chunk: string) => {
+      try {
+        process.stdout.write(chunk);
+      } catch {
+        // Ignore stdout write errors
+      }
+    });
+  const logStderr: (chunk: string) => void = options.stderrLogger
+    ?? ((chunk: string) => {
+      try {
+        process.stderr.write(chunk);
+      } catch {
+        // Ignore stderr write errors
+      }
+    });
+
   if (shouldSkipCodex()) {
-    console.log(`[dry-run] ${agentId}: ${prompt.slice(0, 120)}...`);
+    logStdout(`[dry-run] ${agentId}: ${prompt.slice(0, 120)}...`);
     return '';
   }
 
@@ -55,21 +78,13 @@ export async function runAgent(
     profile: agentId,
     prompt,
     workingDir: cwd,
-    abortSignal,
+    abortSignal: options.abortSignal,
     onData: (chunk) => {
       buffered += chunk;
-      try {
-        process.stdout.write(chunk);
-      } catch {
-        // Ignore stdout write errors
-      }
+      logStdout(chunk);
     },
     onErrorData: (chunk) => {
-      try {
-        process.stderr.write(chunk);
-      } catch {
-        // Ignore stderr write errors
-      }
+      logStderr(chunk);
     },
   });
 
