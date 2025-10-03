@@ -4,4 +4,10 @@ export default {
     ...resolveFolder('spec-kit'),  // This will expand to all ordered files in prompts/agents/spec-kit/
     resolveStep('project-manager'),
   ],
+  subAgentIds: [
+    'solution-architect',
+    'technical-writer',
+    'software-architect',
+    'uxui-designer',
+  ],
 };

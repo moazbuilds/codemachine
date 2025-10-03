@@ -2,7 +2,7 @@ import * as path from 'node:path';
 import { access, readFile } from 'node:fs/promises';
 
 import type { RunWorkflowOptions } from './types.js';
-import { loadTemplate } from './template-loader.js';
+import { loadTemplateWithPath } from './template-loader.js';
 import { runAgent } from './agent-execution.js';
 import { syncCodexConfig } from '../../../app/services/config-sync.js';
 import { ensureProjectScaffold } from './workspace-prep.js';
@@ -40,7 +40,7 @@ async function runPlanningStep(cwd: string, options: RunWorkflowOptions): Promis
 
 export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<void> {
   const cwd = options.cwd ? path.resolve(options.cwd) : process.cwd();
-  const template = await loadTemplate(cwd, options.templatePath);
+  const { template, resolvedPath } = await loadTemplateWithPath(cwd, options.templatePath);
 
   console.log(`Using workflow template: ${template.name}`);
 

@@ -1,10 +1,13 @@
 import type { Command } from 'commander';
 import * as path from 'node:path';
 import { existsSync, readdirSync, writeFileSync } from 'node:fs';
+import { rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import prompts from 'prompts';
 import { loadWorkflowModule, isWorkflowTemplate } from '../../core/workflows/manager/template-loader.js';
 import type { WorkflowTemplate } from '../../core/workflows/manager/types.js';
+import { hasTemplateChanged, setActiveTemplate } from '../../shared/agents/template-tracking.js';
+import { bootstrapWorkspace } from '../../app/services/workspace-bootstrap.js';
 
 const packageRoot = (() => {
   const moduleDir = path.dirname(fileURLToPath(import.meta.url));
@@ -56,8 +59,11 @@ function updateSettingsFile(templateFileName: string): void {
   }
 }
 
-function handleTemplateSelectionSuccess(template: WorkflowTemplate, templateFilePath: string): void {
+async function handleTemplateSelectionSuccess(template: WorkflowTemplate, templateFilePath: string): Promise<void> {
   const templateFileName = path.basename(templateFilePath);
+  const cwd = process.env.CODEMACHINE_CWD || process.cwd();
+  const cmRoot = path.join(cwd, '.codemachine');
+  const agentsDir = path.join(cmRoot, 'agents');
 
   console.log(`\nSelected: ${template.name}`);
   console.log(`Template path: ${path.relative(process.cwd(), templateFilePath)}`);
@@ -66,6 +72,31 @@ function handleTemplateSelectionSuccess(template: WorkflowTemplate, templateFile
   template.steps.forEach((step, index) => {
     console.log(`  ${index + 1}. ${step.agentName} [${step.agentId}]`);
   });
+
+  // Check if template changed and regenerate agents folder
+  const changed = await hasTemplateChanged(cmRoot, templateFileName);
+
+  if (changed) {
+    console.log('\n🔄 Template changed, regenerating agents...');
+
+    // Delete existing agents folder if it exists
+    if (existsSync(agentsDir)) {
+      await rm(agentsDir, { recursive: true, force: true });
+    }
+
+    // Update active template tracking
+    await setActiveTemplate(cmRoot, templateFileName);
+
+    // Regenerate agents folder with new template
+    await bootstrapWorkspace({
+      cwd,
+      templatePath: templateFilePath
+    });
+
+    console.log('✅ Agents regenerated successfully');
+  } else {
+    console.log('\n✓ Template unchanged, agents folder up to date');
+  }
 
   updateSettingsFile(templateFileName);
 }
@@ -117,7 +148,7 @@ export async function selectTemplateByNumber(templateNumber: number): Promise<vo
     const template = await loadWorkflowModule(selectedTemplate.value);
 
     if (isWorkflowTemplate(template)) {
-      handleTemplateSelectionSuccess(template, selectedTemplate.value);
+      await handleTemplateSelectionSuccess(template, selectedTemplate.value);
     }
   } catch (error) {
     console.error('Error selecting template:', error instanceof Error ? error.message : String(error));
@@ -146,7 +177,7 @@ export async function runTemplatesCommand(inSession: boolean = false): Promise<v
     if (response.selectedTemplate) {
       const template = await loadWorkflowModule(response.selectedTemplate);
       if (isWorkflowTemplate(template)) {
-        handleTemplateSelectionSuccess(template, response.selectedTemplate);
+        await handleTemplateSelectionSuccess(template, response.selectedTemplate);
       }
     } else {
       console.log('No template selected.');

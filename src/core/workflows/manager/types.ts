@@ -28,6 +28,7 @@ export interface WorkflowStep {
 export interface WorkflowTemplate {
   name: string;
   steps: WorkflowStep[];
+  subAgentIds?: string[];
 }
 
 export type ModuleName = WorkflowStep['agentId'];

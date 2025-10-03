@@ -5,6 +5,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { collectAgentsFromWorkflows } from '../../shared/agents/workflow-discovery.js';
+import { loadWorkflowModule, isWorkflowTemplate } from '../../core/workflows/manager/template-loader.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,6 +56,7 @@ type AgentDefinition = Record<string, unknown>;
 export type WorkspaceBootstrapOptions = {
   projectRoot?: string;
   cwd?: string; // target working directory for this run
+  templatePath?: string; // path to workflow template
 };
 
 function resolveDesiredCwd(explicitCwd?: string): string {
@@ -63,7 +65,7 @@ function resolveDesiredCwd(explicitCwd?: string): string {
 
 type LoadedAgent = AgentDefinition & { id: string; source?: 'main' | 'sub' | 'legacy' | 'workflow' };
 
-async function loadAgents(candidateRoots: string[]): Promise<{ allAgents: AgentDefinition[]; subAgents: AgentDefinition[] }>
+async function loadAgents(candidateRoots: string[], filterIds?: string[]): Promise<{ allAgents: AgentDefinition[]; subAgents: AgentDefinition[] }>
 {
   const candidateModules = new Map<string, 'main' | 'sub' | 'legacy'>();
 
@@ -130,8 +132,14 @@ async function loadAgents(candidateRoots: string[]): Promise<{ allAgents: AgentD
   }
 
   const allAgents = Array.from(byId.values()).map(({ source, ...agent }) => ({ ...agent }));
+
+  // Filter sub-agents by IDs if filterIds is provided
   const subAgents = Array.from(byId.values())
-    .filter((agent) => agent.source === 'sub')
+    .filter((agent) => {
+      if (agent.source !== 'sub') return false;
+      if (!filterIds) return true;
+      return filterIds.includes(agent.id);
+    })
     .map(({ source, ...agent }) => ({ ...agent }));
 
   return { allAgents, subAgents };
@@ -232,6 +240,7 @@ export async function bootstrapWorkspace(options?: WorkspaceBootstrapOptions): P
   const memoryDir = path.join(cmRoot, 'memory');
   const planDir = path.join(cmRoot, 'plan');
 
+  // Create all directories
   await Promise.all([
     ensureDir(cmRoot),
     ensureDir(agentsDir),
@@ -243,8 +252,25 @@ export async function bootstrapWorkspace(options?: WorkspaceBootstrapOptions): P
   // Ensure specifications template exists (do not overwrite if present).
   await ensureSpecificationsTemplate(inputsDir);
 
-  // Load agents and mirror to JSON.
-  const { subAgents } = await loadAgents(agentRoots);
-  debugLog('Mirroring agents', { agentRoots, agentCount: subAgents.length });
+  // Load workflow template and extract sub-agent IDs (if templatePath provided)
+  let agentIdsToLoad: string[] | undefined;
+
+  if (options?.templatePath) {
+    try {
+      const template = await loadWorkflowModule(options.templatePath);
+      if (isWorkflowTemplate(template)) {
+        const templateName = path.basename(options.templatePath);
+        agentIdsToLoad = template.subAgentIds;
+        debugLog('Loaded template with sub-agents', { templateName, subAgentIds: agentIdsToLoad });
+      }
+    } catch (error) {
+      debugLog('Failed to load workflow template', { error });
+      // Continue with no filtering if template fails to load
+    }
+  }
+
+  // Load agents and mirror to JSON (filtered by template's subAgentIds if provided)
+  const { subAgents } = await loadAgents(agentRoots, agentIdsToLoad);
+  debugLog('Mirroring agents', { agentRoots, agentCount: subAgents.length, filtered: !!agentIdsToLoad });
   await mirrorAgentsToJson(agentsDir, subAgents);
 }

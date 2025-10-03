@@ -3,4 +3,9 @@ export default {
   steps: [
     resolveStep('tasks-generator'),
   ],
+  subAgentIds: [
+    'frontend-dev',
+    'backend-dev',
+    'qa-engineer',
+  ],
 };

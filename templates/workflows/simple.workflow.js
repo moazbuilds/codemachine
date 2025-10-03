@@ -4,4 +4,8 @@ export default {
     resolveStep('test-agent', { agentName: 'Test Agent' }),
     resolveModules('check-task', { agentName: 'Tasks Complete Checker', loopTrigger: 'TASKS_COMPLETED=FALSE' }),
   ],
+  subAgentIds: [
+    'frontend-dev',
+    'backend-dev',
+  ],
 };
