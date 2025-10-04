@@ -13,8 +13,6 @@ module.exports = [
     behavior: {
       type: 'loop',
       action: 'stepBack',
-      steps: 1,
-      maxIterations: 5,
     },
   },
 ];

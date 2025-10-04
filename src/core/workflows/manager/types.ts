@@ -6,6 +6,7 @@ export interface LoopModuleBehavior {
   steps: number;
   trigger: string;
   maxIterations?: number;
+  skip?: string[];
 }
 
 export type ModuleBehavior = LoopModuleBehavior;

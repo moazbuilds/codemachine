@@ -41,6 +41,7 @@ interface LoopBehaviorConfig {
   steps: number;
   trigger: string;
   maxIterations?: number;
+  skip?: string[];
 }
 
 interface ModuleMetadata {
@@ -52,6 +53,7 @@ interface ModuleOverrides extends StepOverrides {
   loopTrigger?: string;
   loopSteps?: number;
   loopMaxIterations?: number;
+  loopSkip?: string[];
 }
 
 function extractOrderPrefix(filename: string): number | null {
@@ -103,6 +105,7 @@ function resolveLoopBehavior(
     steps,
     trigger,
     maxIterations,
+    skip: overrides.loopSkip ?? base.skip,
   };
 }
 

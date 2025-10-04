@@ -64,11 +64,27 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
   }
 
   const loopCounters = new Map<string, number>();
+  let activeLoop: { skip: string[] } | null = null;
 
   for (let index = 0; index < template.steps.length; index += 1) {
     const step = template.steps[index];
     if (step.type !== 'module') {
       continue;
+    }
+
+    // Skip step if it's in the active loop's skip list
+    if (activeLoop?.skip.includes(step.agentId)) {
+      console.log(formatAgentLog(step.agentId, `${step.agentName} skipped (loop configuration).`));
+      continue;
+    }
+
+    if (process.env.CODEMACHINE_DEBUG_LOOPS === '1' && activeLoop) {
+      console.log(
+        formatAgentLog(
+          step.agentId,
+          `[skip-check] agentId=${step.agentId} skipList=[${activeLoop.skip.join(', ')}] shouldSkip=${activeLoop.skip.includes(step.agentId)}`,
+        ),
+      );
     }
 
     const { stdout: stdoutLogger, stderr: stderrLogger } = getAgentLoggers(step.agentId);
@@ -117,6 +133,13 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         loopCounters.set(loopKey, nextIterationCount);
         const stepsBack = Math.max(1, loopDecision.stepsBack);
         const rewindIndex = Math.max(-1, index - stepsBack - 1);
+
+        // Set active loop with skip list
+        activeLoop = { skip: step.module?.behavior?.skip ?? [] };
+
+        const skipInfo = activeLoop.skip.length > 0
+          ? ` (skipping: ${activeLoop.skip.join(', ')})`
+          : '';
         console.log(
           formatAgentLog(
             step.agentId,
@@ -125,7 +148,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
                 step.module?.behavior?.maxIterations
                   ? `/${step.module.behavior.maxIterations}`
                   : ''
-              }.`,
+              }${skipInfo}.`,
           ),
         );
         index = rewindIndex;
@@ -136,7 +159,11 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         console.log(formatAgentLog(step.agentId, `${step.agentName} loop skipped: ${loopDecision.reason}.`));
       }
 
-      loopCounters.set(loopKey, 0);
+      // Clear active loop only when a loop step explicitly terminates (shouldRepeat=false)
+      if (loopDecision !== null && !loopDecision.shouldRepeat) {
+        activeLoop = null;
+        loopCounters.set(loopKey, 0);
+      }
 
       console.log(formatAgentLog(step.agentId, `${step.agentName} has completed their work.`));
       console.log('\n' + '═'.repeat(80) + '\n');
