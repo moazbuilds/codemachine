@@ -66,6 +66,23 @@ Follow the detailed instructions for each script:
 
 ---
 
+## How to Find Task Data
+
+**task**: The full task data (tasks that has done: false) formatted as:
+
+```
+## I1.T2
+### description: Implement user authentication with JWT tokens
+### target_files: ["src/auth/controller.ts", "src/auth/service.ts"]
+### acceptance_criteria: Users can login and receive JWT tokens
+```
+
+**dir_structure**: Output from `ls -la` command showing the project's file and directory layout
+
+**files**: Content of existing tool scripts (tools/install.sh, tools/run.sh, tools/lint.sh, tools/test.sh) if they already exist
+
+---
+
 **Contextual Information:**
 
 **Current Directory Structure:**
@@ -82,18 +99,15 @@ Follow the detailed instructions for each script:
 
 ---
 
-**Output Instructions for Your Response:**
-*   {output_format} (e.g., "Provide each script's content within a separate fenced code block, clearly indicating the path for each script. If a script does not need changes, state so explicitly.")
-
----
-
 **IMPORTANT NOTE:**
 *   If the current content of a script (provided in `files`) already perfectly meets all the specified requirements for that script, clearly state that the script is correct and does not need to be re-generated. Do not output its content again unless changes are made.
 
 Good luck!
 
-**Manifest:**
-(This file describes the project, its dependencies, and potentially scripts for running, linting, etc. e.g., `pyproject.toml`, `package.json`, custom YAML/JSON)
+**Artifacts:**
+(This describes the project, its dependencies, and potentially scripts for running, linting, etc. e.g., `pyproject.toml`, `package.json`, custom YAML/JSON)
 ~~~
-{manifest}
+{specifications}
+{architecture}
+{plan}
 ~~~

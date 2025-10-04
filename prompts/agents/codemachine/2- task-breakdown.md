@@ -23,6 +23,7 @@ Each task object within the JSON array MUST contain the following keys:
 *   `acceptance_criteria`: (String) The criteria that must be met for the task to be considered complete.
 *   `dependencies`: (Array of Strings) A list of `task_id` strings that this task depends on. If there are no dependencies, provide an empty array `[]`.
 *   `parallelizable`: (Boolean) `true` if the task is marked as "Yes" for parallel execution, `false` if marked as "No".
+*   `done`: (Boolean) Always set to `false` initially. This field tracks task completion status.
 
 **Example JSON Object Structure (for one task):**
 enclose your json output between three tildes ~~~
@@ -39,7 +40,8 @@ enclose your json output between three tildes ~~~
   "deliverables": "PlantUML diagram file (.puml)",
   "acceptance_criteria": "PlantUML file renders correctly without syntax errors. Diagram accurately reflects components described in Section 2.",
   "dependencies": ["I1.T1"],
-  "parallelizable": true
+  "parallelizable": true,
+  "done": false
 }}
 ~~~
 
@@ -54,7 +56,8 @@ enclose your json output between three tildes ~~~
 7.  **Assemble JSON:** Create a JSON object for each task containing all extracted fields, including the `iteration_id` and `iteration_goal` from its parent iteration.
 8.  **Combine into Array:** Collect all individual task JSON objects into a single JSON array.
 9.  **Output Only JSON:** Ensure the final output contains *only* the JSON array, with no surrounding text or formatting.
+10. **Output:** Write the output to `.codemachine/plan/tasks.json`
 
 **Now, process the following Project Plan text and generate the JSON array of tasks enclosed in ~~~json .. ~~~:**
 
-{plan_text}
+{plan}

@@ -112,7 +112,7 @@ The plan must follow this specific structure and include all the detailed fields
 
 **Instructions for Generation:**
 0. MAP the requirements to the taks or iterations.
-1.  **Analyze Requirements:** Carefully read and understand the user requirements provided in the manifest.
+1.  **Analyze Requirements:** Carefully read and understand the user requirements provided in the prompt.
 2.  **Design Architecture:** Propose a suitable architecture and technology stack based on the requirements and architectural style instructions. If choices are needed, make reasonable ones and state them as assumptions.
 3.  **Identify Key Artifacts:** Determine necessary architectural diagrams (e.g., Component, Sequence, ERD using formats like PlantUML or Mermaid) and specifications (e.g., API contracts using OpenAPI/GraphQL Schema, data schemas using JSON Schema or DDL) needed to clarify the design for the agents. List these planned artifacts in **Section 2.1**. Specify preferred text-based formats suitable for AI generation and version control.
 4.  **Define Structure:** Create a logical directory structure supporting the architecture, including standard locations for documentation and artifacts (e.g., `docs/diagrams/`, `api/`). Reference this structure in **Section 3**.
@@ -126,8 +126,10 @@ The plan must follow this specific structure and include all the detailed fields
 8.  **Verification Strategy:** Outline testing and integration approaches in **Section 5**, potentially including artifact validation steps.
 9.  **Fill All Fields:** Meticulously fill in *all* the specified fields in the format for every task and section. Use placeholders like `[To be defined]` only if absolutely necessary and state why.
 10. IMPORTANT: Don't make iterations that require changes across the repository. For example an iteration for testing instead spread testing across the other iterations. So each iteration is limited to modify a certain number of files.
+11. **Output:** Write the output to `.codemachine/plan/plan.md`
 
 **Now, please generate the plan based on the following user requirements:**
 
-The Manifest:
-{manifest}
+{specifications} 
+
+{architecture}

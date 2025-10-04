@@ -6,14 +6,8 @@ A critical part of this blueprint is the inclusion of architectural diagrams gen
 
 1.  **User Requirements:**
     ~~~
-    {manifest}
+    {specifications}
     ~~~
- 
-2.  **Optional Constraints/Preferences (If any):**
-    ~~~
-    {constraints}
-    ~~~
-    *(Examples: Preferred cloud provider, existing technologies to integrate with, specific performance targets, budget limitations, team expertise)*
 
 **Output Blueprint Structure:**
 
@@ -266,5 +260,6 @@ Please generate the blueprint following this exact structure:
 6.  **Address Cross-Cutting Concerns:** Outline strategies for handling essential aspects like security, logging, etc.
 7.  **Maintain Consistency:** Ensure the entire blueprint is consistent (e.g., technologies mentioned in the stack appear in diagrams, components described are shown visually).
 8.  **Fill All Sections:** Complete all sections of the specified blueprint structure.
+9.  **Output:** Write the output to `.codemachine/plan/architecture.md`
 
 **Now, generate the System Architecture Blueprint based on the provided inputs.**

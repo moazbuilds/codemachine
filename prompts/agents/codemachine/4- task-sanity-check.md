@@ -4,7 +4,7 @@ Your Task:
 {step}
 
 Current Step:
-{task}
+Follow instructions and generate the code.
 
 Your Verification Process:
 1. Follow current step instructions.
@@ -25,9 +25,23 @@ Your Verification Process:
 
 IF there are no changes, output "NO changes."
 
-Output Format:
-{output_format}
+## How to Find Task Data
 
+**step**: The full current task data (tasks that has done: false) formatted as:
+```
+## I1.T2
+### description: Implement user authentication with JWT tokens
+### target_files: ["src/auth/controller.ts", "src/auth/service.ts"]
+### acceptance_criteria: Users can login and receive JWT tokens
+```
+
+**dir_structure**: Use `ls -la` to explore directories and verify file locations
+
+**related_files** / **selected_files**: Content of files specified in the task's `input_files` and `target_files`
+
+**test_results**: Output from running tools/test.sh
+
+**generated_code**: The code in git_diff that still not committed yet
 
 Directory Structure:
 {dir_structure}
@@ -37,15 +51,8 @@ GENERATED_CODE
 {generated_code}
 
 
-
-Linter output:
-{tickets}
-
-
-
 Test output
 {test_results}
-
 
 
 Related files:
@@ -53,8 +60,7 @@ Related files:
 {selected_files}
 
 
-Manifest:
-{manifest}
-
-Output Format:
-{output_format}
+Artifacts:
+{specifications}
+{architecture}
+{plan}

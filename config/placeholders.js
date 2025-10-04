@@ -17,7 +17,9 @@
 module.exports = {
   // Project specification document
   specifications: '.codemachine/inputs/specifications.md',
-
+  architecture: '.codemachine/plan/architecture.md',
+  plan: '.codemachine/plan/plan.md',
+  tasks: '.codemachine/plan/tasks.json',
   // Add more placeholders as needed:
   // requirements: '.codemachine/inputs/requirements.md',
   // architecture: '.codemachine/inputs/architecture.md',

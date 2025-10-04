@@ -49,7 +49,7 @@ module.exports = [
     name: 'Architecture Agent',
     description: 'Defines system architecture and technical design decisions',
     promptPath: path.join(promptsDir, 'codemachine', '0- arch-agent.md'),
-    model: 'gpt-5-codex',
+    model: 'gpt-5',
     modelReasoningEffort: 'high',
   },
   {
