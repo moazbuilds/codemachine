@@ -11,7 +11,7 @@ export default {
     resolveStep('task-sanity-check'), // Verify generated code against task requirements and acceptance criteria
     resolveStep('git-commit'), // Commit the generated and verified code
     resolveStep('task-complete'), // Check if all tasks are completed
-    resolveModules('check-task', { agentName: 'Tasks Complete Checker', loopTrigger: 'TASKS_COMPLETED=FALSE', loopSteps: 5, loopMaxIterations: 5, loopSkip: ['runtime-prep'] }), // Loop back if tasks are not completed
+    resolveModules('check-task', { agentName: 'Tasks Complete Checker', loopTrigger: 'TASKS_COMPLETED=FALSE', loopSteps: 5, loopMaxIterations: 20, loopSkip: ['runtime-prep'] }), // Loop back if tasks are not completed
     resolveStep('git-commit'), // Commit the automation scripts
   ],
   subAgentIds: [],
