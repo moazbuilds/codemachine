@@ -14,16 +14,11 @@ CodeMachine CLI is a breakthrough workflow orchestration framework that transfor
 
 **Build Complete Codebases, Not Just Code Snippets**
 
-Traditional code generation tools create isolated functions or components. CodeMachine thinks bigger. Define your project vision in natural language, and watch as specialized agents collaborate to architect, plan, implement, and validate entire applications:
-
-- **Complex Full-Stack Applications**: Frontend, backend, databases, APIs, authentication—orchestrated as a cohesive system
-- **Enterprise CLI Tools**: Complete command-line applications with proper architecture, testing, and distribution setup
-- **Microservices Architectures**: Multi-service systems with service boundaries, communication patterns, and deployment configs
-- **Developer Frameworks**: Extensible libraries and SDKs with documentation, examples, and test suites
+Traditional code generation creates isolated components. CodeMachine builds entire applications—from full-stack apps and CLI tools to microservices and frameworks. Define your vision in natural language, and specialized agents collaborate to architect, implement, and validate complete production-ready systems.
 
 **The Power of Workflow-Driven Development**
 
-CodeMachine's secret is its workflow orchestration engine. Instead of running agents randomly, you define sophisticated multi-step workflows that coordinate agents through the entire development lifecycle:
+CodeMachine orchestrates sophisticated multi-step workflows that coordinate agents through the entire development lifecycle:
 
 ```javascript
 // Create workflows that build complete projects
