@@ -25,6 +25,8 @@ Your Verification Process:
 
 IF there are no changes, output "NO changes."
 
+IMPORTANT: After making any necessary edits (or if no edits were needed), once everything is verified and meets all requirements, mark the current task as done.
+
 ## How to Find Task Data
 
 **step**: The full current task data (tasks that has done: false) formatted as:

@@ -17,7 +17,20 @@ const COLOR_PALETTE: ColorizeFn[] = supportsColor
       chalk.cyanBright,
       chalk.magentaBright,
       chalk.blueBright,
-      chalk.redBright,
+      chalk.green,
+      chalk.yellow,
+      chalk.blue,
+      chalk.magenta,
+      chalk.cyan,
+      chalk.white,
+      chalk.whiteBright,
+      chalk.gray,
+      chalk.hex('#00CED1'), // DarkTurquoise
+      chalk.hex('#9370DB'), // MediumPurple
+      chalk.hex('#3CB371'), // MediumSeaGreen
+      chalk.hex('#FFD700'), // Gold
+      chalk.hex('#BA55D3'), // MediumOrchid
+      chalk.hex('#20B2AA'), // LightSeaGreen
     ]
   : [passthrough];
 

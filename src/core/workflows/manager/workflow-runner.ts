@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 import { access, readFile } from 'node:fs/promises';
+import chalk from 'chalk';
 
 import type { RunWorkflowOptions } from './types.js';
 import { loadTemplateWithPath } from './template-loader.js';
@@ -87,10 +88,45 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       );
     }
 
-    const { stdout: stdoutLogger, stderr: stderrLogger } = getAgentLoggers(step.agentId);
-
     console.log('═'.repeat(80));
     console.log(formatAgentLog(step.agentId, `${step.agentName} started to work.`));
+
+    // Status indicator with spinner
+    const spinnerChars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+    let spinnerIndex = 0;
+    let lastOutputTime = Date.now();
+    let spinnerActive = false;
+
+    // Wrap loggers to track output and clear spinner
+    const { stdout: baseStdoutLogger, stderr: baseStderrLogger } = getAgentLoggers(step.agentId);
+    const stdoutLogger = (chunk: string) => {
+      if (spinnerActive) {
+        process.stdout.write('\r' + ' '.repeat(100) + '\r');
+        spinnerActive = false;
+      }
+      lastOutputTime = Date.now();
+      baseStdoutLogger(chunk);
+    };
+    const stderrLogger = (chunk: string) => {
+      if (spinnerActive) {
+        process.stdout.write('\r' + ' '.repeat(100) + '\r');
+        spinnerActive = false;
+      }
+      lastOutputTime = Date.now();
+      baseStderrLogger(chunk);
+    };
+
+    const statusInterval = setInterval(() => {
+      const timeSinceLastOutput = Date.now() - lastOutputTime;
+      // Only show spinner if no output for 2 seconds
+      if (timeSinceLastOutput > 2000) {
+        const spinner = spinnerChars[spinnerIndex % spinnerChars.length];
+        // Special color for status indicator - dim yellow/orange
+        process.stdout.write('\r' + chalk.hex('#FFA500')(`${spinner} ${step.agentName} is running...`));
+        spinnerActive = true;
+        spinnerIndex++;
+      }
+    }, 100);
 
     try {
       const promptPath = path.isAbsolute(step.promptPath)
@@ -140,6 +176,8 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         const skipInfo = activeLoop.skip.length > 0
           ? ` (skipping: ${activeLoop.skip.join(', ')})`
           : '';
+        clearInterval(statusInterval);
+        process.stdout.write('\r' + ' '.repeat(100) + '\r'); // Clear the status line
         console.log(
           formatAgentLog(
             step.agentId,
@@ -165,9 +203,13 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         loopCounters.set(loopKey, 0);
       }
 
+      clearInterval(statusInterval);
+      process.stdout.write('\r' + ' '.repeat(100) + '\r'); // Clear the status line
       console.log(formatAgentLog(step.agentId, `${step.agentName} has completed their work.`));
       console.log('\n' + '═'.repeat(80) + '\n');
     } catch (error) {
+      clearInterval(statusInterval);
+      process.stdout.write('\r' + ' '.repeat(100) + '\r'); // Clear the status line
       console.error(
         formatAgentLog(
           step.agentId,
