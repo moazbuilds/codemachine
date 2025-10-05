@@ -1,7 +1,7 @@
 {
   "name": "codemachine",
   "version": "0.1.0",
-  "description": "CLI coding agent orchestrator with multi-agent task planning.",
+  "description": "Multi-Agent Workflow Orchestration.",
   "type": "module",
   "bin": {
     "codemachine": "./dist/index.js"

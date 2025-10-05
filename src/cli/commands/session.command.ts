@@ -6,7 +6,7 @@ import type { Command } from 'commander';
 
 import { ensureAuth, clearAuth } from '../../app/services/auth-status.js';
 import { renderMainMenu } from '../presentation/main-menu.js';
-import { SESSION_INSTRUCTION } from '../presentation/onboarding.js';
+import { palette } from '../presentation/layout.js';
 import { runWorkflowQueue } from '../../core/workflows/queue-runner.js';
 import { selectTemplateByNumber, getAvailableTemplates, printAvailableWorkflowTemplatesHeading } from './templates.command.js';
 
@@ -14,7 +14,7 @@ const DEFAULT_SPEC_PATH = '.codemachine/inputs/specifications.md';
 
 export function registerSessionCommand(program: Command): void {
   program
-    .command('session')
+    .command('session', { hidden: true })
     .description('Start an interactive session that accepts slash commands')
     .option('--spec <path>', 'Path to the planning specification file', DEFAULT_SPEC_PATH)
     .action(async (options: { spec?: string }) => {
@@ -38,11 +38,10 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
   if (showIntro) {
     const menu = await renderMainMenu();
     console.log(menu + '\n');
-    console.log(SESSION_INSTRUCTION);
   }
 
   const rl = createInterface({ input, output, terminal: true });
-  const prompt = () => rl.setPrompt('codemachine> ');
+  const prompt = () => rl.setPrompt(palette.primary('CODEMACHINE> '));
   prompt();
   rl.prompt();
 
@@ -51,11 +50,11 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
       '',
       'Available commands:',
       '  /start                Run configured workflow queue and stay in session',
-      '  /templates (/template) List and select workflow templates',
-      '  /ui                   Print the main menu again',
+      '  /templates            List and select workflow templates',
       '  /login                Authenticate with Codex services',
       '  /logout               Sign out of Codex services',
       '  /version              Show CLI version',
+      '  /mcp                  MCP support coming soon',
       '  /help                 Show this help',
       '  /exit                 Exit the session',
       '',
@@ -184,14 +183,6 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
       continue;
     }
 
-    if (raw === '/ui') {
-      const text = await renderMainMenu();
-      console.log(text + '\n');
-      prompt();
-      rl.prompt();
-      continue;
-    }
-
     if (raw === '/login') {
       await ensureAuth();
       console.log('Authentication successful.');
@@ -229,6 +220,13 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
         prompt();
         rl.prompt();
       }
+      continue;
+    }
+
+    if (raw === '/mcp') {
+      console.log('MCP support coming soon!');
+      prompt();
+      rl.prompt();
       continue;
     }
 

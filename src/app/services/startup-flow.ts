@@ -7,7 +7,6 @@ import { renderMainMenu } from '../../cli/presentation/main-menu.js';
 import {
   renderLoginScreen,
   renderWelcomeScreen,
-  SESSION_INSTRUCTION,
 } from '../../cli/presentation/onboarding.js';
 
 const legacyAuthPath = path.join(homedir(), 'codemachine', 'auth.json');
@@ -36,8 +35,6 @@ export interface StartupFlowResult {
 export async function runStartupFlow(): Promise<StartupFlowResult> {
   let mainMenuDisplayed = false;
 
-  console.log(`${renderWelcomeScreen()}\n`);
-
   const [authenticated, legacyAuthPresent] = await Promise.all([
     isAuthenticated(),
     legacyAuthExists(),
@@ -50,15 +47,10 @@ export async function runStartupFlow(): Promise<StartupFlowResult> {
       console.log(`${renderLoginScreen()}\n`);
       await ensureAuth();
       console.log('Authentication successful.\n');
-    } else if (legacyAuthPresent) {
-      console.log('Found credentials at ~/codemachine/auth.json. Launching Codemachine UI.\n');
-    } else {
-      console.log('Authentication already configured. Launching Codemachine UI.\n');
     }
 
     const mainMenu = await renderMainMenu();
     console.log(`${mainMenu}\n`);
-    console.log(SESSION_INSTRUCTION);
     mainMenuDisplayed = true;
 
     return { mainMenuDisplayed };

@@ -2,7 +2,7 @@
 
 exports[`renderMainMenu > renders the branded main menu with login action 1`] = `
 "════════════════════════════════════════════════════════════
- CodeMachine - CLI Coding Agent Specification 
+ CodeMachine - Multi-Agent Workflow Orchestration 
 ════════════════════════════════════════════════════════════
    ██████╗ ██████╗ ██████╗ ███████╗
   ██╔════╝██╔═══██╗██╔══██╗██╔════╝
@@ -35,7 +35,7 @@ Add any necessary context files, then run /start to begin."
 
 exports[`renderMainMenu > renders the branded main menu with logout action 1`] = `
 "════════════════════════════════════════════════════════════
- CodeMachine - CLI Coding Agent Specification 
+ CodeMachine - Multi-Agent Workflow Orchestration 
 ════════════════════════════════════════════════════════════
    ██████╗ ██████╗ ██████╗ ███████╗
   ██╔════╝██╔═══██╗██╔══██╗██╔════╝

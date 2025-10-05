@@ -24,12 +24,6 @@ export function registerStartCommand(program: Command): void {
       const cwd = process.env.CODEMACHINE_CWD || process.cwd();
       const { mainMenuDisplayed } = await runStartupFlow();
 
-      if (mainMenuDisplayed) {
-        console.log('Interactive session ready.');
-      } else {
-        console.log('Interactive session ready. Type /start when you want to kick off the workflow.');
-      }
-
       await runSessionShell({ cwd, force, specificationPath, showIntro: !mainMenuDisplayed });
     });
 }
