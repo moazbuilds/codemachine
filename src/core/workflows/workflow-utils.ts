@@ -23,6 +23,7 @@ interface StepOverrides {
   promptPath?: string;
   model?: string;
   modelReasoningEffort?: string;
+  executeOnce?: boolean;
 }
 
 interface WorkflowStep {
@@ -33,6 +34,7 @@ interface WorkflowStep {
   model: string;
   modelReasoningEffort?: string;
   module?: ModuleMetadata;
+  executeOnce?: boolean;
 }
 
 interface LoopBehaviorConfig {
@@ -74,6 +76,7 @@ export function resolveStep(id: string, overrides: StepOverrides = {}): Workflow
     promptPath: overrides.promptPath ?? agent.promptPath,
     model: overrides.model ?? agent.model,
     modelReasoningEffort: overrides.modelReasoningEffort ?? agent.modelReasoningEffort,
+    executeOnce: overrides.executeOnce,
   };
 }
 

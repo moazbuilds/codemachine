@@ -66,6 +66,7 @@ export function isWorkflowTemplate(value: unknown): value is WorkflowTemplate {
       model?: unknown;
       modelReasoningEffort?: unknown;
       module?: unknown;
+      executeOnce?: unknown;
     };
     if (
       candidate.type !== 'module' ||
@@ -86,6 +87,10 @@ export function isWorkflowTemplate(value: unknown): value is WorkflowTemplate {
       candidate.modelReasoningEffort !== 'medium' &&
       candidate.modelReasoningEffort !== 'high'
     ) {
+      return false;
+    }
+
+    if (candidate.executeOnce !== undefined && typeof candidate.executeOnce !== 'boolean') {
       return false;
     }
 

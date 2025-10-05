@@ -10,7 +10,11 @@ import { ensureProjectScaffold } from './workspace-prep.js';
 import { processPromptString } from './prompt-processor.js';
 import { evaluateLoopBehavior } from '../modules/loop-behavior.js';
 import { getAgentLoggers, formatAgentLog } from './agent-loggers.js';
-import { getTemplatePathFromTracking } from '../../../shared/agents/template-tracking.js';
+import {
+  getTemplatePathFromTracking,
+  getCompletedSteps,
+  markStepCompleted,
+} from '../../../shared/agents/template-tracking.js';
 const TASKS_PRIMARY_PATH = path.join('.codemachine', 'plan', 'tasks.json');
 const TASKS_FALLBACK_PATH = path.join('.codemachine', 'tasks.json');
 
@@ -64,12 +68,21 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     await syncCodexConfig({ additionalAgents: workflowAgents });
   }
 
+  // Load completed steps for executeOnce tracking
+  const completedSteps = await getCompletedSteps(cmRoot);
+
   const loopCounters = new Map<string, number>();
   let activeLoop: { skip: string[] } | null = null;
 
   for (let index = 0; index < template.steps.length; index += 1) {
     const step = template.steps[index];
     if (step.type !== 'module') {
+      continue;
+    }
+
+    // Skip step if executeOnce is true and it's already completed
+    if (step.executeOnce && completedSteps.includes(index)) {
+      console.log(formatAgentLog(step.agentId, `${step.agentName} skipped (already completed).`));
       continue;
     }
 
@@ -205,6 +218,12 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
       clearInterval(statusInterval);
       process.stdout.write('\r' + ' '.repeat(100) + '\r'); // Clear the status line
+
+      // Mark step as completed if executeOnce is true
+      if (step.executeOnce) {
+        await markStepCompleted(cmRoot, index);
+      }
+
       console.log(formatAgentLog(step.agentId, `${step.agentName} has completed their work.`));
       console.log('\n' + '═'.repeat(80) + '\n');
     } catch (error) {

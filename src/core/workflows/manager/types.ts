@@ -24,6 +24,7 @@ export interface WorkflowStep {
   model?: string;
   modelReasoningEffort?: 'low' | 'medium' | 'high';
   module?: ModuleMetadata;
+  executeOnce?: boolean;
 }
 
 export interface WorkflowTemplate {
