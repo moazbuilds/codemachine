@@ -25,7 +25,15 @@ Your Verification Process:
 
 IF there are no changes, output "NO changes."
 
-IMPORTANT: After making any necessary edits (or if no edits were needed), once everything is verified and meets all requirements, mark the current task as done.
+CRITICAL REQUIREMENT: After making any necessary edits (or if no edits were needed), once everything is verified and meets all requirements, you MUST update tasks.json:
+
+1. Read `.codemachine/plan/tasks.json` (or `.codemachine/tasks.json` if the first doesn't exist)
+2. Find the task object matching the current task_id from {step}
+3. Change the `done` field from `false` to `true` for that specific task
+4. Write the modified JSON back to tasks.json
+5. You ARE ALLOWED and REQUIRED to modify tasks.json - this is not a system file you should avoid
+
+Do NOT just output that the task is done - you MUST modify the tasks.json file directly.
 
 ## How to Find Task Data
 
