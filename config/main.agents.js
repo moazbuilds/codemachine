@@ -3,37 +3,22 @@ const path = require('node:path');
 const promptsDir = path.join(__dirname, '..', 'prompts', 'templates');
 
 module.exports = [
+  // Smart Build agents
   {
     id: 'agents-builder',
     name: 'Agent Builder',
     description: 'Generates specialized agent prompts tailored to the current workspace context',
-    promptPath: path.join(promptsDir, 'smart-dev', 'agents-builder.md'),
+    promptPath: path.join(promptsDir, 'smart-build', 'agents-builder.md'),
     model: 'gpt-5-codex',
     modelReasoningEffort: 'high',
-  },
-  {
-    id: 'tasks-generator',
-    name: 'Tasks Generator',
-    description: 'Breaks project requirements into actionable tasks with acceptance criteria',
-    promptPath: path.join(promptsDir, 'smart-dev', 'tasks-generator.md'),
-    model: 'gpt-5',
-    modelReasoningEffort: 'medium',
   },
   {
     id: 'project-manager',
     name: 'Project Manager',
     description: 'Prioritizes and sequences tasks, delegating work to other agents as needed',
-    promptPath: path.join(promptsDir, 'smart-dev', 'project-manager.md'),
+    promptPath: path.join(promptsDir, 'smart-build', 'project-manager.md'),
     model: 'gpt-5',
     modelReasoningEffort: 'high',
-  },
-  {
-    id: 'master-mind',
-    name: 'Master Mind',
-    description: 'Coordinates multi-agent workflows and tracks overall project progress',
-    promptPath: path.join(promptsDir, 'master-mind.md'),
-    model: 'gpt-5-codex',
-    modelReasoningEffort: 'medium',
   },
   // Codemachine agents
   {
@@ -92,22 +77,16 @@ module.exports = [
     model: 'gpt-5',
     modelReasoningEffort: 'low',
   },
-  {
-    id: 'task-complete',
-    name: 'Task Complete Checker',
-    description: 'Checks if all tasks are completed and determines if workflow should continue',
-    promptPath: path.join(promptsDir, 'codemachine', 'task-complete.md'),
-    model: 'gpt-5',
-    modelReasoningEffort: 'low',
-  },
+
   // Folder configurations - applies settings to all agents in the folder
-  {
-    type: 'folder',
-    id: 'spec-kit',
-    name: 'Spec Kit',
-    description: 'Specification and planning agents for project setup',
-    folderPath: path.join(promptsDir, 'spec-kit'),
-    model: 'gpt-5-codex',
-    modelReasoningEffort: 'high',
-  },
+  // {
+  //   type: 'folder',
+  //   id: 'spec-kit',
+  //   name: 'Spec Kit',
+  //   description: 'Specification and planning agents for project setup',
+  //   folderPath: path.join(promptsDir, 'spec-kit'),
+  //   model: 'gpt-5-codex',
+  //   modelReasoningEffort: 'high',
+  // },
+  
 ];
