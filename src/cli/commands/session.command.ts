@@ -62,7 +62,7 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
   };
 
   const require = createRequire(import.meta.url);
-  const pkg = require('../../../package.json') as { version: string };
+  const pkg = require('../../package.json') as { version: string };
 
   let waitingForTemplateSelection = false;
   let templateSelectionIndex = 0;
