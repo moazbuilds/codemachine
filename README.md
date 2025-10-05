@@ -1,4 +1,4 @@
-![CodeMachine](https://raw.githubusercontent.com/moazbuilds/codemachine/main/.github/CodeMachine.png)
+![CodeMachine](.github/CodeMachine.png)
 
 ## Multi-Agent Workflow Orchestration
 
