@@ -12,47 +12,6 @@
 
 CodeMachine CLI is a breakthrough workflow orchestration framework that transforms ambitious project specifications into complete, production-ready codebases. Powered by coordinated AI agents and intelligent workflow engines, CodeMachine tackles the complexity of building entire applications from scratch—handling everything from system architecture to implementation, testing, and deployment automation.
 
-**Build Complete Codebases, Not Just Code Snippets**
-
-Traditional code generation creates isolated components. CodeMachine builds entire applications—from full-stack apps and CLI tools to microservices and frameworks. Define your vision in natural language, and specialized agents collaborate to architect, implement, and validate complete production-ready systems.
-
-**The Power of Workflow-Driven Development**
-
-CodeMachine orchestrates sophisticated multi-step workflows that coordinate agents through the entire development lifecycle:
-
-```javascript
-// Create workflows that build complete projects
-export default {
-  name: 'Full-Stack App Builder',
-  steps: [
-    resolveStep('arch-agent'),                // Design system architecture
-    resolveStep('plan-agent'),                // Generate development plan
-    resolveStep('task-breakdown'),            // Structure implementation tasks
-    resolveStep('code-generation'),           // Implement features iteratively
-    resolveStep('runtime-prep'),              // Setup automation scripts
-    resolveStep('task-sanity-check'),         // Validate against requirements
-    resolveModule('check-task', {             // Loop until completion
-      loopTrigger: 'TASKS_COMPLETED=FALSE',
-      loopSteps: 3,
-      loopMaxIterations: 20
-    }),
-  ],
-};
-```
-
-Each workflow step executes specialized agents that collaborate to solve complex architectural challenges, implement intricate features, and ensure quality throughout the process.
-
-**Why CodeMachine?**
-
-- **🏗️ Handles Real Complexity**: Build multi-file, multi-layer applications with proper separation of concerns and design patterns
-- **🎯 Specification-Driven**: Write what you want in `.codemachine/inputs/specifications.md`, get a complete codebase
-- **🔄 Iterative & Intelligent**: Agents loop through tasks, validate outputs, and refine until requirements are met
-- **📐 Architecture-First**: System design and planning happen before a single line of code is written
-- **🛡️ Quality Built-In**: Testing, linting, and validation gates ensure production-ready output
-- **⚙️ Fully Customizable**: Create workflows for any project type, technology stack, or development methodology
-
-Stop building projects file-by-file. Start orchestrating intelligent agents to construct complete, sophisticated codebases that are ready to ship.
-
 ---
 
 ## 🚀 Quick Start
@@ -119,16 +78,67 @@ Sit back as CodeMachine orchestrates specialized agents to:
 
 ### Authentication
 
-CodeMachine currently runs using **Codex** for agent execution:
+Login inside the CodeMachine session:
 
 ```bash
-# Login to authenticate
+# Inside CodeMachine session
 /login
 
 # Logout when done
 /logout
 ```
 
+Or use the command:
+
+```bash
+codemachine login
+```
+
 > **Coming Soon:** Support for **Gemini CLI** and **Claude CLI** is in the works! Multi-provider support will give you flexibility to choose your preferred AI backend.
 
 **That's it!** Your complete codebase will be generated and ready to ship.
+
+---
+
+## Learn More
+
+**Build Complete Codebases, Not Just Code Snippets**
+
+Traditional code generation creates isolated components. CodeMachine builds entire applications—from full-stack apps and CLI tools to microservices and frameworks. Define your vision in natural language, and specialized agents collaborate to architect, implement, and validate complete production-ready systems.
+
+**The Power of Workflow-Driven Development**
+
+CodeMachine orchestrates sophisticated multi-step workflows that coordinate agents through the entire development lifecycle:
+
+```javascript
+// Create workflows that build complete projects
+export default {
+  name: 'Full-Stack App Builder',
+  steps: [
+    resolveStep('arch-agent'),                // Design system architecture
+    resolveStep('plan-agent'),                // Generate development plan
+    resolveStep('task-breakdown'),            // Structure implementation tasks
+    resolveStep('code-generation'),           // Implement features iteratively
+    resolveStep('runtime-prep'),              // Setup automation scripts
+    resolveStep('task-sanity-check'),         // Validate against requirements
+    resolveModule('check-task', {             // Loop until completion
+      loopTrigger: 'TASKS_COMPLETED=FALSE',
+      loopSteps: 3,
+      loopMaxIterations: 20
+    }),
+  ],
+};
+```
+
+Each workflow step executes specialized agents that collaborate to solve complex architectural challenges, implement intricate features, and ensure quality throughout the process.
+
+**Why CodeMachine?**
+
+- **🏗️ Handles Real Complexity**: Build multi-file, multi-layer applications with proper separation of concerns and design patterns
+- **🎯 Specification-Driven**: Write what you want in `.codemachine/inputs/specifications.md`, get a complete codebase
+- **🔄 Iterative & Intelligent**: Agents loop through tasks, validate outputs, and refine until requirements are met
+- **📐 Architecture-First**: System design and planning happen before a single line of code is written
+- **🛡️ Quality Built-In**: Testing, linting, and validation gates ensure production-ready output
+- **⚙️ Fully Customizable**: Create workflows for any project type, technology stack, or development methodology
+
+Stop building projects file-by-file. Start orchestrating intelligent agents to construct complete, sophisticated codebases that are ready to ship.
