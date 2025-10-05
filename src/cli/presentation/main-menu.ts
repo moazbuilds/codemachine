@@ -1,5 +1,5 @@
 import * as path from 'node:path';
-import { banner, formatKeyValue, palette, section, divider } from './layout.js';
+import { banner, formatKeyValue, palette, divider } from './layout.js';
 import { getActiveTemplate } from '../../shared/agents/template-tracking.js';
 
 function geminiAscii(): string {

@@ -16,7 +16,7 @@ export async function validateSpecification(specificationPath: string, force?: b
 
   try {
     specificationContents = await readFile(absolute, { encoding: 'utf8' });
-  } catch (error) {
+  } catch (_error) {
     // File doesn't exist - create it with default template
     await mkdir(path.dirname(absolute), { recursive: true });
     await writeFile(absolute, DEFAULT_SPEC_TEMPLATE, { encoding: 'utf8' });

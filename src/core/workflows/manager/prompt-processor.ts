@@ -120,7 +120,7 @@ async function replacePlaceholders(
   for (const placeholderName of uniquePlaceholders) {
     // Check userDir first, then packageDir
     let filePath: string | undefined;
-    let baseDir: string;
+    let baseDir: string | undefined;
 
     if (config.userDir && config.userDir[placeholderName]) {
       filePath = config.userDir[placeholderName];
@@ -130,7 +130,7 @@ async function replacePlaceholders(
       baseDir = packageRoot || cwd;
     }
 
-    if (!filePath) {
+    if (!filePath || !baseDir) {
       console.warn(
         `Warning: Placeholder {${placeholderName}} found in prompt but not defined in config/placeholders.js`
       );

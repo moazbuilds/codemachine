@@ -14,9 +14,33 @@ const packageRoot = (() => {
   }
 })();
 
+interface AgentConfig {
+  id: string;
+  name?: string;
+  promptPath?: string;
+  model?: string;
+  modelReasoningEffort?: string;
+  type?: string;
+  [key: string]: unknown;
+}
+
+interface ModuleBehaviorConfig {
+  type?: string;
+  action?: string;
+  steps?: number;
+  trigger?: string;
+  maxIterations?: number;
+  skip?: string[];
+  [key: string]: unknown;
+}
+
+interface ModuleConfig extends AgentConfig {
+  behavior?: ModuleBehaviorConfig;
+}
+
 const require = createRequire(import.meta.url);
-const mainAgents = require(path.resolve(packageRoot, 'config', 'main.agents.js'));
-const moduleCatalog = require(path.resolve(packageRoot, 'config', 'modules.js'));
+const mainAgents = require(path.resolve(packageRoot, 'config', 'main.agents.js')) as AgentConfig[];
+const moduleCatalog = require(path.resolve(packageRoot, 'config', 'modules.js')) as ModuleConfig[];
 
 interface StepOverrides {
   agentName?: string;
@@ -64,7 +88,7 @@ function extractOrderPrefix(filename: string): number | null {
 }
 
 export function resolveStep(id: string, overrides: StepOverrides = {}): WorkflowStep {
-  const agent = mainAgents.find((entry: any) => entry?.id === id);
+  const agent = mainAgents.find((entry) => entry?.id === id);
   if (!agent) {
     throw new Error(`Unknown main agent: ${id}`);
   }
@@ -81,7 +105,7 @@ export function resolveStep(id: string, overrides: StepOverrides = {}): Workflow
 }
 
 function resolveLoopBehavior(
-  base: any,
+  base: ModuleBehaviorConfig | undefined,
   overrides: ModuleOverrides,
 ): LoopBehaviorConfig | undefined {
   if (!base || base.type !== 'loop' || base.action !== 'stepBack') {
@@ -113,7 +137,7 @@ function resolveLoopBehavior(
 }
 
 export function resolveModule(id: string, overrides: ModuleOverrides = {}): WorkflowStep {
-  const moduleEntry = moduleCatalog.find((entry: any) => entry?.id === id);
+  const moduleEntry = moduleCatalog.find((entry) => entry?.id === id);
 
   if (!moduleEntry) {
     throw new Error(`Unknown workflow module: ${id}`);
@@ -150,7 +174,7 @@ export function resolveModule(id: string, overrides: ModuleOverrides = {}): Work
 
 export function resolveFolder(folderName: string, overrides: StepOverrides = {}): WorkflowStep[] {
   // Look up folder configuration from main.agents.js
-  const folderConfig = mainAgents.find((entry: any) => entry?.type === 'folder' && entry?.id === folderName);
+  const folderConfig = mainAgents.find((entry) => entry?.type === 'folder' && entry?.id === folderName);
 
   if (!folderConfig) {
     throw new Error(`Folder configuration not found in main.agents.js: ${folderName}`);

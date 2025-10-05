@@ -43,7 +43,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
   const cmRoot = path.join(cwd, '.codemachine');
   const templatePath = options.templatePath || await getTemplatePathFromTracking(cmRoot);
 
-  const { template, resolvedPath } = await loadTemplateWithPath(cwd, templatePath);
+  const { template } = await loadTemplateWithPath(cwd, templatePath);
 
   console.log(`Using workflow template: ${template.name}`);
 

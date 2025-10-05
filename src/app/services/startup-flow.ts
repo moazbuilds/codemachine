@@ -6,7 +6,6 @@ import { ensureAuth, isAuthenticated } from './auth-status.js';
 import { renderMainMenu } from '../../cli/presentation/main-menu.js';
 import {
   renderLoginScreen,
-  renderWelcomeScreen,
 } from '../../cli/presentation/onboarding.js';
 
 const legacyAuthPath = path.join(homedir(), 'codemachine', 'auth.json');

@@ -132,7 +132,7 @@ async function loadAgents(candidateRoots: string[], filterIds?: string[]): Promi
     byId.set(id, merged);
   }
 
-  const allAgents = Array.from(byId.values()).map(({ source, ...agent }) => ({ ...agent }));
+  const allAgents = Array.from(byId.values()).map(({ source: _source, ...agent }) => ({ ...agent }));
 
   // Filter sub-agents by IDs if filterIds is provided
   const subAgents = Array.from(byId.values())
@@ -141,7 +141,7 @@ async function loadAgents(candidateRoots: string[], filterIds?: string[]): Promi
       if (!filterIds) return true;
       return filterIds.includes(agent.id);
     })
-    .map(({ source, ...agent }) => ({ ...agent }));
+    .map(({ source: _source, ...agent }) => ({ ...agent }));
 
   return { allAgents, subAgents };
 }

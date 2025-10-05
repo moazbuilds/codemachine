@@ -45,8 +45,7 @@ describe('syncCodexConfig', () => {
     expect(content).toMatch(/\[profiles\.frontend-dev][\s\S]*model_reasoning_effort = "medium"/);
     expect(content).toMatch(/\[profiles\.custom-agent][\s\S]*model_reasoning_effort = "medium"/);
     expect(content).toMatch(/\[profiles\.project-manager][\s\S]*model_reasoning_effort = "high"/);
-    expect(content).toMatch(/\[profiles\.tasks-generator][\s\S]*model_reasoning_effort = "high"/);
-    expect(content).toMatch(/\[profiles\.master-mind][\s\S]*model_reasoning_effort = "medium"/);
+    expect(content).toMatch(/\[profiles\.check-task][\s\S]*model_reasoning_effort = "low"/);
   });
 
   it('does not rewrite the config when content is unchanged', async () => {

@@ -8,25 +8,37 @@ model_reasoning_effort = "high"
 model = "gpt-5-codex"
 model_reasoning_effort = "high"
 
-[profiles.tasks-generator]
-model = "gpt-5"
-model_reasoning_effort = "medium"
-
 [profiles.project-manager]
 model = "gpt-5"
 model_reasoning_effort = "high"
 
-[profiles.master-mind]
+[profiles.arch-agent]
+model = "gpt-5"
+model_reasoning_effort = "high"
+
+[profiles.plan-agent]
+model = "gpt-5-codex"
+model_reasoning_effort = "high"
+
+[profiles.task-breakdown]
+model = "gpt-5"
+model_reasoning_effort = "medium"
+
+[profiles.code-generation]
 model = "gpt-5-codex"
 model_reasoning_effort = "medium"
 
-[profiles.test-agent]
+[profiles.task-sanity-check]
+model = "gpt-5"
+model_reasoning_effort = "medium"
+
+[profiles.runtime-prep]
 model = "gpt-5"
 model_reasoning_effort = "low"
 
-[profiles.spec-kit]
-model = "gpt-5-codex"
-model_reasoning_effort = "high"
+[profiles.git-commit]
+model = "gpt-5"
+model_reasoning_effort = "low"
 
 [profiles.uxui-designer]
 model = "gpt-5"
@@ -63,7 +75,3 @@ model_reasoning_effort = "medium"
 [profiles.check-task]
 model = "gpt-5"
 model_reasoning_effort = "low"
-
-[profiles.plan-generator]
-model = "gpt-5-codex"
-model_reasoning_effort = "high"

@@ -154,8 +154,9 @@ describe('codemachine CLI smoke', () => {
     });
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Interactive session ready.');
-    expect(result.stdout).toContain('Type /start when you want to kick off the workflow, or /help to see all commands.');
+    expect(result.stdout).toContain('CodeMachine - Multi-Agent Workflow Orchestration');
+    expect(result.stdout).toContain('/start:');
+    expect(result.stdout).toContain('Run configured workflow queue');
     expect(stripAnsi(result.stderr).trim()).toBe('');
   }, 20_000);
 });

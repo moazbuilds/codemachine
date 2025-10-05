@@ -85,7 +85,7 @@ describe('workflow modules', () => {
 
       expect(behavior).toBeTruthy();
       expect(behavior?.steps).toBe(1);
-      expect(behavior?.maxIterations).toBe(5);
+      expect(behavior?.maxIterations).toBeUndefined();
     });
 
     it('ignores trigger when it does not match last token', () => {
@@ -100,11 +100,16 @@ describe('workflow modules', () => {
     });
 
     it('enforces max iteration limits when configured', () => {
-      expect(baseBehavior).toBeTruthy();
+      const behaviorWithLimit = resolveModule('check-task', {
+        loopTrigger: 'TASKS_COMPLETED=FALSE',
+        loopMaxIterations: 3,
+      }).module?.behavior;
+
+      expect(behaviorWithLimit).toBeTruthy();
       const result = evaluateLoopBehavior({
-        behavior: baseBehavior,
+        behavior: behaviorWithLimit,
         output: 'TASKS_COMPLETED=FALSE',
-        iterationCount: 5,
+        iterationCount: 3,
       });
 
       expect(result).toMatchObject({ shouldRepeat: false, stepsBack: 1 });

@@ -30,6 +30,6 @@ describe('validateSpecification', () => {
   it('rejects when specification file is empty', async () => {
     await writeFile(tempSpecPath, '');
 
-    await expect(validateSpecification(tempSpecPath, false)).rejects.toThrow(/empty/);
+    await expect(validateSpecification(tempSpecPath, false)).rejects.toThrow(/Please write your spec file before starting/);
   });
 });
