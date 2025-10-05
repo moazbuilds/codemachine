@@ -77,23 +77,6 @@ Sit back as CodeMachine orchestrates specialized agents to:
 - Create automation scripts
 - Validate outputs against your specs
 
-### Authentication
-
-Login inside the CodeMachine session:
-
-```bash
-# Inside CodeMachine session
-/login
-
-# Logout when done
-/logout
-```
-
-Or use the command:
-
-```bash
-codemachine login
-```
 
 > **Coming Soon:** Support for **Gemini CLI** and **Claude CLI** is in the works! Multi-provider support will give you flexibility to choose your preferred AI backend.
 
