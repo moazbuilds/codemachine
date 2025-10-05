@@ -1,4 +1,4 @@
-![CodeMachine](assets/CodeMachine.png)
+<img src="assets/CodeMachine.png" alt="CodeMachine" width="600">
 
 ## Multi-Agent Workflow Orchestration
 
