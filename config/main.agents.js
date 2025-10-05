@@ -79,14 +79,13 @@ module.exports = [
   },
 
   // Folder configurations - applies settings to all agents in the folder
-  // {
-  //   type: 'folder',
-  //   id: 'spec-kit',
-  //   name: 'Spec Kit',
-  //   description: 'Specification and planning agents for project setup',
-  //   folderPath: path.join(promptsDir, 'spec-kit'),
-  //   model: 'gpt-5-codex',
-  //   modelReasoningEffort: 'high',
-  // },
-  
+  {
+    type: 'folder',
+    id: 'codemachine',
+    name: 'Codemachine',
+    description: 'Core codemachine workflow agents',
+    folderPath: path.join(promptsDir, 'codemachine'),
+    model: 'gpt-5-codex',
+    modelReasoningEffort: 'high',
+  },
 ];
