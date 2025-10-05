@@ -1,4 +1,4 @@
-![CodeMachine](.github/CodeMachine.png)
+![CodeMachine](assets/CodeMachine.png)
 
 ## Multi-Agent Workflow Orchestration
 
