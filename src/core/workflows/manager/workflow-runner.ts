@@ -147,9 +147,16 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         : path.resolve(cwd, step.promptPath);
       const rawPrompt = await readFile(promptPath, 'utf8');
       const prompt = await processPromptString(rawPrompt, cwd);
+
+      // Use environment variable or default to 10 minutes (600000ms)
+      const timeout = process.env.CODEMACHINE_AGENT_TIMEOUT
+        ? Number.parseInt(process.env.CODEMACHINE_AGENT_TIMEOUT, 10)
+        : 600000;
+
       const output = await runAgent(step.agentId, prompt, cwd, {
         logger: stdoutLogger,
         stderrLogger,
+        timeout,
       });
 
       const agentName = step.agentName.toLowerCase();

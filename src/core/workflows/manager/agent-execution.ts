@@ -8,6 +8,7 @@ export interface RunAgentOptions {
   abortSignal?: AbortSignal;
   logger?: (chunk: string) => void;
   stderrLogger?: (chunk: string) => void;
+  timeout?: number; // Timeout in milliseconds (default: 600000ms = 10 minutes)
 }
 
 export function shouldSkipCodex(): boolean {
@@ -79,6 +80,7 @@ export async function runAgent(
     prompt,
     workingDir: cwd,
     abortSignal: options.abortSignal,
+    timeout: options.timeout,
     onData: (chunk) => {
       buffered += chunk;
       logStdout(chunk);

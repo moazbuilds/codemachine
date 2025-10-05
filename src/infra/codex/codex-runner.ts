@@ -11,6 +11,7 @@ export interface RunCodexOptions {
   onData?: (chunk: string) => void;
   onErrorData?: (chunk: string) => void;
   abortSignal?: AbortSignal;
+  timeout?: number; // Timeout in milliseconds (default: 600000ms = 10 minutes)
 }
 
 export interface RunCodexResult {
@@ -21,7 +22,7 @@ export interface RunCodexResult {
 const ANSI_ESCAPE_SEQUENCE = new RegExp(String.raw`\u001B\[[0-9;?]*[ -/]*[@-~]`, 'g');
 
 export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult> {
-  const { profile, prompt, workingDir, env, onData, onErrorData, abortSignal } = options;
+  const { profile, prompt, workingDir, env, onData, onErrorData, abortSignal, timeout = 600000 } = options;
 
   if (!profile) {
     throw new Error('runCodex requires a profile.');
@@ -101,6 +102,7 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
         },
     signal: abortSignal,
     stdioMode: inheritTTY ? 'inherit' : 'pipe',
+    timeout,
   });
 
   if (result.exitCode !== 0) {

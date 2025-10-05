@@ -9,6 +9,7 @@ export interface SpawnOptions {
   onStderr?: (chunk: string) => void;
   signal?: AbortSignal;
   stdioMode?: 'pipe' | 'inherit';
+  timeout?: number; // Timeout in milliseconds
 }
 
 export interface SpawnResult {
@@ -18,7 +19,7 @@ export interface SpawnResult {
 }
 
 export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
-  const { command, args = [], cwd, env, onStdout, onStderr, signal, stdioMode = 'pipe' } = options;
+  const { command, args = [], cwd, env, onStdout, onStderr, signal, stdioMode = 'pipe', timeout } = options;
 
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
@@ -26,6 +27,7 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
       env: env ? { ...process.env, ...env } : process.env,
       stdio: stdioMode === 'inherit' ? ['ignore', 'inherit', 'inherit'] : ['ignore', 'pipe', 'pipe'],
       signal,
+      timeout,
     });
 
     const stdoutChunks: string[] = [];
