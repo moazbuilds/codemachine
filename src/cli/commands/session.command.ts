@@ -3,6 +3,9 @@ import { createRequire } from 'node:module';
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import type { Command } from 'commander';
+import { existsSync } from 'node:fs';
+import { dirname, join, parse } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { ensureAuth, clearAuth } from '../../app/services/auth-status.js';
 import { renderMainMenu } from '../presentation/main-menu.js';
@@ -62,7 +65,8 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
   };
 
   const require = createRequire(import.meta.url);
-  const pkg = require('../../package.json') as { version: string };
+  const packageJsonPath = findPackageJson(import.meta.url);
+  const pkg = require(packageJsonPath) as { version: string };
 
   let waitingForTemplateSelection = false;
   let templateSelectionIndex = 0;
@@ -236,4 +240,18 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
   }
 
   rl.close();
+}
+
+function findPackageJson(moduleUrl: string): string {
+  let currentDir = dirname(fileURLToPath(moduleUrl));
+  const { root } = parse(currentDir);
+
+  while (true) {
+    const candidate = join(currentDir, 'package.json');
+    if (existsSync(candidate)) return candidate;
+    if (currentDir === root) break;
+    currentDir = dirname(currentDir);
+  }
+
+  throw new Error('Unable to locate package.json from CLI module');
 }
