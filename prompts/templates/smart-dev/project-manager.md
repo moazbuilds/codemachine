@@ -16,8 +16,8 @@
 
 ### Agent Orchestration
 
-* **MUST** use command pattern: `codemachine agent <agentId> "PROMPT"`.
-* **MUST** wait for and process response from each invoked agent.
+{orchestration_guide}
+
 * **MUST** iterate if work does not meet acceptance criteria, by:
 
   1. Identifying specific deficiencies.

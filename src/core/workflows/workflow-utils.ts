@@ -156,10 +156,10 @@ export function resolveFolder(folderName: string, overrides: StepOverrides = {})
     throw new Error(`Folder configuration not found in main.agents.js: ${folderName}`);
   }
 
-  const promptsDir = path.resolve(packageRoot, 'prompts', 'agents', folderName);
+  const promptsDir = path.resolve(packageRoot, 'prompts', 'templates', folderName);
 
   if (!existsSync(promptsDir) || !statSync(promptsDir).isDirectory()) {
-    throw new Error(`Folder not found: prompts/agents/${folderName}`);
+    throw new Error(`Folder not found: prompts/templates/${folderName}`);
   }
 
   const files = readdirSync(promptsDir);
@@ -175,7 +175,7 @@ export function resolveFolder(folderName: string, overrides: StepOverrides = {})
     .sort((a, b) => (a.order! - b.order!));
 
   if (orderedFiles.length === 0) {
-    throw new Error(`No ordered files found in folder: prompts/agents/${folderName}`);
+    throw new Error(`No ordered files found in folder: prompts/templates/${folderName}`);
   }
 
   // Create a step for each file using folder config
@@ -185,7 +185,7 @@ export function resolveFolder(folderName: string, overrides: StepOverrides = {})
 
     // Remove number prefix and extension to get the agent ID
     const agentId = basename.replace(/^\d+\s*-\s*/, '').replace(ext, '').trim();
-    const promptPath = `prompts/agents/${folderName}/${basename}`;
+    const promptPath = `prompts/templates/${folderName}/${basename}`;
 
     return {
       type: 'module',

@@ -1,13 +1,13 @@
 const path = require('node:path');
 
-const promptsDir = path.join(__dirname, '..', 'prompts', 'agents');
+const promptsDir = path.join(__dirname, '..', 'prompts', 'templates');
 
 module.exports = [
   {
     id: 'agents-builder',
     name: 'Agent Builder',
     description: 'Generates specialized agent prompts tailored to the current workspace context',
-    promptPath: path.join(promptsDir, 'agents-builder.md'),
+    promptPath: path.join(promptsDir, 'smart-dev', 'agents-builder.md'),
     model: 'gpt-5-codex',
     modelReasoningEffort: 'high',
   },
@@ -15,7 +15,7 @@ module.exports = [
     id: 'tasks-generator',
     name: 'Tasks Generator',
     description: 'Breaks project requirements into actionable tasks with acceptance criteria',
-    promptPath: path.join(promptsDir, 'tasks-generator.md'),
+    promptPath: path.join(promptsDir, 'smart-dev', 'tasks-generator.md'),
     model: 'gpt-5',
     modelReasoningEffort: 'medium',
   },
@@ -23,7 +23,7 @@ module.exports = [
     id: 'project-manager',
     name: 'Project Manager',
     description: 'Prioritizes and sequences tasks, delegating work to other agents as needed',
-    promptPath: path.join(promptsDir, 'project-manager.md'),
+    promptPath: path.join(promptsDir, 'smart-dev', 'project-manager.md'),
     model: 'gpt-5',
     modelReasoningEffort: 'high',
   },
@@ -34,14 +34,6 @@ module.exports = [
     promptPath: path.join(promptsDir, 'master-mind.md'),
     model: 'gpt-5-codex',
     modelReasoningEffort: 'medium',
-  },
-  {
-    id: 'test-agent',
-    name: 'Test Agent',
-    description: 'A simple agent that returns "Hello World!"',
-    promptPath: path.join(promptsDir, 'test-agent.md'),
-    model: 'gpt-5',
-    modelReasoningEffort: 'low',
   },
   // Codemachine agents
   {

@@ -36,10 +36,15 @@ function findPackageRoot(): string | null {
   return null;
 }
 
+type PlaceholdersConfig = {
+  userDir?: Record<string, string>;
+  packageDir?: Record<string, string>;
+};
+
 /**
  * Loads the prompt placeholders configuration
  */
-function loadPlaceholdersConfig(): Record<string, string> {
+function loadPlaceholdersConfig(): PlaceholdersConfig {
   try {
     const packageRoot = findPackageRoot();
     if (!packageRoot) {
@@ -61,7 +66,15 @@ function loadPlaceholdersConfig(): Record<string, string> {
       // Ignore if not in cache
     }
 
-    return require(configPath);
+    const config = require(configPath);
+
+    // Support both old format (flat) and new format (userDir/packageDir)
+    if (config.userDir || config.packageDir) {
+      return config as PlaceholdersConfig;
+    } else {
+      // Backwards compatibility: treat flat config as userDir
+      return { userDir: config };
+    }
   } catch (error) {
     console.warn(`Warning: Failed to load placeholder config: ${error instanceof Error ? error.message : String(error)}`);
     return {};
@@ -94,6 +107,7 @@ async function replacePlaceholders(
   cwd: string,
 ): Promise<string> {
   const config = loadPlaceholdersConfig();
+  const packageRoot = findPackageRoot();
   let processedPrompt = prompt;
 
   // Find all placeholders in the format {placeholder_name}
@@ -104,7 +118,17 @@ async function replacePlaceholders(
   const uniquePlaceholders = new Set(matches.map((m) => m[1]));
 
   for (const placeholderName of uniquePlaceholders) {
-    const filePath = config[placeholderName];
+    // Check userDir first, then packageDir
+    let filePath: string | undefined;
+    let baseDir: string;
+
+    if (config.userDir && config.userDir[placeholderName]) {
+      filePath = config.userDir[placeholderName];
+      baseDir = cwd;
+    } else if (config.packageDir && config.packageDir[placeholderName]) {
+      filePath = config.packageDir[placeholderName];
+      baseDir = packageRoot || cwd;
+    }
 
     if (!filePath) {
       console.warn(
@@ -114,7 +138,7 @@ async function replacePlaceholders(
     }
 
     try {
-      const content = await loadPlaceholderContent(cwd, filePath);
+      const content = await loadPlaceholderContent(baseDir, filePath);
       const placeholderRegex = new RegExp(`\\{${placeholderName}\\}`, 'g');
       processedPrompt = processedPrompt.replace(placeholderRegex, content);
     } catch (error) {

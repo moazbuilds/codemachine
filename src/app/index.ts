@@ -39,7 +39,7 @@ export async function runCodemachineCli(argv: string[] = process.argv): Promise<
     const cmRoot = path.join(cwd, '.codemachine');
     if (!existsSync(cmRoot)) {
       // First run: create workspace with default template
-      const defaultTemplate = path.join(templatesDir, 'default.workflow.js');
+      const defaultTemplate = path.join(templatesDir, 'codemachine.workflow.js');
       await bootstrapWorkspace({ cwd, templatePath: defaultTemplate });
     }
     // If .codemachine exists, skip bootstrap (don't regenerate or modify)
