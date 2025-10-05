@@ -7,10 +7,10 @@ export default {
     resolveStep('task-breakdown', { executeOnce: true }), // Extract and structure tasks from project plan into JSON format
     resolveStep('git-commit', { executeOnce: true }), // Commit the task breakdown to git
     resolveStep('code-generation'), // Generate code implementation based on task specifications and design artifacts
-    resolveStep('runtime-prep'), // Generate robust shell scripts for project automation (install, run, lint, test)
+    resolveStep('runtime-prep', { executeOnce: true }), // Generate robust shell scripts for project automation (install, run, lint, test)
     resolveStep('task-sanity-check'), // Verify generated code against task requirements and acceptance criteria
     resolveStep('git-commit'), // Commit the generated and verified code
-    resolveModules('check-task', { loopTrigger: 'TASKS_COMPLETED=FALSE', loopSteps: 4, loopMaxIterations: 20, loopSkip: ['runtime-prep'] }), // Loop back if tasks are not completed
+    resolveModule('check-task', { loopTrigger: 'TASKS_COMPLETED=FALSE', loopSteps: 4, loopMaxIterations: 20, loopSkip: ['runtime-prep'] }), // Loop back if tasks are not completed
   ],
   subAgentIds: [],
 };

@@ -4,14 +4,14 @@ import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import type { UnknownRecord, WorkflowTemplate } from './types.js';
-import { resolveFolder, resolveModules, resolveStep } from '../workflow-utils.js';
+import { resolveFolder, resolveModule, resolveStep } from '../workflow-utils.js';
 
-type TemplateGlobalProvider = typeof resolveStep | typeof resolveFolder | typeof resolveModules;
+type TemplateGlobalProvider = typeof resolveStep | typeof resolveFolder | typeof resolveModule;
 
 const templateGlobals = {
   resolveStep,
   resolveFolder,
-  resolveModules,
+  resolveModule,
 } satisfies Record<string, TemplateGlobalProvider>;
 
 function ensureTemplateGlobals(): void {
