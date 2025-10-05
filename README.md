@@ -1,4 +1,6 @@
-<img src="assets/CodeMachine.png" alt="CodeMachine" width="600">
+<p align="center">
+  <img src="assets/CodeMachine.png" alt="CodeMachine" width="600">
+</p>
 
 ## Multi-Agent Workflow Orchestration
 
