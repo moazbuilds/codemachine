@@ -93,12 +93,20 @@ export function resolveStep(id: string, overrides: StepOverrides = {}): Workflow
     throw new Error(`Unknown main agent: ${id}`);
   }
 
+  const agentName = overrides.agentName ?? agent.name;
+  const promptPath = overrides.promptPath ?? agent.promptPath;
+  const model = overrides.model ?? agent.model;
+
+  if (!agentName || !promptPath || !model) {
+    throw new Error(`Agent ${id} is missing required fields (name, promptPath, or model)`);
+  }
+
   return {
     type: 'module',
     agentId: agent.id,
-    agentName: overrides.agentName ?? agent.name,
-    promptPath: overrides.promptPath ?? agent.promptPath,
-    model: overrides.model ?? agent.model,
+    agentName,
+    promptPath,
+    model,
     modelReasoningEffort: overrides.modelReasoningEffort ?? agent.modelReasoningEffort,
     executeOnce: overrides.executeOnce,
   };
@@ -210,13 +218,18 @@ export function resolveFolder(folderName: string, overrides: StepOverrides = {})
     // Remove number prefix and extension to get the agent ID
     const agentId = basename.replace(/^\d+\s*-\s*/, '').replace(ext, '').trim();
     const promptPath = `prompts/templates/${folderName}/${basename}`;
+    const model = overrides.model ?? folderConfig.model;
+
+    if (!model) {
+      throw new Error(`Folder config ${folderName} is missing a model configuration`);
+    }
 
     return {
       type: 'module',
       agentId,
       agentName: overrides.agentName ?? agentId.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
       promptPath: overrides.promptPath ?? promptPath,
-      model: overrides.model ?? folderConfig.model,
+      model,
       modelReasoningEffort: overrides.modelReasoningEffort ?? folderConfig.modelReasoningEffort,
     };
   });
