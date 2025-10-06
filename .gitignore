@@ -1,12 +1,15 @@
 node_modules/
 dist/
 coverage/
-.tmp/
 .DS_Store
-.env
-.env.*
-.vscode/
-.idea/
 reports/
-.*
 docs/*
+
+# Ignore specific dotfiles/folders
+.codemachine
+.env
+.env.example
+.npmrc
+
+# Ignore folders starting with .tmp
+.tmp*
