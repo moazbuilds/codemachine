@@ -21,7 +21,7 @@ export default {
 
     // resolveModule() - Load module from config/modules.js with loop behavior
     resolveModule('check-task', {
-      loopTrigger: 'TASKS_COMPLETED=FALSE', // Loop starts when agent outputs this text (see prompts/modules/check-task.md)
+      loopTrigger: 'TASKS_COMPLETED=FALSE', // Loop starts when agent outputs this text (see prompts/templates/codemachine/check-task.md)
       loopSteps: 3, // How many steps to go back when looping
       loopMaxIterations: 20, // Maximum iterations to run the loop
       loopSkip: ['plan-agent'], // Skip plan-agent in loop iterations
