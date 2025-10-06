@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import { join } from 'node:path';
 
-import type { MemoryEntry } from '../../agents/memory/memory-store.js';
+import type { MemoryEntry } from '../../agents/index.js';
 
 export type MemoryAnalyticsSource = 'adapter' | 'store';
 

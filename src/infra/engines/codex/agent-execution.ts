@@ -2,7 +2,7 @@ import * as path from 'node:path';
 
 import { runCodex } from './codex-runner.js';
 import { MemoryAdapter } from '../../fs/memory-adapter.js';
-import { MemoryStore } from '../../../agents/memory/memory-store.js';
+import { MemoryStore } from '../../../agents/index.js';
 
 export interface RunAgentOptions {
   abortSignal?: AbortSignal;

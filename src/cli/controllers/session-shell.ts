@@ -10,7 +10,7 @@ import { ensureAuth, clearAuth } from '../../infra/engines/codex/index.js';
 import { renderMainMenu } from '../presentation/main-menu.js';
 import { renderTypewriter } from '../presentation/typewriter.js';
 import { palette } from '../presentation/layout.js';
-import { runWorkflowQueue } from '../../core/workflows/queue-runner.js';
+import { runWorkflowQueue } from '../../workflows/index.js';
 import { selectTemplateByNumber, getAvailableTemplates, printAvailableWorkflowTemplatesHeading } from '../commands/templates.command.js';
 
 const DEFAULT_SPEC_PATH = '.codemachine/inputs/specifications.md';

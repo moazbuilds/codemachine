@@ -4,7 +4,7 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MemoryAdapter, type MemoryAnalyticsHooks } from '../../../src/infra/fs/memory-adapter.js';
-import { MemoryStore, type MemoryEntry } from '../../../src/agents/memory/memory-store.js';
+import { MemoryStore, type MemoryEntry } from '../../../src/agents/index.js';
 
 const tempRoot = path.resolve('.tmp/memory-tests');
 

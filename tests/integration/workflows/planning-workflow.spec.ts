@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { validateSpecification } from '../../../src/core/workflows/workflow-manager.js';
+import { validateSpecification } from '../../../src/workflows/index.js';
 
 describe('validateSpecification', () => {
   let tempDir: string;
