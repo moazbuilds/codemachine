@@ -23,15 +23,9 @@ CodeMachine CLI is a breakthrough workflow orchestration framework that transfor
 
 Get CodeMachine up and running in minutes:
 
-### Prerequisites
-
-CodeMachine requires **Codex** to be installed globally on your system:
-
-```bash
-npm install -g @openai/codex
-```
-
 ### 1. Install CodeMachine
+
+> **Note:** CodeMachine will be published to npm soon. For now, install from source:
 
 ```bash
 # Clone the repository
@@ -42,39 +36,16 @@ cd codemachine
 npm install && npm run build && npm link
 ```
 
-### 2. Create Your Project
+### 2. Run CodeMachine
+
+Navigate to your project directory and run:
 
 ```bash
-# Navigate to your project directory
 cd ~/your-project-directory
-
-# Run CodeMachine
 codemachine
 ```
 
-### 3. Write Your Specification
-
-On first run, CodeMachine creates a `.codemachine/` folder. Write your project requirements in `.codemachine/inputs/specifications.md`:
-
-```markdown
-# My Awesome Project
-
-Build a REST API with user authentication, CRUD operations for posts,
-and PostgreSQL database integration. Include proper error handling,
-input validation, and comprehensive test coverage.
-```
-
-### 4. Choose Your Workflow
-
-Select a workflow template that matches your project:
-- **CodeMachine**: Full development lifecycle (architecture → implementation → testing)
-- **Smart Build**: Rapid prototyping and iteration
-
-> **More awesome templates coming soon!** We're building workflow templates that solve almost every development problem. Stay tuned!
-
-### 5. Watch the Magic Happen ✨
-
-Sit back as CodeMachine orchestrates specialized agents to:
+On first run, CodeMachine creates a `.codemachine/` folder. Write your project requirements in `.codemachine/inputs/specifications.md`, choose a workflow template, and watch as CodeMachine orchestrates specialized agents to:
 - Design your system architecture
 - Generate implementation plans
 - Write production-ready code
@@ -84,6 +55,8 @@ Sit back as CodeMachine orchestrates specialized agents to:
 > **Coming Soon:** Support for **Gemini CLI** and **Claude CLI** is in the works! Multi-provider support will give you flexibility to choose your preferred AI backend.
 
 **That's it!** Your complete codebase will be generated and ready to ship.
+
+> **Note:** CodeMachine requires **Codex CLI** installed globally. Install with: `npm install -g @openai/codex`
 
 ---
 
@@ -118,10 +91,6 @@ export default {
 ```
 
 Each workflow step executes specialized agents that collaborate to solve complex architectural challenges, implement intricate features, and ensure quality throughout the process.
-
-<p align="center">
-  <img src="assets/images/diagram1.jpg" alt="Workflow Orchestration Architecture" width="700">
-</p>
 
 **Why CodeMachine?**
 
