@@ -2,19 +2,18 @@ import * as path from 'node:path';
 import { access, readFile } from 'node:fs/promises';
 import chalk from 'chalk';
 
-import type { RunWorkflowOptions } from './types.js';
-import { loadTemplateWithPath } from './template-loader.js';
-import { runAgent } from './agent-execution.js';
-import { syncCodexConfig } from '../../../app/services/backends/codex/config-sync.js';
-import { ensureProjectScaffold } from './workspace-prep.js';
-import { processPromptString } from './prompt-processor.js';
-import { evaluateLoopBehavior } from '../modules/loop-behavior.js';
-import { getAgentLoggers, formatAgentLog } from './agent-loggers.js';
+import type { RunWorkflowOptions } from '../templates/index.js';
+import { loadTemplateWithPath } from '../templates/index.js';
+import { runAgent, syncCodexConfig } from '../../../../infra/engines/codex/index.js';
+import { ensureProjectScaffold } from '../setup/index.js';
+import { processPromptString } from '../../../../infra/prompts/index.js';
+import { evaluateLoopBehavior } from '../../modules/loop-behavior.js';
+import { getAgentLoggers, formatAgentLog } from '../../../../shared/logging/index.js';
 import {
   getTemplatePathFromTracking,
   getCompletedSteps,
   markStepCompleted,
-} from '../../../shared/agents/template-tracking.js';
+} from '../../../../shared/agents/template-tracking.js';
 const TASKS_PRIMARY_PATH = path.join('.codemachine', 'plan', 'tasks.json');
 const TASKS_FALLBACK_PATH = path.join('.codemachine', 'tasks.json');
 

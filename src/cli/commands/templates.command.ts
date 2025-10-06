@@ -4,8 +4,7 @@ import { existsSync, readdirSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import prompts from 'prompts';
-import { loadWorkflowModule, isWorkflowTemplate } from '../../core/workflows/manager/template-loader.js';
-import type { WorkflowTemplate } from '../../core/workflows/manager/types.js';
+import { loadWorkflowModule, isWorkflowTemplate, WorkflowTemplate } from '../../core/workflows/manager/index.js';
 import { hasTemplateChanged, setActiveTemplate } from '../../shared/agents/template-tracking.js';
 import { bootstrapWorkspace } from '../../app/services/bootstrap/index.js';
 
@@ -82,7 +81,9 @@ export async function getAvailableTemplates(): Promise<TemplateChoice[]> {
     return [];
   }
 
-  const files = readdirSync(templatesDir).filter(file => file.endsWith('.workflow.js'));
+  const files = readdirSync(templatesDir).filter(file =>
+    file.endsWith('.workflow.js') && !file.startsWith('_example.')
+  );
   const templates: TemplateChoice[] = [];
 
   for (const file of files) {

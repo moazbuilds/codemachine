@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
 // Mock runCodex to capture options and simulate output
-vi.mock('../../../src/infra/codex/codex-runner.js', async () => {
+vi.mock('../../../src/infra/engines/codex/index.js', async () => {
   return {
     runCodex: vi.fn(async (opts: { onData?: (chunk: string) => void }) => {
       // simulate some streaming
@@ -34,7 +34,7 @@ vi.mock('../../../src/agents/memory/memory-store.js', async () => {
 
 // We import after mocks
 import { registerAgentCommand } from '../../../src/cli/commands/agent.command.js';
-import { runCodex } from '../../../src/infra/codex/codex-runner.js';
+import { runCodex } from '../../../src/infra/engines/codex/index.js';
 
 describe('CLI agent wrapper', () => {
   it('builds composite prompt and executes Codex with streaming; updates memory', async () => {

@@ -2,12 +2,8 @@ import { rm, stat } from 'node:fs/promises';
 import * as path from 'node:path';
 import { homedir } from 'node:os';
 
-import { ensureAuth, isAuthenticated } from './backends/codex/auth-status.js';
-import { renderMainMenu } from '../../cli/presentation/main-menu.js';
-import { renderTypewriter } from '../../cli/presentation/typewriter.js';
-import {
-  renderLoginScreen,
-} from '../../cli/presentation/onboarding.js';
+import { ensureAuth, isAuthenticated } from '../../../infra/engines/codex/index.js';
+import { renderMainMenu, renderTypewriter, renderLoginScreen } from '../../../cli/presentation/index.js';
 
 const legacyAuthPath = path.join(homedir(), 'codemachine', 'auth.json');
 

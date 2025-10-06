@@ -1,5 +1,5 @@
 import type { Command } from 'commander';
-import { clearAuth, ensureAuth, nextAuthMenuAction } from '../../app/services/backends/codex/auth-status.js';
+import { clearAuth, ensureAuth, nextAuthMenuAction } from '../../infra/engines/codex/index.js';
 
 export function registerAuthCommands(program: Command): void {
   const authCommand = program

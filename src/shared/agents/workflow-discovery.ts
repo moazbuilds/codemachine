@@ -1,7 +1,7 @@
 import { existsSync, readdirSync } from 'node:fs';
 import * as path from 'node:path';
 
-import { loadWorkflowModule, isWorkflowTemplate } from '../../core/workflows/manager/template-loader.js';
+import { loadWorkflowModule, isWorkflowTemplate } from '../../core/workflows/manager/index.js';
 
 export type WorkflowAgentDefinition = {
   id: string;

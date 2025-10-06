@@ -1,7 +1,7 @@
 import * as path from 'node:path';
 import { homedir } from 'node:os';
 
-import { spawnProcess } from '../process/spawn.js';
+import { spawnProcess } from '../../process/spawn.js';
 
 export interface RunCodexOptions {
   profile: string;

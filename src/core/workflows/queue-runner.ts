@@ -5,7 +5,7 @@ import {
   type WorkflowTemplate,
   runWorkflow,
 } from './workflow-manager.js';
-import { validateSpecification } from './manager/validation.js';
+import { validateSpecification } from '../../app/services/index.js';
 
 export type { WorkflowStep, WorkflowTemplate };
 

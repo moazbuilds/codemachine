@@ -6,7 +6,7 @@ import { existsSync } from 'node:fs';
 import { dirname, join, parse } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { ensureAuth, clearAuth } from '../../app/services/backends/codex/auth-status.js';
+import { ensureAuth, clearAuth } from '../../infra/engines/codex/index.js';
 import { renderMainMenu } from '../presentation/main-menu.js';
 import { renderTypewriter } from '../presentation/typewriter.js';
 import { palette } from '../presentation/layout.js';

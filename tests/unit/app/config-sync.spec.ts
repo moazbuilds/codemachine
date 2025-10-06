@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { syncCodexConfig } from '../../../src/app/services/backends/codex/config-sync.js';
+import { syncCodexConfig } from '../../../src/infra/engines/codex/index.js';
 
 const AGENTS_FIXTURE = `module.exports = [
   { id: 'frontend-dev' },

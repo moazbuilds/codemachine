@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import type { WorkflowTemplate } from './types.js';
-import { resolveFolder, resolveModule, resolveStep } from '../workflow-utils.js';
+import { resolveFolder, resolveModule, resolveStep } from '../../workflow-utils.js';
 
 type TemplateGlobalProvider = typeof resolveStep | typeof resolveFolder | typeof resolveModule;
 

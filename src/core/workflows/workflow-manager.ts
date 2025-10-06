@@ -1,9 +1,5 @@
-import { runWorkflow } from './manager/workflow-runner.js';
-
-export { runWorkflow };
-export { validateSpecification } from './manager/validation.js';
-export { loadTemplate } from './manager/template-loader.js';
-export { resolveTasksPath } from './manager/workflow-runner.js';
+export { runWorkflow, loadTemplate, resolveTasksPath } from './manager/index.js';
+export { validateSpecification } from '../../app/services/index.js';
 export type {
   ModuleName,
   RunWorkflowOptions,
@@ -11,4 +7,5 @@ export type {
   WorkflowTemplate,
 } from './manager/types.js';
 
+import { runWorkflow } from './manager/index.js';
 export default runWorkflow;
