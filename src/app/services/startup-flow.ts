@@ -2,8 +2,9 @@ import { rm, stat } from 'node:fs/promises';
 import * as path from 'node:path';
 import { homedir } from 'node:os';
 
-import { ensureAuth, isAuthenticated } from './auth-status.js';
+import { ensureAuth, isAuthenticated } from './backends/codex/auth-status.js';
 import { renderMainMenu } from '../../cli/presentation/main-menu.js';
+import { renderTypewriter } from '../../cli/presentation/typewriter.js';
 import {
   renderLoginScreen,
 } from '../../cli/presentation/onboarding.js';
@@ -49,7 +50,7 @@ export async function runStartupFlow(): Promise<StartupFlowResult> {
     }
 
     const mainMenu = await renderMainMenu();
-    console.log(`${mainMenu}\n`);
+    await renderTypewriter({ text: `${mainMenu}\n` });
     mainMenuDisplayed = true;
 
     return { mainMenuDisplayed };

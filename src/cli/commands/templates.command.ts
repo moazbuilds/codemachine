@@ -7,7 +7,7 @@ import prompts from 'prompts';
 import { loadWorkflowModule, isWorkflowTemplate } from '../../core/workflows/manager/template-loader.js';
 import type { WorkflowTemplate } from '../../core/workflows/manager/types.js';
 import { hasTemplateChanged, setActiveTemplate } from '../../shared/agents/template-tracking.js';
-import { bootstrapWorkspace } from '../../app/services/workspace-bootstrap.js';
+import { bootstrapWorkspace } from '../../app/services/bootstrap/index.js';
 
 const packageRoot = (() => {
   const moduleDir = path.dirname(fileURLToPath(import.meta.url));

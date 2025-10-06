@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { bootstrapWorkspace } from '../../../src/app/services/workspace-bootstrap.js';
+import { bootstrapWorkspace } from '../../../src/app/services/bootstrap/index.js';
 
 const require = createRequire(import.meta.url);
 

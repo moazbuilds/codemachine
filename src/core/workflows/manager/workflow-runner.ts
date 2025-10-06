@@ -5,7 +5,7 @@ import chalk from 'chalk';
 import type { RunWorkflowOptions } from './types.js';
 import { loadTemplateWithPath } from './template-loader.js';
 import { runAgent } from './agent-execution.js';
-import { syncCodexConfig } from '../../../app/services/config-sync.js';
+import { syncCodexConfig } from '../../../app/services/backends/codex/config-sync.js';
 import { ensureProjectScaffold } from './workspace-prep.js';
 import { processPromptString } from './prompt-processor.js';
 import { evaluateLoopBehavior } from '../modules/loop-behavior.js';

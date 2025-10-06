@@ -3,12 +3,17 @@ import { Command } from 'commander';
 import { existsSync } from 'node:fs';
 import { dirname, join, parse } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { registerStartCommand } from './start.command.js';
-import { registerTemplatesCommand } from './templates.command.js';
-import { registerAuthCommands } from './auth.command.js';
-import { registerAgentCommand } from './agent.command.js';
-import { registerUiCommand } from './ui.command.js';
-import { registerSessionCommand } from './session.command.js';
+import {
+  registerStartCommand,
+  registerTemplatesCommand,
+  registerAuthCommands,
+  registerAgentCommand,
+} from './commands/index.js';
+
+// Re-export all CLI modules
+export * from './commands/index.js';
+export * from './controllers/index.js';
+export * from './presentation/index.js';
 
 export function registerCli(program: Command): void {
   const packageJsonPath = findPackageJson(import.meta.url);
@@ -29,11 +34,9 @@ export function registerCli(program: Command): void {
     });
 
   registerStartCommand(program);
-  registerUiCommand(program);
   registerTemplatesCommand(program);
   registerAuthCommands(program);
   registerAgentCommand(program);
-  registerSessionCommand(program);
 }
 
 function findPackageJson(moduleUrl: string): string {

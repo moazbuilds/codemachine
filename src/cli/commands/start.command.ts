@@ -1,7 +1,7 @@
 import * as path from 'node:path';
 import type { Command } from 'commander';
 
-import { runSessionShell } from './session.command.js';
+import { runSessionShell } from '../controllers/session-shell.js';
 import { runStartupFlow } from '../../app/services/startup-flow.js';
 
 const DEFAULT_SPEC_PATH = '.codemachine/inputs/specifications.md';

@@ -2,32 +2,20 @@ import * as path from 'node:path';
 import { createRequire } from 'node:module';
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
-import type { Command } from 'commander';
 import { existsSync } from 'node:fs';
 import { dirname, join, parse } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { ensureAuth, clearAuth } from '../../app/services/auth-status.js';
+import { ensureAuth, clearAuth } from '../../app/services/backends/codex/auth-status.js';
 import { renderMainMenu } from '../presentation/main-menu.js';
+import { renderTypewriter } from '../presentation/typewriter.js';
 import { palette } from '../presentation/layout.js';
 import { runWorkflowQueue } from '../../core/workflows/queue-runner.js';
-import { selectTemplateByNumber, getAvailableTemplates, printAvailableWorkflowTemplatesHeading } from './templates.command.js';
+import { selectTemplateByNumber, getAvailableTemplates, printAvailableWorkflowTemplatesHeading } from '../commands/templates.command.js';
 
 const DEFAULT_SPEC_PATH = '.codemachine/inputs/specifications.md';
 
-export function registerSessionCommand(program: Command): void {
-  program
-    .command('session', { hidden: true })
-    .description('Start an interactive session that accepts slash commands')
-    .option('--spec <path>', 'Path to the planning specification file', DEFAULT_SPEC_PATH)
-    .action(async (options: { spec?: string }) => {
-      const cwd = process.env.CODEMACHINE_CWD || process.cwd();
-      const specificationPath = path.resolve(cwd, options.spec ?? DEFAULT_SPEC_PATH);
-      await runSessionShell({ cwd, specificationPath, force: false });
-    });
-}
-
-interface SessionShellOptions {
+export interface SessionShellOptions {
   cwd: string;
   specificationPath: string;
   force: boolean;
@@ -40,7 +28,7 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
 
   if (showIntro) {
     const menu = await renderMainMenu();
-    console.log(menu + '\n');
+    await renderTypewriter({ text: menu + '\n' });
   }
 
   const rl = createInterface({ input, output, terminal: true });

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PassThrough } from 'node:stream';
 import { createKeyboardController } from '../../../src/cli/controllers/keyboard-controls';
-import { renderExecutionScreen } from '../../../src/cli/presentation/execution-screen';
+import { renderExecutionScreen } from '../../../src/cli/presentation/typewriter';
 
 describe('Keyboard controls', () => {
   let mockStdin: PassThrough & {

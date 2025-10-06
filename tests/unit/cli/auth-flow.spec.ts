@@ -10,7 +10,7 @@ import {
   getAuthFilePath,
   nextAuthMenuAction,
   resolveCodexHome,
-} from '../../../src/app/services/auth-status.js';
+} from '../../../src/app/services/backends/codex/auth-status.js';
 
 vi.mock('execa', () => {
   return {

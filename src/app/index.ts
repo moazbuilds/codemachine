@@ -3,9 +3,9 @@ import { Command } from 'commander';
 import { realpathSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
-import { registerCli } from '../cli/commands/register-cli.js';
-import { syncCodexConfig } from './services/config-sync.js';
-import { bootstrapWorkspace } from './services/workspace-bootstrap.js';
+import { registerCli } from '../cli/index.js';
+import { syncCodexConfig } from './services/backends/codex/config-sync.js';
+import { bootstrapWorkspace } from './services/bootstrap/index.js';
 
 // Resolve package root to find templates directory
 const packageRoot = (() => {

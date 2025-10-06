@@ -5,8 +5,8 @@ import * as path from 'node:path';
 import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
-import { resolveAgentsModulePath } from '../../shared/agents/paths.js';
-import { collectAgentsFromWorkflows } from '../../shared/agents/workflow-discovery.js';
+import { resolveAgentsModulePath } from '../../../../shared/agents/paths.js';
+import { collectAgentsFromWorkflows } from '../../../../shared/agents/workflow-discovery.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
