@@ -1,5 +1,5 @@
 export { resolveStep } from './resolvers/step.js';
-export { resolveModule } from './resolvers/module/index.js';
+export { resolveModule } from './resolvers/module.js';
 export { resolveFolder } from './resolvers/folder.js';
 
 export type {
@@ -14,4 +14,4 @@ export type {
   AgentConfig,
   ModuleBehaviorConfig,
   ModuleConfig,
-} from './config/types.js';
+} from './config.js';

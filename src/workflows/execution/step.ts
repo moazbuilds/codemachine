@@ -1,14 +1,20 @@
 import * as path from 'node:path';
-import { readFile } from 'node:fs/promises';
+import { readFile, mkdir } from 'node:fs/promises';
 import type { WorkflowStep } from '../templates/index.js';
 import { runAgent } from '../../../../infra/engines/codex/index.js';
 import { processPromptString } from '../../../../infra/prompts/index.js';
-import { ensureProjectScaffold } from './workspace-prep.js';
 
 export interface StepExecutorOptions {
   logger: (chunk: string) => void;
   stderrLogger: (chunk: string) => void;
   timeout?: number;
+}
+
+async function ensureProjectScaffold(cwd: string): Promise<void> {
+  const agentsDir = path.resolve(cwd, '.codemachine', 'agents');
+  const planDir = path.resolve(cwd, '.codemachine', 'plan');
+  await mkdir(agentsDir, { recursive: true });
+  await mkdir(planDir, { recursive: true });
 }
 
 async function runAgentsBuilderStep(cwd: string): Promise<void> {

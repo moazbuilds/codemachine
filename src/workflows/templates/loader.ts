@@ -1,9 +1,48 @@
 import * as path from 'node:path';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url';
 import type { WorkflowTemplate } from './types.js';
-import { packageRoot, templatesDir } from './path-resolver.js';
-import { isWorkflowTemplate } from './template-validator.js';
-import { loadWorkflowModule } from './module-loader.js';
+import { isWorkflowTemplate } from './validator.js';
+import { ensureTemplateGlobals } from './globals.js';
 
+// Package root resolution
+export const packageRoot = (() => {
+  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  let current = moduleDir;
+  while (true) {
+    if (existsSync(path.join(current, 'package.json'))) return current;
+    const parent = path.dirname(current);
+    if (parent === current) return moduleDir;
+    current = parent;
+  }
+})();
+
+export const templatesDir = path.resolve(packageRoot, 'templates', 'workflows');
+
+// Module loading
+async function loadWorkflowModule(modPath: string): Promise<unknown> {
+  ensureTemplateGlobals();
+  const ext = path.extname(modPath).toLowerCase();
+  if (ext === '.cjs' || ext === '.cts') {
+    const require = createRequire(import.meta.url);
+    try {
+      delete require.cache[require.resolve(modPath)];
+    } catch {
+      // Ignore cache deletion errors
+    }
+    return require(modPath);
+  }
+
+  const fileUrl = pathToFileURL(modPath);
+  const cacheBustingUrl = new URL(fileUrl.href);
+  cacheBustingUrl.searchParams.set('ts', Date.now().toString());
+  const mod = await import(cacheBustingUrl.href);
+  return mod?.default ?? mod;
+}
+
+// Template loading
 export async function loadTemplate(cwd: string, templatePath?: string): Promise<WorkflowTemplate> {
   const resolvedTemplateOverride = templatePath
     ? path.isAbsolute(templatePath)

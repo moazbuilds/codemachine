@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 import { registerCli } from '../../cli/index.js';
 import { syncCodexConfig } from '../../infra/engines/codex/index.js';
-import { bootstrapWorkspace } from '../services/bootstrap/index.js';
+import { bootstrapWorkspace } from '../services/workspace/index.js';
 
 // Resolve package root to find templates directory
 const packageRoot = (() => {

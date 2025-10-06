@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import prompts from 'prompts';
 import { loadWorkflowModule, isWorkflowTemplate, WorkflowTemplate } from '../../workflows/index.js';
 import { hasTemplateChanged, setActiveTemplate } from '../../shared/agents/template-tracking.js';
-import { bootstrapWorkspace } from '../../runtime/services/bootstrap/index.js';
+import { bootstrapWorkspace } from '../../runtime/services/workspace/index.js';
 
 const packageRoot = (() => {
   const moduleDir = path.dirname(fileURLToPath(import.meta.url));

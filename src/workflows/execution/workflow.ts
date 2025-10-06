@@ -14,10 +14,10 @@ import {
   getCompletedSteps,
   markStepCompleted,
 } from '../../../../shared/agents/template-tracking.js';
-import { syncWorkflowAgents } from './config-sync.js';
-import { shouldSkipStep, logSkipDebug, type ActiveLoop } from './step-filter.js';
-import { handleLoopLogic, createActiveLoop } from './loop/controller.js';
-import { executeStep } from './step-executor.js';
+import { syncCodexConfig } from '../../../../infra/engines/codex/index.js';
+import { shouldSkipStep, logSkipDebug, type ActiveLoop } from '../behaviors/skip.js';
+import { handleLoopLogic, createActiveLoop } from '../behaviors/loop/controller.js';
+import { executeStep } from './step.js';
 
 export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<void> {
   const cwd = options.cwd ? path.resolve(options.cwd) : process.cwd();
@@ -30,7 +30,27 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
   console.log(`Using workflow template: ${template.name}`);
 
-  await syncWorkflowAgents(template);
+  // Sync agent configurations before running the workflow
+  const workflowAgents = Array.from(
+    template.steps
+      .filter((step) => step.type === 'module')
+      .reduce((acc, step) => {
+        const id = step.agentId?.trim();
+        if (!id) return acc;
+        const existing = acc.get(id) ?? { id };
+        acc.set(id, {
+          ...existing,
+          id,
+          model: step.model ?? existing.model,
+          modelReasoningEffort: step.modelReasoningEffort ?? existing.modelReasoningEffort,
+        });
+        return acc;
+      }, new Map<string, { id: string; model?: unknown; modelReasoningEffort?: unknown }>()).values(),
+  );
+
+  if (workflowAgents.length > 0) {
+    await syncCodexConfig({ additionalAgents: workflowAgents });
+  }
 
   // Load completed steps for executeOnce tracking
   const completedSteps = await getCompletedSteps(cmRoot);

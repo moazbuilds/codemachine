@@ -1,9 +1,12 @@
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import * as path from 'node:path';
 import type { StepOverrides, WorkflowStep } from '../types.js';
-import { mainAgents } from '../config/loaders.js';
-import { packageRoot } from '../helpers/package-root.js';
-import { extractOrderPrefix } from '../helpers/file-ordering.js';
+import { mainAgents, packageRoot } from '../config.js';
+
+function extractOrderPrefix(filename: string): number | null {
+  const match = filename.match(/^(\d+)\s*-/);
+  return match ? parseInt(match[1], 10) : null;
+}
 
 export function resolveFolder(folderName: string, overrides: StepOverrides = {}): WorkflowStep[] {
   // Look up folder configuration from main.agents.js

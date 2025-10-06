@@ -1,5 +1,5 @@
 import type { StepOverrides, WorkflowStep } from '../types.js';
-import { mainAgents } from '../config/loaders.js';
+import { mainAgents } from '../config.js';
 
 export function resolveStep(id: string, overrides: StepOverrides = {}): WorkflowStep {
   const agent = mainAgents.find((entry) => entry?.id === id);

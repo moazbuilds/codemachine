@@ -1,7 +1,7 @@
 import type { WorkflowStep } from '../templates/index.js';
 import { evaluateLoopBehavior } from './evaluator.js';
 import { formatAgentLog } from '../../../../../shared/logging/index.js';
-import type { ActiveLoop } from '../step-filter.js';
+import type { ActiveLoop } from '../skip.js';
 
 export interface LoopDecision {
   shouldRepeat: boolean;
