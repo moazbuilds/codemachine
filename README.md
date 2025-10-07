@@ -54,26 +54,26 @@ On first run, CodeMachine creates a `.codemachine/` folder. Write your project r
 
 ### Supported AI Engines
 
-<table width="100%">
+<table align="center" style="width: 80%; margin: 0 auto;">
   <tr>
-    <th>CLI Engine</th>
-    <th>Status</th>
+    <th align="center" style="padding: 12px; font-size: 16px;">CLI Engine</th>
+    <th align="center" style="padding: 12px; font-size: 16px;">Status</th>
   </tr>
   <tr>
-    <td>Codex CLI</td>
-    <td>✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Codex CLI</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
   </tr>
   <tr>
-    <td>Claude Code</td>
-    <td>✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Claude Code</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
   </tr>
   <tr>
-    <td>Gemini CLI</td>
-    <td>🚧 Coming Soon</td>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Gemini CLI</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">🚧 Coming Soon</td>
   </tr>
   <tr>
-    <td>Qwen Coder</td>
-    <td>🚧 Coming Soon</td>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Qwen Coder</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">🚧 Coming Soon</td>
   </tr>
 </table>
 
