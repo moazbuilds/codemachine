@@ -106,7 +106,7 @@ Create a classic snake game that runs in the terminal or browser.
 ```
 
 <p align="center">
-  <img src="assets/images/snake_game.gif" alt="GPT-5 Codex vs CodeMachine Comparison" width="800">
+  <img src="assets/images/snake_game.gif" alt="GPT-5 Codex vs CodeMachine Comparison" width="600">
 </p>
 
 **The comparison speaks for itself:** GPT-5 Codex (High) alone vs. CodeMachine's default workflow powered by GPT-5 Codex (Low). The quality gap is massive. Multi-agent workflow orchestration delivers production-ready results that far exceed what single-agent generation can achieve—even with a more powerful model.
@@ -116,7 +116,7 @@ Create a classic snake game that runs in the terminal or browser.
 ## 🛠️ How It Works
 
 <p align="center">
-  <img src="assets/images/diagram1.jpg" alt="CodeMachine Workflow Architecture" width="700">
+  <img src="assets/images/diagram1.jpg" alt="CodeMachine Workflow Architecture" width="550">
 </p>
 
 CodeMachine orchestrates workflows through sequential main agent steps and parallel sub-agent execution. After selecting a workflow template, the main agent processes each step in order. When sub-agents are triggered, they work simultaneously on specialized tasks (e.g., frontend, backend, database), then results flow back into the main workflow. Conditional loops allow workflows to iterate until completion criteria are met.
