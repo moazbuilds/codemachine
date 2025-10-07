@@ -15,7 +15,7 @@
 
 ### What is CodeMachine CLI?
 
-CodeMachine CLI is a multi-agent workflow orchestration framework that transforms project specifications into production-ready codebases. Unlike single-agent tools, CodeMachine coordinates multiple AI providers (Claude CLI, Codex CLI, Gemini CLI, Qwen Coder) to work in parallel, each handling tasks they excel at—while you define the workflow.
+CodeMachine CLI is a multi-agent workflow orchestration framework that transforms project specifications into production-ready codebases. You feed it a spec, and CodeMachine orchestrates top-tier agents like Claude CLI and Codex CLI end-to-end to deliver complex builds while you define the workflow. It also coordinates additional providers (Gemini CLI, Qwen Coder) in parallel so each agent tackles the slice it does best.
 
 **Why CodeMachine?**
 
@@ -114,7 +114,9 @@ On first run, CodeMachine creates a `.codemachine/` folder. Write your project r
 
 ---
 
-## 🎮 Real-World Example: Snake Game
+## 🎮 Example: Snake Game
+
+CodeMachine handles complex, large-scale projects. We created this simple showcase to demonstrate the workflow.
 
 We wrote a simple specification for a classic snake game:
 
@@ -143,6 +145,9 @@ Create a classic snake game that runs in the terminal or browser.
 </p>
 
 **The comparison speaks for itself:** GPT-5 Codex (High) alone vs. CodeMachine's default workflow powered by GPT-5 Codex (Low). The quality gap is massive. Multi-agent workflow orchestration delivers production-ready results that far exceed what single-agent generation can achieve—even with a more powerful model.
+
+**[See the full Snake Game implementation →](https://github.com/moazbuilds/Snake-game-codemachine)**
+Explore the complete project structure, git commit history showing CodeMachine's step-by-step workflow, and both stunning terminal and web versions generated from a single specification.
 
 ---
 
