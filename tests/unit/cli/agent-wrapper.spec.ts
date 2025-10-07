@@ -13,6 +13,7 @@ vi.mock('../../../src/infra/engines/codex/index.js', async () => {
       opts.onData?.('output');
       return { stdout: 'final-stream-output', stderr: '' };
     }),
+    ensureAuth: vi.fn(async () => true),
   };
 });
 

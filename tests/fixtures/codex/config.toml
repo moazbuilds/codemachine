@@ -83,11 +83,3 @@ model_reasoning_effort = "medium"
 [profiles.check-task]
 model = "gpt-5"
 model_reasoning_effort = "low"
-
-[profiles.runtime-perp]
-model = "gpt-5-codex"
-model_reasoning_effort = "high"
-
-[profiles.plan-generator]
-model = "gpt-5"
-model_reasoning_effort = "medium"
