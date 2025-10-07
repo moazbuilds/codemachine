@@ -4,6 +4,7 @@ import { homedir } from 'node:os';
 import { spawnProcess } from '../../../process/spawn.js';
 import { buildCodexExecCommand } from './commands.js';
 import { expandHomeDir } from '../path.js';
+import { logger } from '../../../../shared/logging/index.js';
 
 export interface RunCodexOptions {
   profile: string;
@@ -79,6 +80,10 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
   };
 
   const { command, args } = buildCodexExecCommand({ profile, workingDir, prompt });
+
+  logger.debug(`Codex runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
+  logger.debug(`Codex runner - args count: ${args.length}, last arg length: ${args[args.length - 1]?.length}`);
+
   const result = await spawnProcess({
     command,
     args,

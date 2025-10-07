@@ -13,6 +13,7 @@ export const environmentSchema = z.object({
   CODEMACHINE_MODE: z.enum(codemachineModes).default('build'),
   LOG_LEVEL: z.enum(logLevels).default('info'),
   TELEMETRY_ENABLED: z.coerce.boolean().default(false),
+  DEBUG_MODE: z.coerce.boolean().default(false),
 });
 
 export type EnvironmentConfig = z.infer<typeof environmentSchema>;
