@@ -1,8 +1,7 @@
 import * as path from 'node:path';
 import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { WorkflowTemplate } from './types.js';
 import { isWorkflowTemplate } from './validator.js';
 import { ensureTemplateGlobals } from './globals.js';
@@ -22,7 +21,7 @@ export const packageRoot = (() => {
 export const templatesDir = path.resolve(packageRoot, 'templates', 'workflows');
 
 // Module loading
-async function loadWorkflowModule(modPath: string): Promise<unknown> {
+export async function loadWorkflowModule(modPath: string): Promise<unknown> {
   ensureTemplateGlobals();
   const ext = path.extname(modPath).toLowerCase();
   if (ext === '.cjs' || ext === '.cts') {

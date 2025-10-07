@@ -1,4 +1,4 @@
-import { resolveFolder, resolveModule, resolveStep } from '../../utils/index.js';
+import { resolveFolder, resolveModule, resolveStep } from '../utils/index.js';
 
 type TemplateGlobalProvider = typeof resolveStep | typeof resolveFolder | typeof resolveModule;
 

@@ -1,4 +1,3 @@
-import * as path from 'node:path';
 import { createRequire } from 'node:module';
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
@@ -12,8 +11,6 @@ import { renderTypewriter } from '../presentation/typewriter.js';
 import { palette } from '../presentation/layout.js';
 import { runWorkflowQueue } from '../../workflows/index.js';
 import { selectTemplateByNumber, getAvailableTemplates, printAvailableWorkflowTemplatesHeading } from '../commands/templates.command.js';
-
-const DEFAULT_SPEC_PATH = '.codemachine/inputs/specifications.md';
 
 export interface SessionShellOptions {
   cwd: string;

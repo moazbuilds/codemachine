@@ -1,5 +1,5 @@
 import type { WorkflowStep } from '../templates/index.js';
-import { formatAgentLog } from '../../../../shared/logging/index.js';
+import { formatAgentLog } from '../../shared/logging/index.js';
 
 export interface ActiveLoop {
   skip: string[];

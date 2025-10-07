@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events';
 
-type Events = 'interrupt' | 'exit';
+type Events = 'interrupt' | 'exit' | 'toggle-expanded';
 
 type TTYReadStream = NodeJS.ReadStream & { setRawMode(mode: boolean): TTYReadStream };
 
@@ -11,6 +11,7 @@ export interface KeyboardController {
   stop(): void;
   state: {
     ctrlCount: number;
+    expanded: boolean;
   };
 }
 
@@ -18,6 +19,7 @@ export function createKeyboardController(): KeyboardController {
   const emitter = new EventEmitter();
   const state = {
     ctrlCount: 0,
+    expanded: false,
   };
 
   const dataListener = (data: Buffer) => {
@@ -30,6 +32,13 @@ export function createKeyboardController(): KeyboardController {
       } else {
         emitter.emit('exit');
       }
+      return;
+    }
+
+    // Ctrl+E (ENQ) toggles expanded view state
+    if (code === 0x05) {
+      state.expanded = !state.expanded;
+      emitter.emit('toggle-expanded', { expanded: state.expanded });
       return;
     }
   };

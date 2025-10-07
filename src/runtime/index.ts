@@ -1,3 +1,3 @@
 #!/usr/bin/env node
-export * from './setup/index.js';
+export { runCodemachineCli } from './cli-setup.js';
 export * from './services/index.js';

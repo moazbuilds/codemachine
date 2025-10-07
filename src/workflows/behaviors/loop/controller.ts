@@ -1,6 +1,6 @@
-import type { WorkflowStep } from '../templates/index.js';
+import type { WorkflowStep } from '../../templates/index.js';
 import { evaluateLoopBehavior } from './evaluator.js';
-import { formatAgentLog } from '../../../../../shared/logging/index.js';
+import { formatAgentLog } from '../../../shared/logging/index.js';
 import type { ActiveLoop } from '../skip.js';
 
 export interface LoopDecision {

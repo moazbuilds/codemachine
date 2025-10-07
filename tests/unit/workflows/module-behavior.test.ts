@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { evaluateLoopBehavior } from '../../../../src/workflows/behaviors/loop/evaluator.js';
-import { resolveModule } from '../../../../src/workflows/utils/index.js';
+import { evaluateLoopBehavior } from '../../../src/workflows/behaviors/loop/evaluator.js';
+import { resolveModule } from '../../../src/workflows/utils/index.js';
 
 describe('workflow modules', () => {
   describe('resolveModule', () => {

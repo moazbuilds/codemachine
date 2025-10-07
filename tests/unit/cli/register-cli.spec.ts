@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { registerCli } from '../../../src/cli/commands/register-cli.js';
+import { registerCli } from '../../../src/cli/program.js';
 
 describe('registerCli', () => {
   let program: Command;

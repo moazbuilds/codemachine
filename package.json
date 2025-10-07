@@ -11,8 +11,8 @@
     "npm": ">=9.0.0"
   },
   "scripts": {
-    "build": "tsup src/app/index.ts --format esm --dts --sourcemap --out-dir dist",
-    "dev": "tsx watch src/app/index.ts",
+    "build": "tsup src/runtime/index.ts --format esm --dts --sourcemap --out-dir dist",
+    "dev": "tsx watch src/runtime/index.ts",
     "start": "pnpm -s build && node dist/index.js start",
     "lint": "eslint --max-warnings=0 \"{src,tests}/**/*.{ts,tsx}\"",
     "test": "vitest run --coverage",
@@ -20,7 +20,7 @@
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "prepare": "husky install",
-    "validate": "scripts/ci/validate.sh",
+    "validate": "scripts/validate.sh",
     "release": "scripts/ops/publish.sh --tag latest"
   },
   "dependencies": {

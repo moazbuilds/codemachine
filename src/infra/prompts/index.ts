@@ -1,1 +1,1 @@
-export * from './placeholder-processor.js';
+export { processPrompt, processPromptString } from './placeholder-processor.js';

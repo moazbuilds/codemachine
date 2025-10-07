@@ -1,4 +1,4 @@
-import type { ModuleBehavior } from '../templates/index.js';
+import type { ModuleBehavior } from '../../templates/index.js';
 
 export interface LoopEvaluationOptions {
   behavior?: ModuleBehavior;

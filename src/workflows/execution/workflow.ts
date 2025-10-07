@@ -8,13 +8,13 @@ import {
   startSpinner,
   stopSpinner,
   createSpinnerLoggers,
-} from '../../../../shared/logging/index.js';
+} from '../../shared/logging/index.js';
 import {
   getTemplatePathFromTracking,
   getCompletedSteps,
   markStepCompleted,
-} from '../../../../shared/agents/template-tracking.js';
-import { syncCodexConfig } from '../../../../infra/engines/codex/index.js';
+} from '../../shared/agents/template-tracking.js';
+import { syncCodexConfig } from '../../infra/engines/codex/index.js';
 import { shouldSkipStep, logSkipDebug, type ActiveLoop } from '../behaviors/skip.js';
 import { handleLoopLogic, createActiveLoop } from '../behaviors/loop/controller.js';
 import { executeStep } from './step.js';

@@ -1,3 +1,5 @@
+const DEFAULT_INTERVAL_MS = 12;
+
 export interface TypewriterOptions {
   text: string;
   intervalMs?: number;
@@ -32,7 +34,7 @@ const sleep = (ms: number) =>
  */
 export const renderTypewriter = async ({
   text,
-  intervalMs = 1,
+  intervalMs = DEFAULT_INTERVAL_MS,
   writer = defaultWriter,
   onChunk,
 }: TypewriterOptions): Promise<void> => {
@@ -41,18 +43,12 @@ export const renderTypewriter = async ({
   }
 
   const delay = Math.max(0, intervalMs);
-  const charsPerInterval = 5; // Write 5 chars every 1ms = 5x faster
+  for (let index = 0; index < text.length; index += 1) {
+    const chunk = text[index] ?? '';
+    writer(chunk);
+    onChunk?.(chunk, index);
 
-  for (let index = 0; index < text.length; index += charsPerInterval) {
-    // Write multiple characters at once
-    for (let i = 0; i < charsPerInterval && index + i < text.length; i++) {
-      const chunk = text[index + i] ?? '';
-      writer(chunk);
-      onChunk?.(chunk, index + i);
-    }
-
-    const hasMore = index + charsPerInterval < text.length;
-
+    const hasMore = index + 1 < text.length;
     if (hasMore && delay > 0) {
       await sleep(delay);
     }
@@ -67,7 +63,7 @@ export function renderExecutionScreen(
   text: string,
   opts: RenderOptions = {}
 ): StopHandle {
-  const interval = typeof opts.intervalMs === 'number' ? opts.intervalMs : 1;
+  const interval = Math.max(0, opts.intervalMs ?? DEFAULT_INTERVAL_MS);
   const onChunk = opts.onChunk ?? (() => {});
   const logger: LoggerFn =
     opts.logger ?? ((s: string) => {
@@ -78,8 +74,23 @@ export function renderExecutionScreen(
       }
     });
 
-  const charsPerInterval = 5; // Write 5 chars every 1ms = 5x faster
   let index = 0;
+  if (interval === 0) {
+    while (index < text.length) {
+      const ch = text[index++]!;
+      try {
+        onChunk(ch);
+      } finally {
+        logger(ch);
+      }
+    }
+
+    return {
+      stop() {
+        // Nothing to cancel when interval is zero; streaming already completed.
+      },
+    };
+  }
 
   const timer = setInterval(() => {
     if (index >= text.length) {
@@ -87,14 +98,11 @@ export function renderExecutionScreen(
       return;
     }
 
-    // Write multiple characters per interval
-    for (let i = 0; i < charsPerInterval && index < text.length; i++) {
-      const ch = text[index++]!;
-      try {
-        onChunk(ch);
-      } finally {
-        logger(ch);
-      }
+    const ch = text[index++]!;
+    try {
+      onChunk(ch);
+    } finally {
+      logger(ch);
     }
   }, interval);
 
