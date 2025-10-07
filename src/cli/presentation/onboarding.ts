@@ -11,8 +11,20 @@ export function renderWelcomeScreen(): string {
 export function renderLoginScreen(): string {
   const lines: string[] = [];
   lines.push(banner('Authentication Required'));
-  lines.push('Codex credentials are needed before the agents can run.');
-  lines.push('Launching the Codex login flow now. Follow the prompts to continue.');
+  lines.push('');
+  lines.push(center('┌─────────────────────────────────────────────────────────────┐'));
+  lines.push(center('│  AI engine authentication is needed before agents can run   │'));
+  lines.push(center('│                                                             │'));
+  lines.push(center('│         You will choose between Codex and Claude            │'));
+  lines.push(center('└─────────────────────────────────────────────────────────────┘'));
+  lines.push('');
+  lines.push(center('╔═══════════════════════════════════════════════════════════╗'));
+  lines.push(center('║  💡 TIP: Run multiple AI engines in one workflow!         ║'));
+  lines.push(center('║                                                           ║'));
+  lines.push(center('║  Add more engines anytime with:                           ║'));
+  lines.push(center('║    • /login (in session)                                  ║'));
+  lines.push(center('║    • codemachine auth login (from terminal)               ║'));
+  lines.push(center('╚═══════════════════════════════════════════════════════════╝'));
   lines.push('');
   lines.push(section('Need a Manual Command?'));
   lines.push(formatKeyValue('Fallback', palette.primary('codemachine auth login')));
