@@ -3,10 +3,10 @@ import * as path from 'node:path';
 import { existsSync, readdirSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import prompts from 'prompts';
 import { loadWorkflowModule, isWorkflowTemplate, WorkflowTemplate } from '../../workflows/index.js';
 import { hasTemplateChanged, setActiveTemplate } from '../../shared/workflows/index.js';
 import { bootstrapWorkspace } from '../../runtime/services/workspace/index.js';
+import { selectFromMenu, type SelectionChoice } from '../presentation/selection-menu.js';
 
 const packageRoot = (() => {
   const moduleDir = path.dirname(fileURLToPath(import.meta.url));
@@ -25,11 +25,7 @@ export function printAvailableWorkflowTemplatesHeading(): void {
   console.log('\nAvailable workflow templates:\n');
 }
 
-interface TemplateChoice {
-  title: string;
-  value: string;
-  description?: string;
-}
+type TemplateChoice = SelectionChoice<string>;
 
 
 async function handleTemplateSelectionSuccess(template: WorkflowTemplate, templateFilePath: string): Promise<void> {
@@ -143,18 +139,16 @@ export async function runTemplatesCommand(inSession: boolean = false): Promise<v
 
     printAvailableWorkflowTemplatesHeading();
 
-    const response = await prompts({
-      type: 'select',
-      name: 'selectedTemplate',
+    const selectedTemplate = await selectFromMenu({
       message: 'Choose a workflow template:',
       choices: templates,
       initial: 0
     });
 
-    if (response.selectedTemplate) {
-      const template = await loadWorkflowModule(response.selectedTemplate);
+    if (selectedTemplate) {
+      const template = await loadWorkflowModule(selectedTemplate);
       if (isWorkflowTemplate(template)) {
-        await handleTemplateSelectionSuccess(template, response.selectedTemplate);
+        await handleTemplateSelectionSuccess(template, selectedTemplate);
       }
     } else {
       console.log('No template selected.');
