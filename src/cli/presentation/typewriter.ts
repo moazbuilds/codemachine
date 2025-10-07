@@ -1,5 +1,3 @@
-const DEFAULT_INTERVAL_MS = 12;
-
 export interface TypewriterOptions {
   text: string;
   intervalMs?: number;
@@ -34,7 +32,7 @@ const sleep = (ms: number) =>
  */
 export const renderTypewriter = async ({
   text,
-  intervalMs = DEFAULT_INTERVAL_MS,
+  intervalMs = 1,
   writer = defaultWriter,
   onChunk,
 }: TypewriterOptions): Promise<void> => {
@@ -43,12 +41,17 @@ export const renderTypewriter = async ({
   }
 
   const delay = Math.max(0, intervalMs);
-  for (let index = 0; index < text.length; index += 1) {
-    const chunk = text[index] ?? '';
-    writer(chunk);
-    onChunk?.(chunk, index);
+  const charsPerInterval = 5;
 
-    const hasMore = index + 1 < text.length;
+  for (let index = 0; index < text.length; index += charsPerInterval) {
+    for (let i = 0; i < charsPerInterval && index + i < text.length; i += 1) {
+      const chunk = text[index + i] ?? '';
+      const chunkIndex = index + i;
+      writer(chunk);
+      onChunk?.(chunk, chunkIndex);
+    }
+
+    const hasMore = index + charsPerInterval < text.length;
     if (hasMore && delay > 0) {
       await sleep(delay);
     }
@@ -63,7 +66,7 @@ export function renderExecutionScreen(
   text: string,
   opts: RenderOptions = {}
 ): StopHandle {
-  const interval = Math.max(0, opts.intervalMs ?? DEFAULT_INTERVAL_MS);
+  const interval = typeof opts.intervalMs === 'number' ? opts.intervalMs : 1;
   const onChunk = opts.onChunk ?? (() => {});
   const logger: LoggerFn =
     opts.logger ?? ((s: string) => {
@@ -74,8 +77,10 @@ export function renderExecutionScreen(
       }
     });
 
+  const charsPerInterval = 5;
   let index = 0;
-  if (interval === 0) {
+
+  if (interval <= 0) {
     while (index < text.length) {
       const ch = text[index++]!;
       try {
@@ -87,7 +92,7 @@ export function renderExecutionScreen(
 
     return {
       stop() {
-        // Nothing to cancel when interval is zero; streaming already completed.
+        // Nothing to cancel when interval is zero; streaming completed immediately.
       },
     };
   }
@@ -98,11 +103,13 @@ export function renderExecutionScreen(
       return;
     }
 
-    const ch = text[index++]!;
-    try {
-      onChunk(ch);
-    } finally {
-      logger(ch);
+    for (let i = 0; i < charsPerInterval && index < text.length; i += 1) {
+      const ch = text[index++]!;
+      try {
+        onChunk(ch);
+      } finally {
+        logger(ch);
+      }
     }
   }, interval);
 
