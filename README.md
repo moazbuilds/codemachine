@@ -15,7 +15,14 @@
 
 ### What is CodeMachine CLI?
 
-CodeMachine CLI is a breakthrough workflow orchestration framework that transforms ambitious project specifications into complete, production-ready codebases. Powered by coordinated AI agents and intelligent workflow engines, CodeMachine tackles the complexity of building entire applications from scratch—handling everything from system architecture to implementation, testing, and deployment automation.
+CodeMachine CLI is a multi-agent workflow orchestration framework that transforms project specifications into production-ready codebases. Unlike single-agent tools, CodeMachine coordinates multiple AI providers (Claude, Codex, Gemini) to work in parallel, each handling tasks they excel at—while you define the workflow.
+
+**Why CodeMachine?**
+
+- **🔄 Custom Workflows**: Design orchestration workflows for any complexity—from simple scripts to multi-day development cycles
+- **🤝 Multi-Agent Collaboration**: Mix AI providers strategically (Gemini plans, Claude builds, Codex reviews)
+- **⚡ Parallel Execution**: Sub-agents work simultaneously for 10x faster output
+- **🎯 Endless Orchestration**: Workflows run for hours or days to achieve complex goals automatically
 
 ---
 
@@ -52,53 +59,70 @@ On first run, CodeMachine creates a `.codemachine/` folder. Write your project r
 - Create automation scripts
 - Validate outputs against your specs
 
-> **Coming Soon:** Support for **Gemini CLI** and **Claude CLI** is in the works! Multi-provider support will give you flexibility to choose your preferred AI backend.
+### Supported AI Engines
+
+| CLI Engine | Status |
+|------------|--------|
+| Codex CLI | ✅ Supported |
+| Claude Code | ✅ Supported |
+| Gemini CLI | 🚧 Coming Soon |
+| Qwen Coder | 🚧 Coming Soon |
 
 **That's it!** Your complete codebase will be generated and ready to ship.
 
-> **Note:** CodeMachine requires **Codex CLI** installed globally. Install with: `npm install -g @openai/codex`
+---
+
+## 🎮 Real-World Example: Snake Game
+
+We wrote a simple specification for a classic snake game:
+
+```markdown
+# Snake Game Specification
+
+## Goal
+Create a classic snake game that runs in the terminal or browser.
+
+## Core Features
+- Snake moves continuously in a direction (up, down, left, right)
+- Player controls direction using arrow keys or WASD
+- Snake grows longer when eating food
+- Food spawns randomly on the grid
+- Game ends when snake hits wall or itself
+- Display current score (length of snake)
+
+## Technical Requirements
+- Game grid: 20x20 cells
+- Initial snake length: 3 segments
+- Game speed: 100-200ms per frame
+```
+
+<p align="center">
+  <img src="assets/images/snake_game.gif" alt="GPT-5 Codex vs CodeMachine Comparison" width="800">
+</p>
+
+**The comparison speaks for itself:** GPT-5 Codex (High) alone vs. CodeMachine's default workflow powered by GPT-5 Codex (Low). The quality gap is massive. Multi-agent workflow orchestration delivers production-ready results that far exceed what single-agent generation can achieve—even with a more powerful model.
 
 ---
 
-## Learn More
+## 🛠️ How It Works
 
-**Build Complete Codebases, Not Just Code Snippets**
-
-Traditional code generation creates isolated components. CodeMachine builds entire applications—from full-stack apps and CLI tools to microservices and frameworks. Define your vision in natural language, and specialized agents collaborate to architect, implement, and validate complete production-ready systems.
-
-**The Power of Workflow-Driven Development**
-
-CodeMachine orchestrates sophisticated multi-step workflows that coordinate agents through the entire development lifecycle:
+CodeMachine uses workflow files to orchestrate agents:
 
 ```javascript
-// Create workflows that build complete projects
 export default {
-  name: 'Full-Stack App Builder',
+  name: 'E-Commerce Platform Builder',
   steps: [
-    resolveStep('arch-agent'),                // Design system architecture
-    resolveStep('plan-agent'),                // Generate development plan
-    resolveStep('task-breakdown'),            // Structure implementation tasks
-    resolveStep('code-generation'),           // Implement features iteratively
-    resolveStep('runtime-prep'),              // Setup automation scripts
-    resolveStep('task-sanity-check'),         // Validate against requirements
-    resolveModule('check-task', {             // Loop until completion
+    resolveStep('arch-agent', { engine: 'claude' }),        // Claude designs system architecture
+    resolveStep('plan-agent', { engine: 'claude' }),        // Claude creates detailed implementation plan
+    resolveStep('code-generation', { engine: 'codex' }),    // Codex generates implementation
+    resolveStep('runtime-prep', { engine: 'codex' }),       // Codex creates automation scripts
+    resolveStep('quality-check', { engine: 'codex' }),      // Codex reviews code quality and runtime
+    resolveModule('check-task', {                           // Loop until all tasks complete
       loopTrigger: 'TASKS_COMPLETED=FALSE',
-      loopSteps: 3,
-      loopMaxIterations: 20
+      loopMaxIterations: 15
     }),
   ],
+  subAgentIds: ['payment-agent', 'inventory-agent', 'auth-agent'], // Sub-agents work in parallel
 };
 ```
-
-Each workflow step executes specialized agents that collaborate to solve complex architectural challenges, implement intricate features, and ensure quality throughout the process.
-
-**Why CodeMachine?**
-
-- **🏗️ Handles Real Complexity**: Build multi-file, multi-layer applications with proper separation of concerns and design patterns
-- **🎯 Specification-Driven**: Write what you want in `.codemachine/inputs/specifications.md`, get a complete codebase
-- **🔄 Iterative & Intelligent**: Agents loop through tasks, validate outputs, and refine until requirements are met
-- **📐 Architecture-First**: System design and planning happen before a single line of code is written
-- **🛡️ Quality Built-In**: Testing, linting, and validation gates ensure production-ready output
-- **⚙️ Fully Customizable**: Create workflows for any project type, technology stack, or development methodology
-
-Stop building projects file-by-file. Start orchestrating intelligent agents to construct complete, sophisticated codebases that are ready to ship.
+---
