@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { platform } from 'node:os';
 
 export interface SpawnOptions {
   command: string;
@@ -22,12 +23,18 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
   const { command, args = [], cwd, env, onStdout, onStderr, signal, stdioMode = 'pipe', timeout } = options;
 
   return new Promise((resolve, reject) => {
+    // On Windows, we need shell: true for .cmd files, but this requires proper argument handling
+    // Node.js child_process.spawn handles argument escaping correctly even with shell: true
+    const isWindows = process.platform === 'win32';
+
     const child = spawn(command, args, {
       cwd,
       env: env ? { ...process.env, ...env } : process.env,
       stdio: stdioMode === 'inherit' ? ['ignore', 'inherit', 'inherit'] : ['ignore', 'pipe', 'pipe'],
       signal,
       timeout,
+      shell: isWindows,
+      windowsVerbatimArguments: false, // Ensure proper quoting on Windows
     });
 
     const stdoutChunks: string[] = [];
