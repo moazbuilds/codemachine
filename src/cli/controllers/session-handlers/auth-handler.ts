@@ -22,11 +22,6 @@ export function createAuthHandler(rl: Interface, onComplete: () => void) {
         // Pause readline completely to prevent it from consuming stdin
         rl.pause();
 
-        // Also close the internal readline to fully release stdin
-        const closePromise = new Promise<void>((resolve) => {
-          rl.once('close', resolve);
-        });
-
         // Don't actually close, just pause and remove listeners temporarily
         const originalListeners = rl.listeners('line');
         rl.removeAllListeners('line');
@@ -54,7 +49,7 @@ export function createAuthHandler(rl: Interface, onComplete: () => void) {
         } finally {
           // Restore listeners
           originalListeners.forEach(listener => {
-            rl.on('line', listener as (...args: any[]) => void);
+            rl.on('line', listener as (line: string) => void);
           });
           rl.resume();
         }
