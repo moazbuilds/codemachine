@@ -76,7 +76,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     console.log(formatAgentLog(step.agentId, `${step.agentName} started to work.`));
 
     const { stdout: baseStdoutLogger, stderr: baseStderrLogger } = getAgentLoggers(step.agentId);
-    const spinnerState = startSpinner(step.agentName);
+    const spinnerState = startSpinner(step.agentName, step.engine);
     const { stdoutLogger, stderrLogger } = createSpinnerLoggers(
       baseStdoutLogger,
       baseStderrLogger,

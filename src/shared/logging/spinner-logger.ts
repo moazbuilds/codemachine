@@ -31,7 +31,7 @@ export function createSpinnerLoggers(
   return { stdoutLogger, stderrLogger };
 }
 
-export function startSpinner(agentName: string): SpinnerState {
+export function startSpinner(agentName: string, engine?: string): SpinnerState {
   const spinnerChars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
   const spinnerState: SpinnerState = {
     interval: null as unknown as NodeJS.Timeout,
@@ -45,8 +45,10 @@ export function startSpinner(agentName: string): SpinnerState {
     // Only show spinner if no output for 2 seconds
     if (timeSinceLastOutput > 2000) {
       const spinner = spinnerChars[spinnerState.index % spinnerChars.length];
+      // Format engine name with proper capitalization
+      const engineDisplay = engine ? ` - Engine: ${engine.charAt(0).toUpperCase() + engine.slice(1)}` : '';
       // Special color for status indicator - dim yellow/orange
-      process.stdout.write('\r' + chalk.hex('#FFA500')(`${spinner} ${agentName} is running...`));
+      process.stdout.write('\r' + chalk.hex('#FFA500')(`${spinner} ${agentName} is running${engineDisplay}...`));
       spinnerState.active = true;
       spinnerState.index++;
     }
