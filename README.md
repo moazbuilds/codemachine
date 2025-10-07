@@ -32,15 +32,8 @@ Get CodeMachine up and running in minutes:
 
 ### 1. Install CodeMachine
 
-> **Note:** CodeMachine will be published to npm soon. For now, install from source:
-
 ```bash
-# Clone the repository
-git clone https://github.com/moazbuilds/codemachine.git
-cd codemachine
-
-# Install dependencies, build, and link globally
-npm install && npm run build && npm link
+npm install -g codemachine
 ```
 
 ### 2. Run CodeMachine
@@ -61,12 +54,28 @@ On first run, CodeMachine creates a `.codemachine/` folder. Write your project r
 
 ### Supported AI Engines
 
-| CLI Engine | Status |
-|------------|--------|
-| Codex CLI | ✅ Supported |
-| Claude Code | ✅ Supported |
-| Gemini CLI | 🚧 Coming Soon |
-| Qwen Coder | 🚧 Coming Soon |
+<table width="100%">
+  <tr>
+    <th>CLI Engine</th>
+    <th>Status</th>
+  </tr>
+  <tr>
+    <td>Codex CLI</td>
+    <td>✅ Supported</td>
+  </tr>
+  <tr>
+    <td>Claude Code</td>
+    <td>✅ Supported</td>
+  </tr>
+  <tr>
+    <td>Gemini CLI</td>
+    <td>🚧 Coming Soon</td>
+  </tr>
+  <tr>
+    <td>Qwen Coder</td>
+    <td>🚧 Coming Soon</td>
+  </tr>
+</table>
 
 **That's it!** Your complete codebase will be generated and ready to ship.
 
