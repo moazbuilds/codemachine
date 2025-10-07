@@ -115,7 +115,13 @@ Create a classic snake game that runs in the terminal or browser.
 
 ## 🛠️ How It Works
 
-CodeMachine uses workflow files to orchestrate agents:
+<p align="center">
+  <img src="assets/images/diagram1.jpg" alt="CodeMachine Workflow Architecture" width="700">
+</p>
+
+CodeMachine orchestrates workflows through sequential main agent steps and parallel sub-agent execution. After selecting a workflow template, the main agent processes each step in order. When sub-agents are triggered, they work simultaneously on specialized tasks (e.g., frontend, backend, database), then results flow back into the main workflow. Conditional loops allow workflows to iterate until completion criteria are met.
+
+**Example Workflow:**
 
 ```javascript
 export default {
