@@ -58,22 +58,37 @@ On first run, CodeMachine creates a `.codemachine/` folder. Write your project r
   <tr>
     <th align="center" style="padding: 12px; font-size: 16px;">CLI Engine</th>
     <th align="center" style="padding: 12px; font-size: 16px;">Status</th>
+    <th align="center" style="padding: 12px; font-size: 16px;">Main Agents</th>
+    <th align="center" style="padding: 12px; font-size: 16px;">Sub Agents</th>
+    <th align="center" style="padding: 12px; font-size: 16px;">Orchestrate</th>
   </tr>
   <tr>
     <td align="center" style="padding: 10px; font-size: 15px;"><strong>Codex CLI</strong></td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
   </tr>
   <tr>
     <td align="center" style="padding: 10px; font-size: 15px;"><strong>Claude Code</strong></td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
   </tr>
   <tr>
     <td align="center" style="padding: 10px; font-size: 15px;"><strong>Gemini CLI</strong></td>
     <td align="center" style="padding: 10px; font-size: 15px;">🚧 Coming Soon</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">🚧</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">🚧</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">🚧</td>
   </tr>
   <tr>
     <td align="center" style="padding: 10px; font-size: 15px;"><strong>Qwen Coder</strong></td>
     <td align="center" style="padding: 10px; font-size: 15px;">🚧 Coming Soon</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">🚧</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">🚧</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">🚧</td>
   </tr>
 </table>
 
