@@ -20,8 +20,8 @@
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "prepare": "husky install",
-    "validate": "scripts/validate.sh",
-    "release": "scripts/ops/publish.sh --tag latest"
+    "validate": "node scripts/validate.mjs",
+    "release": "node scripts/publish.mjs --tag latest"
   },
   "dependencies": {
     "chalk": "^5.3.0",
