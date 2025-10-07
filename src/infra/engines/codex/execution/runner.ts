@@ -3,6 +3,7 @@ import { homedir } from 'node:os';
 
 import { spawnProcess } from '../../../process/spawn.js';
 import { buildCodexExecCommand } from './commands.js';
+import { expandHomeDir } from '../path.js';
 
 export interface RunCodexOptions {
   profile: string;
@@ -38,13 +39,16 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
   }
 
   // Prefer calling the real Codex CLI directly, mirroring runner-prompts spec
-  // Example:
+  // Example (Linux/Mac):
   //   CODEX_HOME="$HOME/.codemachine/codex" codex exec \
   //     --profile <profile> --skip-git-repo-check \
   //     --sandbox danger-full-access --dangerously-bypass-approvals-and-sandbox \
   //     -C <workingDir> "<composite prompt>"
 
-  const codexHome = process.env.CODEX_HOME || path.join(homedir(), '.codemachine', 'codex');
+  // Expand platform-specific home directory variables in CODEX_HOME
+  const codexHome = process.env.CODEX_HOME
+    ? expandHomeDir(process.env.CODEX_HOME)
+    : path.join(homedir(), '.codemachine', 'codex');
   const mergedEnv = { ...process.env, ...(env ?? {}), CODEX_HOME: codexHome };
 
   const plainLogs = (process.env.CODEMACHINE_PLAIN_LOGS || '').toString() === '1';

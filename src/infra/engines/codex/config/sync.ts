@@ -5,9 +5,12 @@ import { homedir } from 'node:os';
 import type { ConfigSyncOptions } from './types.js';
 import { resolveProjectRoot, collectAgentDefinitions, mergeAdditionalAgents } from '../../../../shared/agents/index.js';
 import { buildConfigContent } from './config-builder.js';
+import { expandHomeDir } from '../path.js';
 
 export async function resolveCodexHome(codexHome?: string): Promise<string> {
-  const targetHome = codexHome ?? process.env.CODEX_HOME ?? path.join(homedir(), '.codemachine', 'codex');
+  const rawPath = codexHome ?? process.env.CODEX_HOME ?? path.join(homedir(), '.codemachine', 'codex');
+  // Expand platform-specific home directory variables ($HOME, %USERPROFILE%, $env:USERPROFILE)
+  const targetHome = expandHomeDir(rawPath);
   await mkdir(targetHome, { recursive: true });
   return targetHome;
 }

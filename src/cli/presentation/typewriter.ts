@@ -40,8 +40,18 @@ export const renderTypewriter = async ({
     return;
   }
 
+  // Allow disabling typewriter effect via environment variable
+  const disableTypewriter = process.env.CODEMACHINE_NO_TYPEWRITER === '1';
+  if (disableTypewriter) {
+    writer(text);
+    return;
+  }
+
   const delay = Math.max(0, intervalMs);
-  const charsPerInterval = 5;
+  // Windows console is much slower at handling many small writes
+  // Use larger batches on Windows for better performance
+  const isWindows = process.platform === 'win32';
+  const charsPerInterval = isWindows ? 200 : 5;
 
   for (let index = 0; index < text.length; index += charsPerInterval) {
     for (let i = 0; i < charsPerInterval && index + i < text.length; i += 1) {
@@ -77,7 +87,21 @@ export function renderExecutionScreen(
       }
     });
 
-  const charsPerInterval = 5;
+  // Allow disabling typewriter effect via environment variable
+  const disableTypewriter = process.env.CODEMACHINE_NO_TYPEWRITER === '1';
+  if (disableTypewriter) {
+    logger(text);
+    return {
+      stop() {
+        // Already completed
+      },
+    };
+  }
+
+  // Windows console is much slower at handling many small writes
+  // Use larger batches on Windows for better performance
+  const isWindows = process.platform === 'win32';
+  const charsPerInterval = isWindows ? 200 : 5;
   let index = 0;
 
   if (interval <= 0) {
