@@ -22,6 +22,7 @@ export function resolveStep(id: string, overrides: StepOverrides = {}): Workflow
     promptPath,
     model,
     modelReasoningEffort: overrides.modelReasoningEffort ?? agent.modelReasoningEffort,
+    engine: overrides.engine ?? agent.engine, // Override from step or use agent config
     executeOnce: overrides.executeOnce,
   };
 }

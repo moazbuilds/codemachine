@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 import { homedir } from 'node:os';
+import { appendFileSync, existsSync, unlinkSync } from 'node:fs';
 
 import { spawnProcess } from '../../../process/spawn.js';
 import { buildClaudeExecCommand } from './commands.js';
@@ -24,6 +25,47 @@ export interface RunClaudeResult {
 }
 
 const ANSI_ESCAPE_SEQUENCE = new RegExp(String.raw`\u001B\[[0-9;?]*[ -/]*[@-~]`, 'g');
+
+/**
+ * Formats a Claude stream-json line for display
+ */
+function formatStreamJsonLine(line: string): string | null {
+  try {
+    const json = JSON.parse(line);
+
+    if (json.type === 'assistant' && json.message?.content) {
+      for (const content of json.message.content) {
+        if (content.type === 'text') {
+          return `💬 TEXT: ${content.text}`;
+        } else if (content.type === 'thinking') {
+          return `🧠 THINKING: ${content.text}`;
+        } else if (content.type === 'tool_use') {
+          const argKeys = Object.keys(content.input || {}).join(', ');
+          return `🔧 TOOL: ${content.name} | Args: ${argKeys}`;
+        }
+      }
+    } else if (json.type === 'user' && json.message?.content) {
+      for (const content of json.message.content) {
+        if (content.type === 'tool_result') {
+          if (content.is_error) {
+            return `❌ ERROR: ${content.content}`;
+          } else {
+            const preview = typeof content.content === 'string'
+              ? content.content.substring(0, 100) + '...'
+              : JSON.stringify(content.content);
+            return `✅ RESULT: ${preview}`;
+          }
+        }
+      }
+    } else if (json.type === 'result') {
+      return `⏱️  Duration: ${json.duration_ms}ms | Cost: $${json.total_cost_usd} | Tokens: ${json.usage.input_tokens}in/${json.usage.output_tokens}out`;
+    }
+
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
 
 export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeResult> {
   const { profile, prompt, workingDir, model, env, onData, onErrorData, abortSignal, timeout = 600000 } = options;
@@ -83,6 +125,14 @@ export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeRes
   logger.debug(`Claude runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
   logger.debug(`Claude runner - args count: ${args.length}, model: ${model ?? 'default'}`);
 
+  // Path for saving raw JSON output
+  const outputPath = path.join(workingDir, 'output.txt');
+
+  // Clear previous output file
+  if (existsSync(outputPath)) {
+    unlinkSync(outputPath);
+  }
+
   const result = await spawnProcess({
     command,
     args,
@@ -92,7 +142,20 @@ export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeRes
       ? undefined
       : (chunk) => {
           const out = normalize(chunk);
-          onData?.(out);
+
+          // Save raw JSON to file
+          appendFileSync(outputPath, out, 'utf-8');
+
+          // Format and display each JSON line
+          const lines = out.trim().split('\n');
+          for (const line of lines) {
+            if (!line.trim()) continue;
+
+            const formatted = formatStreamJsonLine(line);
+            if (formatted) {
+              onData?.(formatted + '\n');
+            }
+          }
         },
     onStderr: inheritTTY
       ? undefined

@@ -23,6 +23,7 @@ export interface WorkflowStep {
   promptPath: string;
   model?: string;
   modelReasoningEffort?: 'low' | 'medium' | 'high';
+  engine?: 'codex' | 'claude'; // Engine to use for this step
   module?: ModuleMetadata;
   executeOnce?: boolean;
 }

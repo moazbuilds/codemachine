@@ -46,9 +46,12 @@ function mapModel(model?: string): string | undefined {
 export function buildClaudeExecCommand(options: ClaudeCommandOptions): ClaudeCommand {
   const { prompt, model } = options;
 
-  // Base args: --print for non-interactive mode, bypass permissions
+  // Base args: --print for non-interactive mode, bypass permissions, streaming output
   const args: string[] = [
     '--print',
+    '--output-format',
+    'stream-json',
+    '--verbose',
     '--dangerously-skip-permissions',
     '--permission-mode',
     'bypassPermissions',

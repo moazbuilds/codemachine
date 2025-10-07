@@ -1,50 +1,122 @@
 /**
- * Example Workflow - All available features
+ * Example Workflow - All available features and overrides
  */
 
 export default {
   name: 'Example Workflow',
 
   steps: [
-    // resolveStep() - Load agent from config/main.agents.js
+    // ============================================
+    // BASIC USAGE - Uses agent's default settings
+    // ============================================
     resolveStep('arch-agent'),
 
-    // With executeOnce: skips this step when running /start again if already executed before (e.g., don't re-plan if plan exists)
-    resolveStep('plan-agent', { executeOnce: true }), 
+    // ============================================
+    // EXECUTE ONCE - Skips if already executed
+    // ============================================
+    resolveStep('plan-agent', {
+      executeOnce: true, // Won't run again on /start if already executed
+    }),
 
-    // With overrides: custom model, reasoning, or name
+    // ============================================
+    // ENGINE OVERRIDE - Force specific engine
+    // ============================================
+    resolveStep('git-commit', {
+      engine: 'claude', // Override to use Claude (even if agent config says 'codex')
+      executeOnce: true,
+    }),
+
+    // ============================================
+    // MODEL OVERRIDE - Change AI model
+    // ============================================
     resolveStep('code-generation', {
-      model: 'gpt-5-codex', // Available models: gpt-5-codex, gpt-5
+      model: 'gpt-5-codex', // Available: gpt-5-codex, gpt-5, gpt-4, etc.
+    }),
+
+    // ============================================
+    // ENGINE + MODEL OVERRIDE
+    // ============================================
+    resolveStep('code-review', {
+      engine: 'claude',  // Use Claude engine
+      model: 'opus',     // With Opus model (maps to claude-opus)
+    }),
+
+    // ============================================
+    // REASONING EFFORT OVERRIDE
+    // ============================================
+    resolveStep('complex-analysis', {
       modelReasoningEffort: 'high', // 'low' | 'medium' | 'high'
-      agentName: 'Custom Name',
     }),
 
-    // resolveModule() - Load module from config/modules.js with loop behavior
+    // ============================================
+    // CUSTOM AGENT NAME - Override display name
+    // ============================================
+    resolveStep('implementation-agent', {
+      agentName: 'Senior Backend Developer', // Custom display name
+    }),
+
+    // ============================================
+    // CUSTOM PROMPT PATH - Use different prompt
+    // ============================================
+    resolveStep('testing-agent', {
+      promptPath: './prompts/custom/e2e-testing.txt', // Different prompt file
+    }),
+
+    // ============================================
+    // COMPLETE OVERRIDE - All options combined
+    // ============================================
+    resolveStep('full-featured-agent', {
+      engine: 'claude',                       // Use Claude
+      model: 'sonnet',                        // With Sonnet model
+      modelReasoningEffort: 'high',           // Maximum thinking
+      agentName: 'AI Architect Pro',          // Custom name
+      promptPath: './prompts/custom/arch.txt', // Custom prompt
+      executeOnce: true,                      // Only run once
+    }),
+
+    // ============================================
+    // MODULE WITH LOOP BEHAVIOR
+    // ============================================
     resolveModule('check-task', {
-      loopTrigger: 'TASKS_COMPLETED=FALSE', // Loop starts when agent outputs this text (see prompts/templates/codemachine/check-task.md)
-      loopSteps: 3, // How many steps to go back when looping
-      loopMaxIterations: 20, // Maximum iterations to run the loop
-      loopSkip: ['plan-agent'], // Skip plan-agent in loop iterations
+      loopTrigger: 'TASKS_COMPLETED=FALSE',  // Loop when this text appears in output
+      loopSteps: 3,                          // Go back 3 steps when looping
+      loopMaxIterations: 20,                 // Max 20 loop iterations
+      loopSkip: ['plan-agent'],              // Skip these steps in loop
+      engine: 'claude',                      // Also supports engine override
     }),
 
-    // resolveFolder() - Load all numbered files from prompts/templates/<folder>/
-    // Files: 0-file.md, 1-file.md, etc.
+    // ============================================
+    // FOLDER RESOLUTION - Load multiple steps
+    // ============================================
+    // Loads all numbered files: 0-*.md, 1-*.md, etc.
     ...resolveFolder('codemachine'),
 
-    // With overrides (applies to all steps in folder)
+    // Folder with overrides (applies to ALL steps in folder)
     ...resolveFolder('spec-kit', {
-      model: 'gpt-5',
-      modelReasoningEffort: 'medium',
+      engine: 'codex',                       // All steps use Codex
+      model: 'gpt-5',                        // All steps use gpt-5
+      modelReasoningEffort: 'medium',        // All steps use medium reasoning
     }),
+
+    // ============================================
+    // ENGINE MIXING - Different engines per task
+    // ============================================
+    resolveStep('planning', { engine: 'codex' }),    // Planning with Codex
+    resolveStep('implementation', { engine: 'codex' }), // Code with Codex
+    resolveStep('review', { engine: 'claude' }),     // Review with Claude (better at analysis)
+    resolveStep('documentation', { engine: 'claude' }), // Docs with Claude (better at writing)
+    resolveStep('testing', { engine: 'codex' }),     // Tests with Codex
   ],
 
-  // Sub-agents - loaded from config/sub.agents.js
+  // ============================================
+  // SUB-AGENTS - Orchestrated by main workflow
+  // ============================================
+  // These are loaded from config/sub.agents.js
+  // Each sub-agent can also have engine/model configured
   subAgentIds: [
-    'frontend-dev',
-    'backend-dev',
-    'qa-engineer',
-    'technical-writer',
-    // Add more sub-agents as needed
-    // this used to ochestirate the sub-agents (see prompts/orchestration/guide.md)
+    'frontend-dev',    // Can have engine: 'claude' in config
+    'backend-dev',     // Can have engine: 'codex' in config
+    'qa-engineer',     // Can have engine: 'claude' in config
+    'technical-writer', // Can have engine: 'claude' in config
   ],
 };

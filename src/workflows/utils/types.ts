@@ -3,6 +3,7 @@ export interface StepOverrides {
   promptPath?: string;
   model?: string;
   modelReasoningEffort?: string;
+  engine?: 'codex' | 'claude';
   executeOnce?: boolean;
 }
 
@@ -13,6 +14,7 @@ export interface WorkflowStep {
   promptPath: string;
   model: string;
   modelReasoningEffort?: string;
+  engine?: 'codex' | 'claude';
   module?: ModuleMetadata;
   executeOnce?: boolean;
 }

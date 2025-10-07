@@ -1,7 +1,9 @@
 import * as path from 'node:path';
 import { readFile, mkdir } from 'node:fs/promises';
 import type { WorkflowStep } from '../templates/index.js';
-import { runAgent } from '../../infra/engines/codex/index.js';
+import type { EngineType } from '../../infra/engines/types.js';
+import { getEngine } from '../../infra/engines/engine-factory.js';
+import { claude, codex } from '../../infra/engines/index.js';
 import { processPromptString } from '../../shared/prompts/index.js';
 
 export interface StepExecutorOptions {
@@ -21,6 +23,27 @@ async function runAgentsBuilderStep(cwd: string): Promise<void> {
   await ensureProjectScaffold(cwd);
 }
 
+/**
+ * Ensures the engine is authenticated
+ */
+async function ensureEngineAuth(engineType: EngineType, profile: string): Promise<void> {
+  if (engineType === 'claude') {
+    const isAuthed = await claude.isAuthenticated();
+    if (!isAuthed) {
+      console.error(`\nClaude authentication required`);
+      console.error(`\nRun the following command to authenticate:\n`);
+      console.error(`  CLAUDE_CONFIG_DIR=~/.codemachine/claude claude setup-token\n`);
+      throw new Error('Claude authentication required');
+    }
+  } else if (engineType === 'codex') {
+    await codex.ensureAuth();
+  }
+}
+
+/**
+ * Executes a workflow step (main agent)
+ * Step already has all the data from resolveStep() - no config loading needed
+ */
 export async function executeStep(
   step: WorkflowStep,
   cwd: string,
@@ -39,9 +62,27 @@ export async function executeStep(
       ? Number.parseInt(process.env.CODEMACHINE_AGENT_TIMEOUT, 10)
       : 600000);
 
-  const output = await runAgent(step.agentId, prompt, cwd, {
-    logger: options.logger,
-    stderrLogger: options.stderrLogger,
+  // Determine engine: step override > default to 'codex'
+  const engineType: EngineType = step.engine ?? 'codex';
+  const profile = step.agentId;
+
+  // Ensure authentication
+  await ensureEngineAuth(engineType, profile);
+
+  // Get engine and execute
+  const engine = getEngine(engineType);
+
+  const result = await engine.run({
+    profile,
+    prompt,
+    workingDir: cwd,
+    model: step.model,
+    onData: (chunk) => {
+      options.logger(chunk);
+    },
+    onErrorData: (chunk) => {
+      options.stderrLogger(chunk);
+    },
     timeout,
   });
 
@@ -51,5 +92,5 @@ export async function executeStep(
     await runAgentsBuilderStep(cwd);
   }
 
-  return output;
+  return result.stdout;
 }
