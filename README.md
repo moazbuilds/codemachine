@@ -15,7 +15,7 @@
 
 ### What is CodeMachine CLI?
 
-CodeMachine CLI is a multi-agent workflow orchestration framework that transforms project specifications into production-ready codebases. Unlike single-agent tools, CodeMachine coordinates multiple AI providers (Claude, Codex, Gemini) to work in parallel, each handling tasks they excel at—while you define the workflow.
+CodeMachine CLI is a multi-agent workflow orchestration framework that transforms project specifications into production-ready codebases. Unlike single-agent tools, CodeMachine coordinates multiple AI providers (Claude CLI, Codex CLI, Gemini CLI, Qwen Coder) to work in parallel, each handling tasks they excel at—while you define the workflow.
 
 **Why CodeMachine?**
 
@@ -83,7 +83,7 @@ On first run, CodeMachine creates a `.codemachine/` folder. Write your project r
     <td align="center" style="padding: 10px; font-size: 15px;">🚧</td>
     <td align="center" style="padding: 10px; font-size: 15px;">🚧</td>
   </tr>
-  <tr>
+<tr>
     <td align="center" style="padding: 10px; font-size: 15px;"><strong>Qwen Coder</strong></td>
     <td align="center" style="padding: 10px; font-size: 15px;">🚧 Coming Soon</td>
     <td align="center" style="padding: 10px; font-size: 15px;">🚧</td>
@@ -91,6 +91,24 @@ On first run, CodeMachine creates a `.codemachine/` folder. Write your project r
     <td align="center" style="padding: 10px; font-size: 15px;">🚧</td>
   </tr>
 </table>
+
+### Requirements
+
+- Node.js ≥ 20.10.0 and npm ≥ 9 (pnpm works too)
+- From source: `pnpm install && pnpm build` (try `pnpm test` to verify the workspace)
+
+### Core CLI Commands
+
+(`codemachine --help` for options)
+- `codemachine templates` — list and activate workflow templates
+- `codemachine agent <id> "prompt"` — run a specific agent once; supports `--profile` and `--model`
+
+### Workflow & Specs
+
+- Specs live in `.codemachine/inputs/specifications.md` once you bootstrap
+- Workflow templates reside in `templates/workflows/`; pick or extend them with `codemachine templates`
+- Generated agents and run state land in `.codemachine/`; inspect logs under `.codemachine/runtime`
+- Deep dives: [docs/CLI-ENGINES.md](docs/CLI-ENGINES.md), [docs/operations](docs/operations), and [docs/architecture](docs/architecture)
 
 **That's it!** Your complete codebase will be generated and ready to ship.
 
