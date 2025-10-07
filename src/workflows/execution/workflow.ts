@@ -13,7 +13,7 @@ import {
   getTemplatePathFromTracking,
   getCompletedSteps,
   markStepCompleted,
-} from '../../shared/agents/template-tracking.js';
+} from '../../shared/workflows/index.js';
 import { syncCodexConfig } from '../../infra/engines/codex/index.js';
 import { shouldSkipStep, logSkipDebug, type ActiveLoop } from '../behaviors/skip.js';
 import { handleLoopLogic, createActiveLoop } from '../behaviors/loop/controller.js';

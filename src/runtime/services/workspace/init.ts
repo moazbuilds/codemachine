@@ -1,7 +1,7 @@
 import * as path from 'node:path';
 
 import { loadWorkflowModule, isWorkflowTemplate } from '../../../workflows/index.js';
-import { setActiveTemplate } from '../../../shared/agents/template-tracking.js';
+import { setActiveTemplate } from '../../../shared/workflows/index.js';
 import { CLI_ROOT_CANDIDATES, debugLog, loadAgents } from './discovery.js';
 import { ensureDir, ensureSpecificationsTemplate, mirrorAgentsToJson } from './fs-utils.js';
 

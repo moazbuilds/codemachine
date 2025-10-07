@@ -1,13 +1,8 @@
-import { mkdir, stat, rm, writeFile } from 'node:fs/promises';
+import { stat, rm, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
-import { homedir } from 'node:os';
 import { execa } from 'execa';
 
-export async function resolveCodexHome(): Promise<string> {
-  const targetHome = process.env.CODEX_HOME ?? path.join(homedir(), '.codemachine', 'codex');
-  await mkdir(targetHome, { recursive: true });
-  return targetHome;
-}
+import { resolveCodexHome } from './config/sync.js';
 
 export function getAuthFilePath(codexHome: string): string {
   return path.join(codexHome, 'auth.json');

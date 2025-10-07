@@ -1,17 +1,18 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import * as path from 'node:path';
-import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
-import { resolveAgentsModulePath } from '../../../shared/agents/paths.js';
-import { collectAgentsFromWorkflows } from '../../../shared/agents/workflow-discovery.js';
+import { resolveAgentsModulePath } from '../config/paths.js';
+import { collectAgentsFromWorkflows } from './steps.js';
+import type { AgentDefinition } from '../config/types.js';
+import { AGENT_MODULE_FILENAMES } from '../config/types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const require = createRequire(import.meta.url);
-const CLI_BUNDLE_DIR = path.resolve(__dirname);
+
+const CLI_BUNDLE_DIR = path.resolve(__dirname, '..', '..', '..');
 const CLI_PACKAGE_ROOT = (() => {
   let current = CLI_BUNDLE_DIR;
   const limit = 10;
@@ -36,6 +37,7 @@ const CLI_PACKAGE_ROOT = (() => {
 
   return undefined;
 })();
+
 const CLI_ROOT_CANDIDATES = Array.from(
   new Set([
     CLI_BUNDLE_DIR,
@@ -44,21 +46,7 @@ const CLI_ROOT_CANDIDATES = Array.from(
   ].filter((root): root is string => Boolean(root)))
 );
 
-const AGENT_MODULE_FILENAMES = ['main.agents.js', 'sub.agents.js', 'modules.js', 'agents.js'];
-
-type AgentDefinition = {
-  id: string;
-  model?: unknown;
-  modelReasoningEffort?: unknown;
-  [key: string]: unknown;
-};
-
-const MODEL = 'gpt-5-codex';
-const MODEL_REASONING_EFFORT = 'high';
-const DEFAULT_MODEL_EFFORT = 'medium';
-const VALID_MODEL_EFFORTS = new Set(['low', 'medium', 'high']);
-
-function resolveProjectRoot(projectRoot?: string): string {
+export function resolveProjectRoot(projectRoot?: string): string {
   if (projectRoot) {
     return projectRoot;
   }
@@ -79,7 +67,7 @@ function resolveProjectRoot(projectRoot?: string): string {
   return CLI_ROOT_CANDIDATES[0];
 }
 
-function loadAgentsFromModule(modulePath: string): AgentDefinition[] {
+export function loadAgentsFromModule(modulePath: string): AgentDefinition[] {
   try {
     delete require.cache[require.resolve(modulePath)];
   } catch {
@@ -90,7 +78,7 @@ function loadAgentsFromModule(modulePath: string): AgentDefinition[] {
   return Array.isArray(loadedAgents) ? (loadedAgents as AgentDefinition[]) : [];
 }
 
-async function collectAgentDefinitions(projectRoot: string): Promise<AgentDefinition[]> {
+export async function collectAgentDefinitions(projectRoot: string): Promise<AgentDefinition[]> {
   const candidates = new Set<string>();
   const roots = [projectRoot, ...CLI_ROOT_CANDIDATES.filter((root) => root && root !== projectRoot)];
 
@@ -143,7 +131,7 @@ async function collectAgentDefinitions(projectRoot: string): Promise<AgentDefini
   return Array.from(byId.values());
 }
 
-function mergeAdditionalAgents(
+export function mergeAdditionalAgents(
   agents: AgentDefinition[],
   additionalAgents?: AgentDefinition[]
 ): AgentDefinition[] {
@@ -170,104 +158,4 @@ function mergeAdditionalAgents(
   }
 
   return Array.from(byId.values());
-}
-
-async function resolveCodexHome(codexHome?: string): Promise<string> {
-  const targetHome = codexHome ?? process.env.CODEX_HOME ?? path.join(homedir(), '.codemachine', 'codex');
-  await mkdir(targetHome, { recursive: true });
-  return targetHome;
-}
-
-function toTomlString(value: string): string {
-  return JSON.stringify(value);
-}
-
-function resolveModel(agent: AgentDefinition): string {
-  if (typeof agent.model === 'string' && agent.model.trim()) {
-    return agent.model.trim();
-  }
-
-  return MODEL;
-}
-
-function resolveEffort(agent: AgentDefinition): 'low' | 'medium' | 'high' {
-  const candidate =
-    typeof agent.modelReasoningEffort === 'string'
-      ? agent.modelReasoningEffort
-      : typeof agent.model_reasoning_effort === 'string'
-        ? agent.model_reasoning_effort
-        : undefined;
-
-  if (candidate) {
-    const normalized = candidate.trim().toLowerCase();
-    if (VALID_MODEL_EFFORTS.has(normalized)) {
-      return normalized as 'low' | 'medium' | 'high';
-    }
-  }
-
-  return DEFAULT_MODEL_EFFORT;
-}
-
-function buildConfigContent(agents: AgentDefinition[]): string {
-  const lines = [
-    '# Model configuration',
-    `model = ${toTomlString(MODEL)}`,
-    `model_reasoning_effort = ${toTomlString(MODEL_REASONING_EFFORT)}`
-  ];
-
-  const profileSections = agents
-    .filter((agent): agent is AgentDefinition & { id: string } => typeof agent?.id === 'string')
-    .map((agent) => {
-      const effort = resolveEffort(agent);
-      const model = resolveModel(agent);
-      return [
-        `[profiles.${agent.id}]`,
-        `model = ${toTomlString(model)}`,
-        `model_reasoning_effort = ${toTomlString(effort)}`
-      ].join('\n');
-    });
-
-  if (profileSections.length > 0) {
-    lines.push('', '# Profile configurations (dynamically generated from workflow templates and agent catalogs)');
-    for (const section of profileSections) {
-      lines.push('', section);
-    }
-  }
-
-  return `${lines.join('\n')}\n`;
-}
-
-async function writeConfigIfChanged(configDir: string, content: string): Promise<void> {
-  const configPath = path.join(configDir, 'config.toml');
-
-  try {
-    const existingContent = await readFile(configPath, 'utf8');
-    if (existingContent === content) {
-      return;
-    }
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-      throw error;
-    }
-  }
-
-  await writeFile(configPath, content, 'utf8');
-}
-
-/**
- * Synchronises the Codex configuration file with the discovered agent definitions.
- */
-export type ConfigSyncOptions = {
-  projectRoot?: string;
-  codexHome?: string;
-  additionalAgents?: AgentDefinition[];
-};
-
-export async function syncCodexConfig(options?: ConfigSyncOptions): Promise<void> {
-  const projectRoot = resolveProjectRoot(options?.projectRoot);
-  const agents = mergeAdditionalAgents(await collectAgentDefinitions(projectRoot), options?.additionalAgents);
-  const codexHome = await resolveCodexHome(options?.codexHome);
-  const configContent = buildConfigContent(agents);
-
-  await writeConfigIfChanged(codexHome, configContent);
 }

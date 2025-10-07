@@ -40,6 +40,14 @@ model_reasoning_effort = "low"
 model = "gpt-5"
 model_reasoning_effort = "low"
 
+[profiles.codemachine]
+model = "gpt-5-codex"
+model_reasoning_effort = "high"
+
+[profiles.spec-kit]
+model = "gpt-5-codex"
+model_reasoning_effort = "high"
+
 [profiles.uxui-designer]
 model = "gpt-5"
 model_reasoning_effort = "medium"
@@ -75,3 +83,11 @@ model_reasoning_effort = "medium"
 [profiles.check-task]
 model = "gpt-5"
 model_reasoning_effort = "low"
+
+[profiles.runtime-perp]
+model = "gpt-5-codex"
+model_reasoning_effort = "high"
+
+[profiles.plan-generator]
+model = "gpt-5"
+model_reasoning_effort = "medium"

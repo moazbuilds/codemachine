@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { collectAgentsFromWorkflows } from '../../../shared/agents/workflow-discovery.js';
+import { collectAgentsFromWorkflows } from '../../../shared/agents/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

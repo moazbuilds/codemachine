@@ -2,7 +2,7 @@ import * as path from 'node:path';
 import { readFile, mkdir } from 'node:fs/promises';
 import type { WorkflowStep } from '../templates/index.js';
 import { runAgent } from '../../infra/engines/codex/index.js';
-import { processPromptString } from '../../infra/prompts/index.js';
+import { processPromptString } from '../../shared/prompts/index.js';
 
 export interface StepExecutorOptions {
   logger: (chunk: string) => void;

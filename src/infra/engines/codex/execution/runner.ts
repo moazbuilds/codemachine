@@ -1,7 +1,8 @@
 import * as path from 'node:path';
 import { homedir } from 'node:os';
 
-import { spawnProcess } from '../../process/spawn.js';
+import { spawnProcess } from '../../../process/spawn.js';
+import { buildCodexExecCommand } from './commands.js';
 
 export interface RunCodexOptions {
   profile: string;
@@ -72,20 +73,11 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
 
     return result;
   };
+
+  const { command, args } = buildCodexExecCommand({ profile, workingDir, prompt });
   const result = await spawnProcess({
-    command: 'codex',
-    args: [
-      'exec',
-      '--profile',
-      profile,
-      '--skip-git-repo-check',
-      '--sandbox',
-      'danger-full-access',
-      '--dangerously-bypass-approvals-and-sandbox',
-      '-C',
-      workingDir,
-      prompt,
-    ],
+    command,
+    args,
     cwd: workingDir,
     env: mergedEnv,
     onStdout: inheritTTY

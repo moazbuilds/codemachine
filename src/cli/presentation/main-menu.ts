@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 import { banner, formatKeyValue, palette, divider } from './layout.js';
-import { getActiveTemplate } from '../../shared/agents/template-tracking.js';
+import { getActiveTemplate } from '../../shared/workflows/index.js';
 
 function geminiAscii(): string {
   const codeText = [
