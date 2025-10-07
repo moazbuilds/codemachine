@@ -1,5 +1,5 @@
 import type { Command } from 'commander';
-import { clearAuth, ensureAuth, nextAuthMenuAction } from '../../infra/engines/codex/index.js';
+import { codex } from '../../infra/engines/index.js';
 
 export function registerAuthCommands(program: Command): void {
   const authCommand = program
@@ -10,12 +10,12 @@ export function registerAuthCommands(program: Command): void {
     .command('login')
     .description('Authenticate with Codemachine services')
     .action(async () => {
-      const action = await nextAuthMenuAction();
+      const action = await codex.nextAuthMenuAction();
       if (action === 'logout') {
         console.log('Already authenticated. Use `codemachine auth logout` to sign out.');
         return;
       }
-      await ensureAuth();
+      await codex.ensureAuth();
       console.log('Authentication successful.');
     });
 
@@ -23,7 +23,7 @@ export function registerAuthCommands(program: Command): void {
     .command('logout')
     .description('Log out of Codemachine services')
     .action(async () => {
-      await clearAuth();
+      await codex.clearAuth();
       console.log('Signed out. Next action will be `login`.');
     });
 }

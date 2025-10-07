@@ -2,14 +2,15 @@ import * as path from 'node:path';
 import { homedir } from 'node:os';
 
 import { spawnProcess } from '../../../process/spawn.js';
-import { buildCodexExecCommand } from './commands.js';
+import { buildClaudeExecCommand } from './commands.js';
 import { expandHomeDir } from '../../../../shared/utils/index.js';
 import { logger } from '../../../../shared/logging/index.js';
 
-export interface RunCodexOptions {
+export interface RunClaudeOptions {
   profile: string;
   prompt: string;
   workingDir: string;
+  model?: string;
   env?: NodeJS.ProcessEnv;
   onData?: (chunk: string) => void;
   onErrorData?: (chunk: string) => void;
@@ -17,40 +18,38 @@ export interface RunCodexOptions {
   timeout?: number; // Timeout in milliseconds (default: 600000ms = 10 minutes)
 }
 
-export interface RunCodexResult {
+export interface RunClaudeResult {
   stdout: string;
   stderr: string;
 }
 
 const ANSI_ESCAPE_SEQUENCE = new RegExp(String.raw`\u001B\[[0-9;?]*[ -/]*[@-~]`, 'g');
 
-export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult> {
-  const { profile, prompt, workingDir, env, onData, onErrorData, abortSignal, timeout = 600000 } = options;
+export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeResult> {
+  const { profile, prompt, workingDir, model, env, onData, onErrorData, abortSignal, timeout = 600000 } = options;
 
   if (!profile) {
-    throw new Error('runCodex requires a profile.');
+    throw new Error('runClaude requires a profile.');
   }
 
   if (!prompt) {
-    throw new Error('runCodex requires a prompt.');
+    throw new Error('runClaude requires a prompt.');
   }
 
   if (!workingDir) {
-    throw new Error('runCodex requires a working directory.');
+    throw new Error('runClaude requires a working directory.');
   }
 
-  // Prefer calling the real Codex CLI directly, mirroring runner-prompts spec
-  // Example (Linux/Mac):
-  //   CODEX_HOME="$HOME/.codemachine/codex" codex exec \
-  //     --profile <profile> --skip-git-repo-check \
-  //     --sandbox danger-full-access --dangerously-bypass-approvals-and-sandbox \
-  //     -C <workingDir> "<composite prompt>"
+  // Set up CLAUDE_CONFIG_DIR (shared for authentication, profile is for agent data only)
+  const claudeConfigDir = process.env.CLAUDE_CONFIG_DIR
+    ? expandHomeDir(process.env.CLAUDE_CONFIG_DIR)
+    : path.join(homedir(), '.codemachine', 'claude');
 
-  // Expand platform-specific home directory variables in CODEX_HOME
-  const codexHome = process.env.CODEX_HOME
-    ? expandHomeDir(process.env.CODEX_HOME)
-    : path.join(homedir(), '.codemachine', 'codex');
-  const mergedEnv = { ...process.env, ...(env ?? {}), CODEX_HOME: codexHome };
+  const mergedEnv = {
+    ...process.env,
+    ...(env ?? {}),
+    CLAUDE_CONFIG_DIR: claudeConfigDir,
+  };
 
   const plainLogs = (process.env.CODEMACHINE_PLAIN_LOGS || '').toString() === '1';
   // Force pipe mode to ensure text normalization is applied
@@ -79,10 +78,10 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
     return result;
   };
 
-  const { command, args } = buildCodexExecCommand({ profile, workingDir, prompt });
+  const { command, args } = buildClaudeExecCommand({ profile, workingDir, prompt, model });
 
-  logger.debug(`Codex runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
-  logger.debug(`Codex runner - args count: ${args.length}, last arg length: ${args[args.length - 1]?.length}`);
+  logger.debug(`Claude runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
+  logger.debug(`Claude runner - args count: ${args.length}, model: ${model ?? 'default'}`);
 
   const result = await spawnProcess({
     command,
@@ -108,7 +107,7 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
 
   if (result.exitCode !== 0) {
     const snippet = result.stderr.trim().split('\n')[0]?.slice(0, 200) ?? 'no stderr output';
-    throw new Error(`Codex CLI exited with code ${result.exitCode}: ${snippet}`);
+    throw new Error(`Claude CLI exited with code ${result.exitCode}: ${snippet}`);
   }
 
   return {

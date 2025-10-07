@@ -8,6 +8,7 @@ import {
   registerTemplatesCommand,
   registerAuthCommands,
   registerAgentCommand,
+  registerEngineCommands,
 } from './commands/index.js';
 
 export function registerCli(program: Command): void {
@@ -32,6 +33,7 @@ export function registerCli(program: Command): void {
   registerTemplatesCommand(program);
   registerAuthCommands(program);
   registerAgentCommand(program);
+  registerEngineCommands(program);
 }
 
 function findPackageJson(moduleUrl: string): string {

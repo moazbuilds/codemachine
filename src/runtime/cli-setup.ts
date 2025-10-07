@@ -3,7 +3,7 @@ import { existsSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 import { registerCli } from '../cli/index.js';
-import { syncCodexConfig } from '../infra/engines/codex/index.js';
+import { codex } from '../infra/engines/index.js';
 import { bootstrapWorkspace } from './services/workspace/index.js';
 
 // Resolve package root to find templates directory
@@ -32,7 +32,7 @@ export async function runCodemachineCli(argv: string[] = process.argv): Promise<
     const cwd = dir || process.cwd();
     process.env.CODEMACHINE_CWD = cwd;
 
-    await syncCodexConfig();
+    await codex.syncCodexConfig();
 
     // Only bootstrap if .codemachine folder doesn't exist
     const cmRoot = path.join(cwd, '.codemachine');

@@ -3,6 +3,7 @@ export type AgentDefinition = {
   model?: unknown;
   modelReasoningEffort?: unknown;
   model_reasoning_effort?: unknown;
+  engine?: 'codex' | 'claude'; // Engine to use for this agent
   [key: string]: unknown;
 };
 
