@@ -23,6 +23,7 @@ export interface AgentConfig {
   promptPath?: string;
   model?: string;
   modelReasoningEffort?: string;
+  engine?: 'codex' | 'claude';
   type?: string;
   [key: string]: unknown;
 }

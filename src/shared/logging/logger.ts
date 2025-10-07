@@ -2,6 +2,10 @@
  * Logger utility that respects LOG_LEVEL environment variable
  */
 
+declare global {
+  var __logLevelInitialized: boolean | undefined;
+}
+
 const LOG_LEVELS = {
   debug: 0,
   info: 1,
@@ -29,25 +33,25 @@ function shouldLog(level: LogLevel): boolean {
   return LOG_LEVELS[level] >= LOG_LEVELS[currentLevel];
 }
 
-export function debug(message: string, ...args: any[]): void {
+export function debug(message: string, ...args: unknown[]): void {
   if (shouldLog('debug')) {
     console.error(`[DEBUG] ${message}`, ...args);
   }
 }
 
-export function info(message: string, ...args: any[]): void {
+export function info(message: string, ...args: unknown[]): void {
   if (shouldLog('info')) {
     console.error(`[INFO] ${message}`, ...args);
   }
 }
 
-export function warn(message: string, ...args: any[]): void {
+export function warn(message: string, ...args: unknown[]): void {
   if (shouldLog('warn')) {
     console.error(`[WARN] ${message}`, ...args);
   }
 }
 
-export function error(message: string, ...args: any[]): void {
+export function error(message: string, ...args: unknown[]): void {
   if (shouldLog('error')) {
     console.error(`[ERROR] ${message}`, ...args);
   }

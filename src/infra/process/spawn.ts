@@ -1,5 +1,4 @@
 import crossSpawn from 'cross-spawn';
-import { logger } from '../../shared/logging/index.js';
 
 export interface SpawnOptions {
   command: string;
@@ -52,11 +51,11 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
       });
     }
 
-    child.once('error', (error) => {
+    child.once('error', (error: Error) => {
       reject(error);
     });
 
-    child.once('close', (code) => {
+    child.once('close', (code: number | null) => {
       const exitCode = code ?? 0;
       resolve({
         exitCode,

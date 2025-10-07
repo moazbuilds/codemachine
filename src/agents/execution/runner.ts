@@ -58,7 +58,7 @@ export interface ExecuteAgentOptions {
 /**
  * Ensures the engine is authenticated
  */
-async function ensureEngineAuth(engineType: EngineType, profile: string): Promise<void> {
+async function ensureEngineAuth(engineType: EngineType, _profile: string): Promise<void> {
   if (engineType === 'claude') {
     const isAuthed = await claude.isAuthenticated();
     if (!isAuthed) {

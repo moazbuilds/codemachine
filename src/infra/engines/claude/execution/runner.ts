@@ -62,7 +62,7 @@ function formatStreamJsonLine(line: string): string | null {
     }
 
     return null;
-  } catch (e) {
+  } catch {
     return null;
   }
 }
