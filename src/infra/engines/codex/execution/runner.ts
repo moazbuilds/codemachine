@@ -172,8 +172,16 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
   });
 
   if (result.exitCode !== 0) {
-    const snippet = result.stderr.trim().split('\n')[0]?.slice(0, 200) ?? 'no stderr output';
-    throw new Error(`Codex CLI exited with code ${result.exitCode}: ${snippet}`);
+    const errorOutput = result.stderr.trim() || result.stdout.trim() || 'no error output';
+    const lines = errorOutput.split('\n').slice(0, 10);
+
+    logger.error('Codex CLI execution failed', {
+      exitCode: result.exitCode,
+      error: lines.join('\n'),
+      command: `${command} ${args.join(' ')}`,
+    });
+
+    throw new Error(`Codex CLI exited with code ${result.exitCode}`);
   }
 
   return {
