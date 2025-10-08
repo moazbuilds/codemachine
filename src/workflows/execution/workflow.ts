@@ -57,6 +57,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
   const loopCounters = new Map<string, number>();
   let activeLoop: ActiveLoop | null = null;
+  const workflowStartTime = Date.now();
 
   for (let index = 0; index < template.steps.length; index += 1) {
     const step = template.steps[index];
@@ -76,7 +77,8 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     console.log(formatAgentLog(step.agentId, `${step.agentName} started to work.`));
 
     const { stdout: baseStdoutLogger, stderr: baseStderrLogger } = getAgentLoggers(step.agentId);
-    const spinnerState = startSpinner(step.agentName, step.engine);
+    const engineType = step.engine ?? 'codex';
+    const spinnerState = startSpinner(step.agentName, engineType, workflowStartTime);
     const { stdoutLogger, stderrLogger } = createSpinnerLoggers(
       baseStdoutLogger,
       baseStderrLogger,

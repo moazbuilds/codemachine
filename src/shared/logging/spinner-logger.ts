@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import readline from 'readline';
 
 export interface SpinnerState {
   interval: NodeJS.Timeout;
@@ -8,6 +9,11 @@ export interface SpinnerState {
   workflowStartTime: number;
 }
 
+function clearStatusLine(): void {
+  readline.clearLine(process.stdout, 0);
+  readline.cursorTo(process.stdout, 0);
+}
+
 export function createSpinnerLoggers(
   baseStdoutLogger: (chunk: string) => void,
   baseStderrLogger: (chunk: string) => void,
@@ -15,7 +21,7 @@ export function createSpinnerLoggers(
 ) {
   const stdoutLogger = (chunk: string) => {
     if (spinnerState.active) {
-      process.stdout.write('\r' + ' '.repeat(100) + '\r');
+      clearStatusLine();
       spinnerState.active = false;
     }
     spinnerState.lastOutputTime = Date.now();
@@ -23,7 +29,7 @@ export function createSpinnerLoggers(
   };
   const stderrLogger = (chunk: string) => {
     if (spinnerState.active) {
-      process.stdout.write('\r' + ' '.repeat(100) + '\r');
+      clearStatusLine();
       spinnerState.active = false;
     }
     spinnerState.lastOutputTime = Date.now();
@@ -59,7 +65,15 @@ export function startSpinner(agentName: string, engine?: string, workflowStartTi
       const engineDisplay = engine ? ` - Engine: ${engine.charAt(0).toUpperCase() + engine.slice(1)}` : '';
       const runtime = formatElapsedTime(spinnerState.workflowStartTime);
       // Special color for status indicator - dim yellow/orange
-      process.stdout.write('\r' + chalk.hex('#FFA500')(`${spinner} ${agentName} is running${engineDisplay}... | Workflow Runtime: ${runtime}`));
+      const baseMessage = `${spinner} ${agentName} is running${engineDisplay}... | Workflow Runtime: ${runtime}`;
+      const columns = typeof process.stdout.columns === 'number' && process.stdout.columns > 0 ? process.stdout.columns : 80;
+      const ellipsis = '...';
+      const needsTruncate = baseMessage.length > columns;
+      const maxContentWidth = Math.max(columns - ellipsis.length, 0);
+      const truncatedMessage =
+        needsTruncate && maxContentWidth > 0 ? `${baseMessage.slice(0, maxContentWidth)}${ellipsis}` : baseMessage.slice(0, columns);
+      clearStatusLine();
+      process.stdout.write(chalk.hex('#FFA500')(truncatedMessage));
       spinnerState.active = true;
       spinnerState.index++;
     }
@@ -70,5 +84,5 @@ export function startSpinner(agentName: string, engine?: string, workflowStartTi
 
 export function stopSpinner(spinnerState: SpinnerState): void {
   clearInterval(spinnerState.interval);
-  process.stdout.write('\r' + ' '.repeat(100) + '\r'); // Clear the status line
+  clearStatusLine(); // Clear the status line
 }
