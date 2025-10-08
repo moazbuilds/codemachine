@@ -16,6 +16,7 @@ export function buildCodexExecCommand(options: CodexCommandOptions): CodexComman
     command: 'codex',
     args: [
       'exec',
+      '--json',
       '--profile',
       profile,
       '--skip-git-repo-check',

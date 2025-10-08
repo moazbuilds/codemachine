@@ -5,6 +5,7 @@ export interface SpinnerState {
   active: boolean;
   lastOutputTime: number;
   index: number;
+  workflowStartTime: number;
 }
 
 export function createSpinnerLoggers(
@@ -31,13 +32,22 @@ export function createSpinnerLoggers(
   return { stdoutLogger, stderrLogger };
 }
 
-export function startSpinner(agentName: string, engine?: string): SpinnerState {
+function formatElapsedTime(startTime: number): string {
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const hours = Math.floor(elapsed / 3600);
+  const minutes = Math.floor((elapsed % 3600) / 60);
+  const seconds = elapsed % 60;
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+export function startSpinner(agentName: string, engine?: string, workflowStartTime?: number): SpinnerState {
   const spinnerChars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
   const spinnerState: SpinnerState = {
     interval: null as unknown as NodeJS.Timeout,
     active: false,
     lastOutputTime: Date.now(),
     index: 0,
+    workflowStartTime: workflowStartTime || Date.now(),
   };
 
   spinnerState.interval = setInterval(() => {
@@ -47,8 +57,9 @@ export function startSpinner(agentName: string, engine?: string): SpinnerState {
       const spinner = spinnerChars[spinnerState.index % spinnerChars.length];
       // Format engine name with proper capitalization
       const engineDisplay = engine ? ` - Engine: ${engine.charAt(0).toUpperCase() + engine.slice(1)}` : '';
+      const runtime = formatElapsedTime(spinnerState.workflowStartTime);
       // Special color for status indicator - dim yellow/orange
-      process.stdout.write('\r' + chalk.hex('#FFA500')(`${spinner} ${agentName} is running${engineDisplay}...`));
+      process.stdout.write('\r' + chalk.hex('#FFA500')(`${spinner} ${agentName} is running${engineDisplay}... | Workflow Runtime: ${runtime}`));
       spinnerState.active = true;
       spinnerState.index++;
     }

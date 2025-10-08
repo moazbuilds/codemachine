@@ -24,6 +24,57 @@ export interface RunCodexResult {
 
 const ANSI_ESCAPE_SEQUENCE = new RegExp(String.raw`\u001B\[[0-9;?]*[ -/]*[@-~]`, 'g');
 
+/**
+ * Formats a Codex stream-json line for display
+ */
+function formatCodexStreamJsonLine(line: string): string | null {
+  try {
+    const json = JSON.parse(line);
+
+    // Handle reasoning items (thinking)
+    if (json.type === 'item.completed' && json.item?.type === 'reasoning') {
+      return `🧠 THINKING: ${json.item.text}`;
+    }
+
+    // Handle command execution
+    if (json.type === 'item.started' && json.item?.type === 'command_execution') {
+      return `🔧 COMMAND: ${json.item.command}`;
+    }
+
+    if (json.type === 'item.completed' && json.item?.type === 'command_execution') {
+      const exitCode = json.item.exit_code ?? 0;
+      if (exitCode === 0) {
+        const preview = json.item.aggregated_output
+          ? json.item.aggregated_output.substring(0, 100) + '...'
+          : '';
+        return `✅ COMMAND RESULT: ${preview}`;
+      } else {
+        return `❌ COMMAND FAILED: Exit code ${exitCode}`;
+      }
+    }
+
+    // Handle agent messages
+    if (json.type === 'item.completed' && json.item?.type === 'agent_message') {
+      return `💬 MESSAGE: ${json.item.text}`;
+    }
+
+    // Handle turn/thread lifecycle events (skip these)
+    if (json.type === 'thread.started' || json.type === 'turn.started' || json.type === 'turn.completed') {
+      // Show usage info at turn completion
+      if (json.type === 'turn.completed' && json.usage) {
+        const { input_tokens, cached_input_tokens, output_tokens } = json.usage;
+        const totalIn = input_tokens + (cached_input_tokens || 0);
+        return `⏱️  Tokens: ${totalIn}in/${output_tokens}out${cached_input_tokens ? ` (${cached_input_tokens} cached)` : ''}`;
+      }
+      return null;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult> {
   const { profile, prompt, workingDir, env, onData, onErrorData, abortSignal, timeout = 600000 } = options;
 
@@ -94,7 +145,17 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
       ? undefined
       : (chunk) => {
           const out = normalize(chunk);
-          onData?.(out);
+
+          // Format and display each JSON line
+          const lines = out.trim().split('\n');
+          for (const line of lines) {
+            if (!line.trim()) continue;
+
+            const formatted = formatCodexStreamJsonLine(line);
+            if (formatted) {
+              onData?.(formatted + '\n');
+            }
+          }
         },
     onStderr: inheritTTY
       ? undefined
