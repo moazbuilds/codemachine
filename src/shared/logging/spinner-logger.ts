@@ -5,6 +5,7 @@ export interface SpinnerState {
   interval: NodeJS.Timeout;
   active: boolean;
   lastOutputTime: number;
+  lastClearTime: number;
   index: number;
   workflowStartTime: number;
 }
@@ -20,19 +21,25 @@ export function createSpinnerLoggers(
   spinnerState: SpinnerState,
 ) {
   const stdoutLogger = (chunk: string) => {
+    const now = Date.now();
+    // Always clear spinner if active to prevent text overlap
     if (spinnerState.active) {
       clearStatusLine();
       spinnerState.active = false;
+      spinnerState.lastClearTime = now;
     }
-    spinnerState.lastOutputTime = Date.now();
+    spinnerState.lastOutputTime = now;
     baseStdoutLogger(chunk);
   };
   const stderrLogger = (chunk: string) => {
+    const now = Date.now();
+    // Always clear spinner if active to prevent text overlap
     if (spinnerState.active) {
       clearStatusLine();
       spinnerState.active = false;
+      spinnerState.lastClearTime = now;
     }
-    spinnerState.lastOutputTime = Date.now();
+    spinnerState.lastOutputTime = now;
     baseStderrLogger(chunk);
   };
   return { stdoutLogger, stderrLogger };
@@ -48,18 +55,25 @@ function formatElapsedTime(startTime: number): string {
 
 export function startSpinner(agentName: string, engine?: string, workflowStartTime?: number): SpinnerState {
   const spinnerChars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+  const now = Date.now();
   const spinnerState: SpinnerState = {
     interval: null as unknown as NodeJS.Timeout,
     active: false,
-    lastOutputTime: Date.now(),
+    lastOutputTime: now,
+    lastClearTime: 0, // Initialize to 0 to allow first clear immediately
     index: 0,
-    workflowStartTime: workflowStartTime || Date.now(),
+    workflowStartTime: workflowStartTime || now,
   };
 
   spinnerState.interval = setInterval(() => {
-    const timeSinceLastOutput = Date.now() - spinnerState.lastOutputTime;
-    // Only show spinner if no output for 2 seconds
-    if (timeSinceLastOutput > 2000) {
+    const now = Date.now();
+    const timeSinceLastOutput = now - spinnerState.lastOutputTime;
+    const timeSinceLastClear = now - spinnerState.lastClearTime;
+
+    // Only show spinner if:
+    // 1. No output for 2 seconds
+    // 2. At least 1 second has passed since we last cleared it (prevents rapid reappearing)
+    if (timeSinceLastOutput > 2000 && timeSinceLastClear > 1000) {
       const spinner = spinnerChars[spinnerState.index % spinnerChars.length];
       // Format engine name with proper capitalization
       const engineDisplay = engine ? ` - Engine: ${engine.charAt(0).toUpperCase() + engine.slice(1)}` : '';
