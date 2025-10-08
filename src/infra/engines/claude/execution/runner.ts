@@ -1,6 +1,5 @@
 import * as path from 'node:path';
 import { homedir } from 'node:os';
-import { appendFileSync, existsSync, unlinkSync } from 'node:fs';
 
 import { spawnProcess } from '../../../process/spawn.js';
 import { buildClaudeExecCommand } from './commands.js';
@@ -125,14 +124,6 @@ export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeRes
   logger.debug(`Claude runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
   logger.debug(`Claude runner - args count: ${args.length}, model: ${model ?? 'default'}`);
 
-  // Path for saving raw JSON output
-  const outputPath = path.join(workingDir, 'output.txt');
-
-  // Clear previous output file
-  if (existsSync(outputPath)) {
-    unlinkSync(outputPath);
-  }
-
   const result = await spawnProcess({
     command,
     args,
@@ -143,9 +134,6 @@ export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeRes
       ? undefined
       : (chunk) => {
           const out = normalize(chunk);
-
-          // Save raw JSON to file
-          appendFileSync(outputPath, out, 'utf-8');
 
           // Format and display each JSON line
           const lines = out.trim().split('\n');
