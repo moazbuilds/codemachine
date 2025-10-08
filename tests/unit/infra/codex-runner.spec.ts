@@ -63,7 +63,7 @@ describe('runCodex', () => {
         prompt: 'Trigger failure',
         workingDir,
       }),
-    ).rejects.toThrow(/code 2: fatal: unable to launch/);
+    ).rejects.toThrow(/Codex CLI exited with code 2/);
   });
 
   it('forwards stdout and stderr chunks through the streaming callbacks', async () => {
