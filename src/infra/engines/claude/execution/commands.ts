@@ -44,7 +44,7 @@ function mapModel(model?: string): string | undefined {
 }
 
 export function buildClaudeExecCommand(options: ClaudeCommandOptions): ClaudeCommand {
-  const { prompt, model } = options;
+  const { model } = options;
 
   // Base args: --print for non-interactive mode, bypass permissions, streaming output
   const args: string[] = [
@@ -63,10 +63,8 @@ export function buildClaudeExecCommand(options: ClaudeCommandOptions): ClaudeCom
     args.push('--model', mappedModel);
   }
 
-  // Add the prompt as the last argument
-  args.push(prompt);
-
-  // Call claude directly - the runner passes cwd to spawnProcess
+  // Prompt is now passed via stdin instead of as an argument
+  // Call claude directly - the runner passes cwd and prompt to spawnProcess
   return {
     command: 'claude',
     args,

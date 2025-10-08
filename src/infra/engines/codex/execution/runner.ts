@@ -82,13 +82,14 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
   const { command, args } = buildCodexExecCommand({ profile, workingDir, prompt });
 
   logger.debug(`Codex runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
-  logger.debug(`Codex runner - args count: ${args.length}, last arg length: ${args[args.length - 1]?.length}`);
+  logger.debug(`Codex runner - args count: ${args.length}`);
 
   const result = await spawnProcess({
     command,
     args,
     cwd: workingDir,
     env: mergedEnv,
+    stdinInput: prompt, // Pass prompt via stdin instead of command-line argument
     onStdout: inheritTTY
       ? undefined
       : (chunk) => {

@@ -138,6 +138,7 @@ export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeRes
     args,
     cwd: workingDir,
     env: mergedEnv,
+    stdinInput: prompt, // Pass prompt via stdin instead of command-line argument
     onStdout: inheritTTY
       ? undefined
       : (chunk) => {

@@ -10,6 +10,7 @@ export interface SpawnOptions {
   signal?: AbortSignal;
   stdioMode?: 'pipe' | 'inherit';
   timeout?: number; // Timeout in milliseconds
+  stdinInput?: string; // Data to write to stdin
 }
 
 export interface SpawnResult {
@@ -19,7 +20,7 @@ export interface SpawnResult {
 }
 
 export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
-  const { command, args = [], cwd, env, onStdout, onStderr, signal, stdioMode = 'pipe', timeout } = options;
+  const { command, args = [], cwd, env, onStdout, onStderr, signal, stdioMode = 'pipe', timeout, stdinInput } = options;
 
   return new Promise((resolve, reject) => {
     // Use cross-spawn which properly handles .cmd files on Windows without shell issues
@@ -27,10 +28,16 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
     const child = crossSpawn(command, args, {
       cwd,
       env: env ? { ...process.env, ...env } : process.env,
-      stdio: stdioMode === 'inherit' ? ['ignore', 'inherit', 'inherit'] : ['ignore', 'pipe', 'pipe'],
+      stdio: stdioMode === 'inherit' ? ['ignore', 'inherit', 'inherit'] : ['pipe', 'pipe', 'pipe'],
       signal,
       timeout,
     });
+
+    // Write to stdin if data is provided
+    if (stdinInput && child.stdin) {
+      child.stdin.write(stdinInput);
+      child.stdin.end();
+    }
 
     const stdoutChunks: string[] = [];
     const stderrChunks: string[] = [];

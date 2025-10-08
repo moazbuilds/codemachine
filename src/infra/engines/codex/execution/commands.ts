@@ -10,7 +10,7 @@ export interface CodexCommand {
 }
 
 export function buildCodexExecCommand(options: CodexCommandOptions): CodexCommand {
-  const { profile, workingDir, prompt } = options;
+  const { profile, workingDir } = options;
 
   return {
     command: 'codex',
@@ -24,7 +24,7 @@ export function buildCodexExecCommand(options: CodexCommandOptions): CodexComman
       '--dangerously-bypass-approvals-and-sandbox',
       '-C',
       workingDir,
-      prompt,
+      // Prompt is now passed via stdin instead of as an argument
     ],
   };
 }
