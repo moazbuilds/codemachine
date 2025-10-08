@@ -25,6 +25,7 @@ export function buildCodexExecCommand(options: CodexCommandOptions): CodexComman
       '--dangerously-bypass-approvals-and-sandbox',
       '-C',
       workingDir,
+      '-', // Explicitly signal stdin prompt
       // Prompt is now passed via stdin instead of as an argument
     ],
   };

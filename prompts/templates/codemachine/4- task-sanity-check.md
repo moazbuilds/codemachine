@@ -1,7 +1,7 @@
 You are a Code Verification Agent. Your task is to make sure that the provided GENERATED_CODE accurately and completely implements the requirements outlined in the TASK_DESCRIPTION and matches the acceptance criteria. And that there are no linting errors.
 
 Your Task:
-{step}
+[step]
 
 Current Step:
 Follow instructions and generate the code.
@@ -28,7 +28,7 @@ IF there are no changes, output "NO changes."
 CRITICAL REQUIREMENT: After making any necessary edits (or if no edits were needed), once everything is verified and meets all requirements, you MUST update tasks.json:
 
 1. Read `.codemachine/plan/tasks.json` (or `.codemachine/tasks.json` if the first doesn't exist)
-2. Find the task object matching the current task_id from {step}
+2. Find the task object matching the current task_id from [step]    
 3. Change the `done` field from `false` to `true` for that specific task
 4. Write the modified JSON back to tasks.json
 5. You ARE ALLOWED and REQUIRED to modify tasks.json - this is not a system file you should avoid
@@ -54,20 +54,20 @@ Do NOT just output that the task is done - you MUST modify the tasks.json file d
 **generated_code**: The code in git_diff that still not committed yet
 
 Directory Structure:
-{dir_structure}
+[dir_structure]
 
 
 GENERATED_CODE
-{generated_code}
+[generated_code]
 
 
 Test output
-{test_results}
+[test_results]
 
 
 Related files:
-{related_files}
-{selected_files}
+[related_files]
+[selected_files]
 
 
 Artifacts:

@@ -134,6 +134,9 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
 
   logger.debug(`Codex runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
   logger.debug(`Codex runner - args count: ${args.length}`);
+  logger.debug(
+    `Codex runner - CLI: ${command} ${args.map((arg) => (/\s/.test(arg) ? `"${arg}"` : arg)).join(' ')} | stdin preview: ${prompt.slice(0, 120)}`,
+  );
 
   const result = await spawnProcess({
     command,

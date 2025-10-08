@@ -34,9 +34,12 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
     });
 
     // Write to stdin if data is provided
-    if (stdinInput && child.stdin) {
-      child.stdin.write(stdinInput);
-      child.stdin.end();
+    if (child.stdin) {
+      if (stdinInput !== undefined) {
+        child.stdin.end(stdinInput);
+      } else if (stdioMode === 'pipe') {
+        child.stdin.end();
+      }
     }
 
     const stdoutChunks: string[] = [];

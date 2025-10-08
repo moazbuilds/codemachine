@@ -32,6 +32,7 @@ describe('runCodex', () => {
     expect(callOptions?.command).toBe('codex');
     expect(callOptions?.args).toEqual([
       'exec',
+      '--json',
       '--profile',
       'default',
       '--skip-git-repo-check',
@@ -40,10 +41,11 @@ describe('runCodex', () => {
       '--dangerously-bypass-approvals-and-sandbox',
       '-C',
       workingDir,
-      'Hello Codex',
+      '-',
     ]);
     expect(callOptions?.cwd).toBe(workingDir);
     expect(callOptions?.env).toMatchObject({ CUSTOM: 'value', CODEX_HOME: expect.any(String) });
+    expect(callOptions?.stdinInput).toBe('Hello Codex');
     expect(callOptions?.onStdout).toBeTypeOf('function');
     expect(callOptions?.onStderr).toBeTypeOf('function');
   });
@@ -66,7 +68,12 @@ describe('runCodex', () => {
 
   it('forwards stdout and stderr chunks through the streaming callbacks', async () => {
     const spawnSpy = vi.spyOn(spawnModule, 'spawnProcess').mockImplementation(async (options) => {
-      options.onStdout?.('chunk-1');
+      options.onStdout?.(
+        JSON.stringify({
+          type: 'item.completed',
+          item: { type: 'agent_message', text: 'All tasks done' },
+        }) + '\n',
+      );
       options.onStderr?.('error-chunk');
       return {
         exitCode: 0,
@@ -86,7 +93,7 @@ describe('runCodex', () => {
       onErrorData: handleError,
     });
 
-    expect(handleData).toHaveBeenCalledWith('chunk-1');
+    expect(handleData).toHaveBeenCalledWith('💬 MESSAGE: All tasks done\n');
     expect(handleError).toHaveBeenCalledWith('error-chunk');
     expect(result).toEqual({ stdout: 'final output', stderr: 'final error output' });
     expect(spawnSpy).toHaveBeenCalledTimes(1);

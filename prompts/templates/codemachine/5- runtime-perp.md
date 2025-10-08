@@ -88,13 +88,13 @@ Follow the detailed instructions for each script:
 **Current Directory Structure:**
 (A representation of the project's file and directory layout)
 ~~~
-{dir_structure}
+[dir_structure]
 ~~~
 
 **Content of Related Files (if any exist):**
 (The current content of `tools/install.sh`, `tools/run.sh`, `tools/lint.sh`, or other relevant files. Use this to update existing scripts or as a reference.)
 ~~~
-{files}
+[files]
 ~~~
 
 ---

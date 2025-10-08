@@ -85,22 +85,22 @@ You are an expert developer working collaboratelly on a project. Given the follo
 
 ---
 
-Your task is to work on step: {step_id}
+Your task is to work on step: [step_id]
 Current Stage:
 Follow instructions and generate the code.
 
-Instructions for task "{step_id}":
-{step_instructions}
+Instructions for task "[step_id]":
+[step_instructions]
 
 Task Instructions:
-{instructions}
+[instructions]
 
 Directory Structure:
-{dir_structure}
+[dir_structure]
 
 Related files:
-{related_files}
-{selected_files}
+[related_files]
+[selected_files]
 
 Artifacts:
 {specifications}
