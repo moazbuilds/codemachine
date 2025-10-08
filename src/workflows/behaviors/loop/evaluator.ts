@@ -16,25 +16,47 @@ const ANSI_ESCAPE_SEQUENCE = new RegExp(String.raw`\u001B\[[0-9;?]*[ -/]*[@-~]`,
 const TELEMETRY_PREFIXES = [
   /^\[\d{4}-\d{2}-\d{2}T/i,
   /^tokens used:/i,
+  /^⏱️\s*Tokens:/i,
 ];
 
-function normaliseOutput(output: string): string {
+const OUTPUT_PREFIXES = [/^💬\s*MESSAGE:\s*/i];
+
+function normaliseOutput(output: string): string[] {
   const withoutAnsi = output.replace(ANSI_ESCAPE_SEQUENCE, '');
-  const filteredLines = withoutAnsi
+  return withoutAnsi
     .split(/\r?\n/)
-    .filter((line) => {
-      const trimmed = line.trim();
-      return trimmed.length > 0 && !TELEMETRY_PREFIXES.some((pattern) => pattern.test(trimmed));
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !TELEMETRY_PREFIXES.some((pattern) => pattern.test(line)))
+    .map((line) => {
+      for (const prefix of OUTPUT_PREFIXES) {
+        if (prefix.test(line)) {
+          return line.replace(prefix, '').trim();
+        }
+      }
+      return line;
     })
-    .join('\n');
-  return filteredLines;
+    .filter((line) => line.length > 0);
 }
 
-function extractLastToken(output: string): string {
-  const trimmed = normaliseOutput(output).trim();
-  if (!trimmed) return '';
-  const segments = trimmed.split(/\s+/);
-  return segments[segments.length - 1] ?? '';
+function containsTrigger(output: string, trigger: string): boolean {
+  const lines = normaliseOutput(output);
+  if (lines.length === 0) return false;
+
+  for (const line of lines) {
+    if (!line.includes(trigger)) {
+      continue;
+    }
+
+    const tokens = line.split(/\s+/);
+    for (const token of tokens) {
+      const cleanedToken = token.replace(/^[^\w=]+/, '').replace(/[^\w=]+$/, '');
+      if (cleanedToken === trigger) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 export function evaluateLoopBehavior(options: LoopEvaluationOptions): LoopEvaluationResult | null {
@@ -49,8 +71,7 @@ export function evaluateLoopBehavior(options: LoopEvaluationOptions): LoopEvalua
     return null;
   }
 
-  const lastToken = extractLastToken(output);
-  const triggerMatched = lastToken === trigger;
+  const triggerMatched = containsTrigger(output, trigger);
 
   if (!triggerMatched) {
     return {

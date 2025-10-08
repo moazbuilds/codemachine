@@ -88,7 +88,7 @@ describe('workflow modules', () => {
       expect(behavior?.maxIterations).toBeUndefined();
     });
 
-    it('ignores trigger when it does not match last token', () => {
+    it('ignores trigger when it is absent', () => {
       expect(baseBehavior).toBeTruthy();
       const result = evaluateLoopBehavior({
         behavior: baseBehavior,
@@ -114,6 +114,21 @@ describe('workflow modules', () => {
 
       expect(result).toMatchObject({ shouldRepeat: false, stepsBack: 1 });
       expect(result?.reason).toContain('loop limit');
+    });
+
+    it('handles Codex formatted output with message prefix and telemetry lines', () => {
+      expect(baseBehavior).toBeTruthy();
+      const output = [
+        '💬 MESSAGE: TASKS_COMPLETED=FALSE',
+        '⏱️  Tokens: 27012in/243out (11776 cached)',
+      ].join('\n');
+      const result = evaluateLoopBehavior({
+        behavior: baseBehavior,
+        output,
+        iterationCount: 0,
+      });
+
+      expect(result).toMatchObject({ shouldRepeat: true, stepsBack: 1 });
     });
   });
 });
