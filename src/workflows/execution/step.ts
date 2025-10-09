@@ -27,16 +27,22 @@ async function runAgentsBuilderStep(cwd: string): Promise<void> {
  * Ensures the engine is authenticated
  */
 async function ensureEngineAuth(engineType: EngineType, _profile: string): Promise<void> {
-  if (engineType === 'claude') {
-    const isAuthed = await claude.isAuthenticated();
-    if (!isAuthed) {
-      console.error(`\nClaude authentication required`);
-      console.error(`\nRun the following command to authenticate:\n`);
-      console.error(`  CLAUDE_CONFIG_DIR=~/.codemachine/claude claude setup-token\n`);
-      throw new Error('Claude authentication required');
-    }
-  } else if (engineType === 'codex') {
-    await codex.ensureAuth();
+  const { registry } = await import('../../infra/engines/registry.js');
+  const engine = registry.get(engineType);
+
+  if (!engine) {
+    const availableEngines = registry.getAllIds().join(', ');
+    throw new Error(
+      `Unknown engine type: ${engineType}. Available engines: ${availableEngines}`
+    );
+  }
+
+  const isAuthed = await engine.auth.isAuthenticated();
+  if (!isAuthed) {
+    console.error(`\n${engine.metadata.name} authentication required`);
+    console.error(`\nRun the following command to authenticate:\n`);
+    console.error(`  codemachine auth login\n`);
+    throw new Error(`${engine.metadata.name} authentication required`);
   }
 }
 

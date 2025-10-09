@@ -5,6 +5,20 @@
  * Supports profile-based execution, model mapping, and authentication management.
  */
 
+import type { EngineModule } from '../base/types.js';
+import { metadata } from './metadata.js';
+import * as auth from './auth.js';
+import { runClaude } from './execution/index.js';
+
+// Export all sub-modules
 export * from './auth.js';
 export * from './config.js';
 export * from './execution/index.js';
+export { metadata };
+
+// Export as EngineModule for auto-discovery
+export default {
+  metadata,
+  auth,
+  run: runClaude,
+} satisfies EngineModule;
