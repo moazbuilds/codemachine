@@ -105,7 +105,6 @@ export async function executeAgent(
   // Determine engine: CLI override > agent config > first authenticated engine
   const { registry } = await import('../../infra/engines/index.js');
   let engineType: EngineType;
-  let usedFallback = false;
 
   if (engineOverride) {
     engineType = engineOverride;
@@ -134,7 +133,6 @@ export async function executeAgent(
     }
 
     engineType = foundEngine.metadata.id;
-    usedFallback = true;
     console.log(`ℹ️  No engine specified for agent '${agentId}', using ${foundEngine.metadata.name} (${engineType})`);
   }
 

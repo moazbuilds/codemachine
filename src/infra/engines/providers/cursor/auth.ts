@@ -1,4 +1,4 @@
-import { stat, rm, writeFile, mkdir } from 'node:fs/promises';
+import { stat, rm, mkdir } from 'node:fs/promises';
 import * as path from 'node:path';
 import { homedir } from 'node:os';
 import { execa } from 'execa';

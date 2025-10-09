@@ -66,7 +66,7 @@ export async function runStartupFlow(): Promise<StartupFlowResult> {
           choices,
           initial: 0,
         });
-      } catch (error) {
+      } catch (_error) {
         console.error('\n⚠️  Authentication selection failed.');
         console.error('You can authenticate manually by running: codemachine auth login\n');
         console.error('Continuing without authentication...\n');

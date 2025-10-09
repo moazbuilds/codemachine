@@ -72,7 +72,8 @@ export function resolveModel(model?: string): string | undefined {
   }
 
   // If it's already a Cursor model name, return it
-  if (Object.values(CURSOR_MODELS).includes(model as any)) {
+  const cursorModelValues = Object.values(CURSOR_MODELS) as string[];
+  if (cursorModelValues.includes(model)) {
     return model;
   }
 

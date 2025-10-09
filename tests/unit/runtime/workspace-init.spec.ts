@@ -9,10 +9,16 @@ import { bootstrapWorkspace } from '../../../src/runtime/services/workspace/inde
 
 const require = createRequire(import.meta.url);
 
-const AGENTS_FIXTURE = `module.exports = [
-  { id: 'frontend-dev', name: 'Frontend Developer' },
-  { id: 'custom-agent', name: 'Custom Agent' }
+// Generate dynamic agent fixtures to avoid hardcoded agent names
+function generateAgentsFixture(timestamp: number): string {
+  return `module.exports = [
+  { id: 'test-agent-${timestamp}-1', name: 'Test Agent 1' },
+  { id: 'test-agent-${timestamp}-2', name: 'Test Agent 2' }
 ];`;
+}
+
+// Default fixture for most tests
+const AGENTS_FIXTURE = generateAgentsFixture(Date.now());
 
 function loadAgents(modulePath: string): Array<{ id: string }> {
   try {
@@ -105,8 +111,10 @@ describe('bootstrapWorkspace', () => {
     const expectedIds = buildExpectedOrder(projectAgents, cliSubAgents);
 
     expect(parsed.map((a) => a.id)).toEqual(expectedIds);
-    expect(parsed[0].promptPath).toBe('frontend-dev.md');
-    expect(parsed[1].promptPath).toBe('custom-agent.md');
+    // Dynamically check that prompt paths match agent IDs
+    const projectAgentsFromFixture = loadAgents(join(projectRoot, 'config', 'sub.agents.js'));
+    expect(parsed[0].promptPath).toBe(`${projectAgentsFromFixture[0].id}.md`);
+    expect(parsed[1].promptPath).toBe(`${projectAgentsFromFixture[1].id}.md`);
     await Promise.all(
       parsed.map((agent) => stat(join(desiredCwd, '.codemachine', 'agents', agent.promptPath))),
     );
@@ -131,7 +139,8 @@ describe('bootstrapWorkspace', () => {
     expect(second.mtimeMs).toBe(first.mtimeMs);
 
     // Now, change sub.agents.js and expect JSON to refresh
-    const UPDATED_AGENTS = `module.exports = [ { id: 'only-one' } ];`;
+    const updatedAgentId = `test-agent-updated-${Date.now()}`;
+    const UPDATED_AGENTS = `module.exports = [ { id: '${updatedAgentId}' } ];`;
     await writeFile(join(projectRoot, 'config', 'sub.agents.js'), UPDATED_AGENTS, 'utf8');
 
     // ensure filesystem mtime can change on many FS
@@ -146,8 +155,8 @@ describe('bootstrapWorkspace', () => {
     const cliAgentsForOrder = buildExpectedOrder(latestProjectAgents, cliSubAgents);
 
     expect(updatedContent.map((agent: { id: string }) => agent.id)).toEqual(cliAgentsForOrder);
-    expect(updatedContent[0]).toEqual({ id: 'only-one', promptPath: 'only-one.md' });
-    await stat(join(desiredCwd, '.codemachine', 'agents', 'only-one.md'));
+    expect(updatedContent[0]).toEqual({ id: updatedAgentId, promptPath: `${updatedAgentId}.md` });
+    await stat(join(desiredCwd, '.codemachine', 'agents', `${updatedAgentId}.md`));
   });
 
   it('respects CODEMACHINE_CWD environment override when cwd not provided', async () => {

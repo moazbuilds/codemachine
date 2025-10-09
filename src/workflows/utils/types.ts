@@ -12,7 +12,7 @@ export interface WorkflowStep {
   agentId: string;
   agentName: string;
   promptPath: string;
-  model: string;
+  model?: string;
   modelReasoningEffort?: string;
   engine?: string; // Dynamic engine type from registry
   module?: ModuleMetadata;

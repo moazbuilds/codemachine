@@ -3,7 +3,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import * as spawnModule from '../../../src/infra/process/spawn.js';
-import { runCodex } from '../../../src/infra/engines/codex/index.js';
+import { runCodex } from '../../../src/infra/engines/providers/codex/index.js';
 
 describe('Engine Runner', () => {
   const workingDir = '/tmp/workspace/project';
