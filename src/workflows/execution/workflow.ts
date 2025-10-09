@@ -88,6 +88,44 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     let engineType: string;
     if (step.engine) {
       engineType = step.engine;
+
+      // If an override is provided but not authenticated, log and fall back
+      const overrideEngine = registry.get(engineType);
+      const isOverrideAuthed = overrideEngine ? await overrideEngine.auth.isAuthenticated() : false;
+      if (!isOverrideAuthed) {
+        const pretty = overrideEngine?.metadata.name ?? engineType;
+        console.error(
+          formatAgentLog(
+            step.agentId,
+            `${pretty} override is not authenticated; falling back to first authenticated engine by order. Run 'codemachine auth login' to use ${pretty}.`,
+          ),
+        );
+
+        // Find first authenticated engine by order
+        const engines = registry.getAll();
+        let fallbackEngine = null as typeof overrideEngine | null;
+        for (const eng of engines) {
+          if (await eng.auth.isAuthenticated()) {
+            fallbackEngine = eng;
+            break;
+          }
+        }
+
+        // If none authenticated, fall back to registry default (may still require auth)
+        if (!fallbackEngine) {
+          fallbackEngine = registry.getDefault() ?? null;
+        }
+
+        if (fallbackEngine) {
+          engineType = fallbackEngine.metadata.id;
+          console.log(
+            formatAgentLog(
+              step.agentId,
+              `Falling back to ${fallbackEngine.metadata.name} (${engineType})`,
+            ),
+          );
+        }
+      }
     } else {
       // Fallback: find first authenticated engine by order
       const engines = registry.getAll();
