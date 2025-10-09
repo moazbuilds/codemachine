@@ -52,7 +52,7 @@ describe('auth flow', () => {
     expect(await isAuthenticated()).toBe(true);
   });
 
-  it('triggers codex login and creates auth.json when unauthenticated', async () => {
+  it('triggers engine login and creates auth.json when unauthenticated', async () => {
     const prevSkip = process.env.CODEMACHINE_SKIP_AUTH;
     delete process.env.CODEMACHINE_SKIP_AUTH;
 
@@ -95,7 +95,7 @@ describe('auth flow', () => {
     }
   });
 
-  it('does not call codex login when already authenticated and supports clearing', async () => {
+  it('does not call engine login when already authenticated and supports clearing', async () => {
     const codexHome = await resolveCodexHome();
     const authPath = getAuthFilePath(codexHome);
     await mkdir(dirname(authPath), { recursive: true });

@@ -14,8 +14,8 @@ if (!globalScope.TextDecoder) {
   globalScope.TextDecoder = TextDecoder;
 }
 
-if (!process.env.CODEMACHINE_SKIP_CODEX) {
-  process.env.CODEMACHINE_SKIP_CODEX = '1';
+if (!process.env.CODEMACHINE_SKIP_ENGINE) {
+  process.env.CODEMACHINE_SKIP_ENGINE = '1';
 }
 
 if (!process.env.CODEMACHINE_SKIP_AUTH) {

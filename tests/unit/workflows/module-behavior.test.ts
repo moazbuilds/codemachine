@@ -116,7 +116,7 @@ describe('workflow modules', () => {
       expect(result?.reason).toContain('loop limit');
     });
 
-    it('handles Codex formatted output with message prefix and telemetry lines', () => {
+    it('handles engine formatted output with message prefix and telemetry lines', () => {
       expect(baseBehavior).toBeTruthy();
       const output = [
         '💬 MESSAGE: TASKS_COMPLETED=FALSE',

@@ -5,27 +5,27 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as spawnModule from '../../../src/infra/process/spawn.js';
 import { runCodex } from '../../../src/infra/engines/codex/index.js';
 
-describe('runCodex', () => {
+describe('Engine Runner', () => {
   const workingDir = '/tmp/workspace/project';
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('runs the Codex CLI and returns stdout', async () => {
+  it('runs the engine CLI and returns stdout', async () => {
     const spawnSpy = vi.spyOn(spawnModule, 'spawnProcess').mockResolvedValue({
       exitCode: 0,
-      stdout: 'codex output',
+      stdout: 'engine output',
       stderr: '',
     });
 
     const result = await runCodex({
       profile: 'default',
-      prompt: 'Hello Codex',
+      prompt: 'Hello Engine',
       workingDir,
       env: { CUSTOM: 'value' },
     });
 
-    expect(result).toEqual({ stdout: 'codex output', stderr: '' });
+    expect(result).toEqual({ stdout: 'engine output', stderr: '' });
     expect(spawnSpy).toHaveBeenCalledTimes(1);
 
     const callOptions = spawnSpy.mock.calls[0]?.[0];
@@ -45,12 +45,12 @@ describe('runCodex', () => {
     ]);
     expect(callOptions?.cwd).toBe(workingDir);
     expect(callOptions?.env).toMatchObject({ CUSTOM: 'value', CODEX_HOME: expect.any(String) });
-    expect(callOptions?.stdinInput).toBe('Hello Codex');
+    expect(callOptions?.stdinInput).toBe('Hello Engine');
     expect(callOptions?.onStdout).toBeTypeOf('function');
     expect(callOptions?.onStderr).toBeTypeOf('function');
   });
 
-  it('throws when the Codex CLI exits with a non-zero status code', async () => {
+  it('throws when the engine CLI exits with a non-zero status code', async () => {
     vi.spyOn(spawnModule, 'spawnProcess').mockResolvedValue({
       exitCode: 2,
       stdout: '',
@@ -63,7 +63,7 @@ describe('runCodex', () => {
         prompt: 'Trigger failure',
         workingDir,
       }),
-    ).rejects.toThrow(/Codex CLI exited with code 2/);
+    ).rejects.toThrow(/CLI exited with code 2/);
   });
 
   it('forwards stdout and stderr chunks through the streaming callbacks', async () => {

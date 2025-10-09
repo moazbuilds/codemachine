@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..', '..');
 const distEntry = path.join(projectRoot, 'dist', 'index.js');
 const fixturesRoot = path.join(projectRoot, 'tests', 'fixtures');
-const codexFixturesDir = path.join(fixturesRoot, 'codex');
+const engineFixturesDir = path.join(fixturesRoot, 'codex');
 const activeProcesses = new Set<ChildProcessWithoutNullStreams>();
 
 const ANSI_ESCAPE_REGEX = new RegExp(String.raw`\u001B\[[0-9;?]*[ -/]*[@-~]`, 'g');
@@ -148,7 +148,7 @@ describe('codemachine CLI smoke', () => {
   it('shows the interactive start menu', async () => {
     const result = await runCommand('node', ['dist/index.js', 'start', '--force'], {
       env: {
-        CODEX_HOME: codexFixturesDir,
+        CODEX_HOME: engineFixturesDir,
       },
       captureStdoutWithRedirect: true,
     });
