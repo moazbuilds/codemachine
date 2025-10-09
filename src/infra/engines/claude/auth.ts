@@ -50,6 +50,11 @@ export function getClaudeAuthPaths(configDir: string): string[] {
  * Checks if Claude is authenticated for the given profile
  */
 export async function isAuthenticated(options?: ClaudeAuthOptions): Promise<boolean> {
+  // Check if token is set via environment variable
+  if (process.env.CLAUDE_CODE_OAUTH_TOKEN) {
+    return true;
+  }
+
   const configDir = resolveClaudeConfigDir(options);
   const credPath = getCredentialsPath(configDir);
 
@@ -65,6 +70,11 @@ export async function isAuthenticated(options?: ClaudeAuthOptions): Promise<bool
  * Ensures Claude is authenticated, running setup-token if needed
  */
 export async function ensureAuth(options?: ClaudeAuthOptions): Promise<boolean> {
+  // Check if token is already set via environment variable
+  if (process.env.CLAUDE_CODE_OAUTH_TOKEN) {
+    return true;
+  }
+
   const configDir = resolveClaudeConfigDir(options);
   const credPath = getCredentialsPath(configDir);
 
@@ -85,6 +95,9 @@ export async function ensureAuth(options?: ClaudeAuthOptions): Promise<boolean> 
   }
 
   // Run interactive setup-token via Claude CLI with proper env
+  console.log(`\nRunning Claude authentication...\n`);
+  console.log(`Config directory: ${configDir}\n`);
+
   await execa('claude', ['setup-token'], {
     env: { ...process.env, CLAUDE_CONFIG_DIR: configDir },
     stdio: 'inherit',
@@ -93,11 +106,21 @@ export async function ensureAuth(options?: ClaudeAuthOptions): Promise<boolean> 
   // Verify the credentials were created
   try {
     await stat(credPath);
+    return true;
   } catch {
-    throw new Error('Claude setup-token failed to create credentials');
-  }
+    // Credentials file wasn't created - Claude CLI returned token instead
+    console.error(`\n────────────────────────────────────────────────────────────`);
+    console.error(`  ℹ️  Claude CLI Authentication Notice`);
+    console.error(`────────────────────────────────────────────────────────────`);
+    console.error(`\nYour Claude CLI installation uses token-based authentication.`);
+    console.error(`Please set the token you received as an environment variable:\n`);
+    console.error(`  export CLAUDE_CODE_OAUTH_TOKEN=<your-token>\n`);
+    console.error(`For persistence, add this line to your shell configuration:`);
+    console.error(`  ~/.bashrc (Bash) or ~/.zshrc (Zsh)\n`);
+    console.error(`────────────────────────────────────────────────────────────\n`);
 
-  return true;
+    throw new Error('Authentication incomplete. Please set CLAUDE_CODE_OAUTH_TOKEN environment variable.');
+  }
 }
 
 /**
