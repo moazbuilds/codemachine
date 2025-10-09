@@ -130,5 +130,37 @@ describe('workflow modules', () => {
 
       expect(result).toMatchObject({ shouldRepeat: true, stepsBack: 1 });
     });
+
+    it('handles output with thinking prefix followed by message', () => {
+      expect(baseBehavior).toBeTruthy();
+      const output = [
+        '🧠 THINKING: TASKS_COMPLETED=FALSE',
+        '💬 MESSAGE: TASKS_COMPLETED=FALSE',
+        '⏱️  Tokens: 27095in/294out (11776 cached)',
+      ].join('\n');
+      const result = evaluateLoopBehavior({
+        behavior: baseBehavior,
+        output,
+        iterationCount: 0,
+      });
+
+      expect(result).toMatchObject({ shouldRepeat: true, stepsBack: 1 });
+    });
+
+    it('filters out JSON telemetry lines', () => {
+      expect(baseBehavior).toBeTruthy();
+      const output = [
+        '💬 MESSAGE: TASKS_COMPLETED=FALSE',
+        '⏱️  Tokens: 34153in/493out (11776 cached)',
+        '{"type":"turn.completed","usage":{"input_tokens":22377,"cached_input_tokens":11776,"output_tokens":493}}',
+      ].join('\n');
+      const result = evaluateLoopBehavior({
+        behavior: baseBehavior,
+        output,
+        iterationCount: 0,
+      });
+
+      expect(result).toMatchObject({ shouldRepeat: true, stepsBack: 1 });
+    });
   });
 });

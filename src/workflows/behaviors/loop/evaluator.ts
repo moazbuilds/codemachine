@@ -21,12 +21,27 @@ const TELEMETRY_PREFIXES = [
 
 const OUTPUT_PREFIXES = [/^💬\s*MESSAGE:\s*/i];
 
+function isJsonTelemetry(line: string): boolean {
+  if (!line.startsWith('{')) return false;
+  try {
+    const parsed = JSON.parse(line);
+    return parsed && typeof parsed === 'object' && ('type' in parsed || 'usage' in parsed);
+  } catch {
+    return false;
+  }
+}
+
 function normaliseOutput(output: string): string[] {
   const withoutAnsi = output.replace(ANSI_ESCAPE_SEQUENCE, '');
   return withoutAnsi
     .split(/\r?\n/)
     .map((line) => line.trim())
-    .filter((line) => line.length > 0 && !TELEMETRY_PREFIXES.some((pattern) => pattern.test(line)))
+    .filter((line) => {
+      if (line.length === 0) return false;
+      if (TELEMETRY_PREFIXES.some((pattern) => pattern.test(line))) return false;
+      if (isJsonTelemetry(line)) return false;
+      return true;
+    })
     .map((line) => {
       for (const prefix of OUTPUT_PREFIXES) {
         if (prefix.test(line)) {
