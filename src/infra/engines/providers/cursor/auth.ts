@@ -1,4 +1,4 @@
-import { stat, rm, mkdir } from 'node:fs/promises';
+import { stat, rm, mkdir, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { homedir } from 'node:os';
 import { execa } from 'execa';
@@ -41,11 +41,11 @@ export function resolveCursorConfigDir(options?: CursorAuthOptions): string {
 }
 
 /**
- * Gets the path to the .cursor folder
- * Cursor stores authentication data in .cursor folder
+ * Gets the path to cursor's cli-config.json file
+ * Cursor stores configuration and authentication data here
  */
-export function getCursorAuthPath(configDir: string): string {
-  return path.join(configDir, '.cursor');
+export function getCursorConfigPath(configDir: string): string {
+  return path.join(configDir, 'cli-config.json');
 }
 
 /**
@@ -53,7 +53,9 @@ export function getCursorAuthPath(configDir: string): string {
  */
 export function getCursorAuthPaths(configDir: string): string[] {
   return [
-    getCursorAuthPath(configDir), // .cursor folder
+    getCursorConfigPath(configDir), // cli-config.json
+    path.join(configDir, 'chats'),   // chats directory
+    path.join(configDir, 'projects'), // projects directory
   ];
 }
 
@@ -62,12 +64,12 @@ export function getCursorAuthPaths(configDir: string): string[] {
  */
 export async function isAuthenticated(options?: CursorAuthOptions): Promise<boolean> {
   const configDir = resolveCursorConfigDir(options);
-  const authPath = getCursorAuthPath(configDir);
+  const configPath = getCursorConfigPath(configDir);
 
   try {
-    const stats = await stat(authPath);
-    // Check if .cursor exists and is a directory
-    return stats.isDirectory();
+    const stats = await stat(configPath);
+    // Check if cli-config.json exists and is a file
+    return stats.isFile();
   } catch (_error) {
     return false;
   }
@@ -78,21 +80,22 @@ export async function isAuthenticated(options?: CursorAuthOptions): Promise<bool
  */
 export async function ensureAuth(options?: CursorAuthOptions): Promise<boolean> {
   const configDir = resolveCursorConfigDir(options);
-  const authPath = getCursorAuthPath(configDir);
+  const configPath = getCursorConfigPath(configDir);
 
   // If already authenticated, nothing to do
   try {
-    const stats = await stat(authPath);
-    if (stats.isDirectory()) {
+    const stats = await stat(configPath);
+    if (stats.isFile()) {
       return true;
     }
   } catch {
-    // Auth folder doesn't exist
+    // Config file doesn't exist
   }
 
   if (process.env.CODEMACHINE_SKIP_AUTH === '1') {
     // Create a placeholder for testing/dry-run mode
-    await mkdir(authPath, { recursive: true });
+    await mkdir(configDir, { recursive: true });
+    await writeFile(configPath, JSON.stringify({ version: 1 }), 'utf8');
     return true;
   }
 
@@ -113,28 +116,36 @@ export async function ensureAuth(options?: CursorAuthOptions): Promise<boolean> 
   console.log(`\nRunning Cursor authentication...\n`);
   console.log(`Config directory: ${configDir}\n`);
 
+  // Ensure the config directory exists before login
+  await mkdir(configDir, { recursive: true });
+
+  // Set CURSOR_CONFIG_DIR to control where cursor-agent stores authentication
   await execa('cursor-agent', ['login'], {
-    env: { ...process.env },
-    cwd: configDir,
+    env: {
+      ...process.env,
+      CURSOR_CONFIG_DIR: configDir,
+    },
     stdio: 'inherit',
   });
 
-  // Verify the auth folder was created
+  // Verify the config file was created
   try {
-    const stats = await stat(authPath);
-    if (stats.isDirectory()) {
+    const stats = await stat(configPath);
+    if (stats.isFile()) {
       return true;
     }
   } catch {
-    // Auth folder wasn't created
+    // Config file wasn't created
     console.error(`\n────────────────────────────────────────────────────────────`);
     console.error(`  ℹ️  Cursor CLI Authentication Notice`);
     console.error(`────────────────────────────────────────────────────────────`);
     console.error(`\nCursor authentication was not completed successfully.`);
-    console.error(`Please try running 'cursor-agent login' manually.\n`);
+    console.error(`The config file was not created at: ${configPath}`);
+    console.error(`\nPlease try running 'cursor-agent login' manually with:`);
+    console.error(`  CURSOR_CONFIG_DIR="${configDir}" cursor-agent login\n`);
     console.error(`────────────────────────────────────────────────────────────\n`);
 
-    throw new Error('Authentication incomplete. Please run cursor-agent login manually.');
+    throw new Error('Authentication incomplete. Config file was not created.');
   }
 
   return true;

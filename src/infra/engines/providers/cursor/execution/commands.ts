@@ -67,7 +67,7 @@ export function buildCursorExecCommand(options: CursorCommandOptions): CursorCom
 
   // Add custom config directory if specified
   if (cursorConfigDir) {
-    args.push('--user-data-dir', cursorConfigDir);
+    args.push(cursorConfigDir);
   }
 
   // Prompt is now passed via stdin instead of as an argument

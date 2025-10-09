@@ -114,6 +114,11 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       console.log(formatAgentLog(step.agentId, `No engine specified, using ${foundEngine.metadata.name} (${engineType})`));
     }
 
+    // Ensure the selected engine is used during execution
+    // (executeStep falls back to default engine if step.engine is unset)
+    // Mutate current step to carry the chosen engine forward
+    (step as any).engine = engineType;
+
     const spinnerState = startSpinner(step.agentName, engineType, workflowStartTime);
     const { stdoutLogger, stderrLogger } = createSpinnerLoggers(
       baseStdoutLogger,

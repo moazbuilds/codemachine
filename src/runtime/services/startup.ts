@@ -82,11 +82,13 @@ export async function runStartupFlow(): Promise<StartupFlowResult> {
         } else {
           try {
             await engine.auth.ensureAuth();
-            console.log('Authentication successful.\n');
+            console.log('✅ Authentication successful.\n');
           } catch (error) {
             console.error('\n⚠️  Authentication failed:', error instanceof Error ? error.message : String(error));
-            console.error('You can retry by running: codemachine auth login\n');
-            // Continue anyway - some commands may work without auth
+            console.error('\nPlease try again or authenticate manually by running:');
+            console.error(`  codemachine auth login\n`);
+            console.error('Exiting...\n');
+            process.exit(1);
           }
         }
       } else if (shouldLogin) {
