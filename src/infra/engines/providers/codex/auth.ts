@@ -21,8 +21,13 @@ async function resolveCodexHome(codexHome?: string): Promise<string> {
  */
 async function isCliInstalled(command: string): Promise<boolean> {
   try {
-    await execa(command, ['--version'], { timeout: 3000, reject: false });
-    return true;
+    const result = await execa(command, ['--version'], { timeout: 3000, reject: false });
+    if (typeof result.exitCode === 'number' && result.exitCode === 0) return true;
+    const out = `${result.stdout ?? ''}\n${result.stderr ?? ''}`;
+    if (/not recognized as an internal or external command/i.test(out)) return false;
+    if (/command not found/i.test(out)) return false;
+    if (/No such file or directory/i.test(out)) return false;
+    return false;
   } catch {
     return false;
   }
