@@ -15,7 +15,7 @@
 
 ### What is CodeMachine CLI?
 
-CodeMachine CLI is a multi-agent workflow orchestration framework that transforms project specifications into production-ready codebases. You feed it a spec, and CodeMachine orchestrates top-tier agents like Claude CLI and Codex CLI end-to-end to deliver complex builds while you define the workflow. It also coordinates additional providers (Gemini CLI, Qwen Coder) in parallel so each agent tackles the slice it does best.
+CodeMachine CLI is a multi-agent workflow orchestration framework that transforms project specifications into production-ready codebases. You feed it a spec, and CodeMachine orchestrates top-tier agents like Claude CLI, Codex CLI, and Cursor AI end-to-end to deliver complex builds while you define the workflow. It also coordinates additional providers (Gemini CLI, Qwen Coder) in parallel so each agent tackles the slice it does best.
 
 **Why CodeMachine?**
 
@@ -71,6 +71,13 @@ On first run, CodeMachine creates a `.codemachine/` folder. Write your project r
   </tr>
   <tr>
     <td align="center" style="padding: 10px; font-size: 15px;"><strong>Claude Code</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+  </tr>
+  <tr>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Cursor AI</strong></td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>

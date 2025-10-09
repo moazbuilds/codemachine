@@ -8,6 +8,7 @@ import { isEngineModule } from './base.js';
 // Import all engines at compile time
 import codexEngine from '../providers/codex/index.js';
 import claudeEngine from '../providers/claude/index.js';
+import cursorEngine from '../providers/cursor/index.js';
 
 /**
  * Engine Registry - Singleton that manages all available engines
@@ -30,6 +31,7 @@ class EngineRegistry {
     const engineModules = [
       codexEngine,
       claudeEngine,
+      cursorEngine,
       // Add new engines here
     ];
 
