@@ -1,7 +1,7 @@
 import * as path from 'node:path';
 
-import type { EngineType } from '../../infra/engines/types.js';
-import { getEngine } from '../../infra/engines/engine-factory.js';
+import type { EngineType } from '../../infra/engines/index.js';
+import { getEngine } from '../../infra/engines/index.js';
 import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
 import { MemoryStore } from '../memory/memory-store.js';
 import { loadAgentConfig } from './config.js';
@@ -58,7 +58,7 @@ export interface ExecuteAgentOptions {
  * Ensures the engine is authenticated
  */
 async function ensureEngineAuth(engineType: EngineType, _profile: string): Promise<void> {
-  const { registry } = await import('../../infra/engines/registry.js');
+  const { registry } = await import('../../infra/engines/index.js');
   const engine = registry.get(engineType);
 
   if (!engine) {
@@ -103,7 +103,7 @@ export async function executeAgent(
   const agentConfig = await loadAgentConfig(agentId, projectRoot ?? workingDir);
 
   // Determine engine: CLI override > agent config > first authenticated engine
-  const { registry } = await import('../../infra/engines/registry.js');
+  const { registry } = await import('../../infra/engines/index.js');
   let engineType: EngineType;
   let usedFallback = false;
 

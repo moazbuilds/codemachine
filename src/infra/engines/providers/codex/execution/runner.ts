@@ -1,10 +1,10 @@
 import * as path from 'node:path';
 import { homedir } from 'node:os';
 
-import { spawnProcess } from '../../../process/spawn.js';
+import { spawnProcess } from '../../../../process/spawn.js';
 import { buildCodexExecCommand } from './commands.js';
-import { expandHomeDir } from '../../../../shared/utils/index.js';
-import { logger } from '../../../../shared/logging/index.js';
+import { expandHomeDir } from '../../../../../shared/utils/index.js';
+import { logger } from '../../../../../shared/logging/index.js';
 
 export interface RunCodexOptions {
   profile: string;

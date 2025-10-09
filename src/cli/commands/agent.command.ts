@@ -12,7 +12,7 @@ type AgentCommandOptions = {
  */
 async function registerMainAgentCommand(program: Command): Promise<void> {
   // Import registry to get default engine name
-  const { registry } = await import('../../infra/engines/registry.js');
+  const { registry } = await import('../../infra/engines/index.js');
   const defaultEngine = registry.getDefault();
   const defaultEngineName = defaultEngine?.metadata.name ?? 'default engine';
 
@@ -42,7 +42,7 @@ async function registerMainAgentCommand(program: Command): Promise<void> {
  */
 function registerEngineAgentCommands(program: Command): void {
   // Import registry dynamically to avoid circular dependencies
-  import('../../infra/engines/registry.js').then(({ registry }) => {
+  import('../../infra/engines/index.js').then(({ registry }) => {
     // Register a subcommand for each engine in the registry
     for (const engine of registry.getAll()) {
       const engineCommand = program

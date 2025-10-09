@@ -2,12 +2,12 @@
  * Engine Registry - Auto-discovers and manages engine plugins
  */
 
-import type { EngineModule, EngineMetadata } from './base/types.js';
-import { isEngineModule } from './base/types.js';
+import type { EngineModule, EngineMetadata } from './base.js';
+import { isEngineModule } from './base.js';
 
 // Import all engines at compile time
-import codexEngine from './codex/index.js';
-import claudeEngine from './claude/index.js';
+import codexEngine from '../providers/codex/index.js';
+import claudeEngine from '../providers/claude/index.js';
 
 /**
  * Engine Registry - Singleton that manages all available engines

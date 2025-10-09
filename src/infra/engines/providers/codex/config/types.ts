@@ -1,4 +1,4 @@
-import type { AgentDefinition } from '../../../../shared/agents/index.js';
+import type { AgentDefinition } from '../../../../../shared/agents/index.js';
 
 export type { AgentDefinition };
 

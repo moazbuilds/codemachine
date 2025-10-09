@@ -1,8 +1,8 @@
 import * as path from 'node:path';
 import { readFile, mkdir } from 'node:fs/promises';
 import type { WorkflowStep } from '../templates/index.js';
-import type { EngineType } from '../../infra/engines/types.js';
-import { getEngine } from '../../infra/engines/engine-factory.js';
+import type { EngineType } from '../../infra/engines/index.js';
+import { getEngine } from '../../infra/engines/index.js';
 import { processPromptString } from '../../shared/prompts/index.js';
 
 export interface StepExecutorOptions {
@@ -26,7 +26,7 @@ async function runAgentsBuilderStep(cwd: string): Promise<void> {
  * Ensures the engine is authenticated
  */
 async function ensureEngineAuth(engineType: EngineType, _profile: string): Promise<void> {
-  const { registry } = await import('../../infra/engines/registry.js');
+  const { registry } = await import('../../infra/engines/index.js');
   const engine = registry.get(engineType);
 
   if (!engine) {
@@ -68,7 +68,7 @@ export async function executeStep(
       : 600000);
 
   // Determine engine: step override > default to first registered engine
-  const { registry } = await import('../../infra/engines/registry.js');
+  const { registry } = await import('../../infra/engines/index.js');
   const defaultEngine = registry.getDefault();
   if (!defaultEngine) {
     throw new Error('No engines registered. Please install at least one engine.');

@@ -2,7 +2,7 @@
  * Base types and interfaces for the engine plugin system
  */
 
-import type { EngineRunOptions, EngineRunResult } from '../types.js';
+import type { EngineRunOptions, EngineRunResult } from './types.js';
 
 /**
  * Engine metadata - describes the engine for auto-discovery

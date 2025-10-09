@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { homedir } from 'node:os';
 import { execa } from 'execa';
 
-import { expandHomeDir } from '../../../shared/utils/index.js';
+import { expandHomeDir } from '../../../../shared/utils/index.js';
 import { metadata } from './metadata.js';
 
 /**

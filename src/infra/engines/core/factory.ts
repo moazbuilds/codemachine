@@ -1,5 +1,5 @@
 import type { Engine, EngineType, EngineRunOptions, EngineRunResult } from './types.js';
-import type { EngineModule } from './base/types.js';
+import type { EngineModule } from './base.js';
 import { registry } from './registry.js';
 
 /**

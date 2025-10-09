@@ -1,4 +1,4 @@
-import type { EngineMetadata } from '../base/types.js';
+import type { EngineMetadata } from '../../core/base.js';
 
 export const metadata: EngineMetadata = {
   id: 'codex',

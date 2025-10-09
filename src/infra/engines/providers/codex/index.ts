@@ -1,4 +1,4 @@
-import type { EngineModule } from '../base/types.js';
+import type { EngineModule } from '../../core/base.js';
 import { metadata } from './metadata.js';
 import * as auth from './auth.js';
 import { runCodex } from './execution/index.js';

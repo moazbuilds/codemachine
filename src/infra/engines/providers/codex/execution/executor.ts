@@ -1,37 +1,34 @@
 import * as path from 'node:path';
 
-import { runClaude } from './runner.js';
-import { MemoryAdapter } from '../../../fs/memory-adapter.js';
-import { MemoryStore } from '../../../../agents/index.js';
+import { runCodex } from './runner.js';
+import { MemoryAdapter } from '../../../../fs/memory-adapter.js';
+import { MemoryStore } from '../../../../../agents/index.js';
 
 export interface RunAgentOptions {
   abortSignal?: AbortSignal;
   logger?: (chunk: string) => void;
   stderrLogger?: (chunk: string) => void;
   timeout?: number; // Timeout in milliseconds (default: 600000ms = 10 minutes)
-  model?: string; // Model to use (e.g., 'sonnet', 'opus', 'haiku')
 }
 
-export function shouldSkipClaude(): boolean {
-  return process.env.CODEMACHINE_SKIP_CLAUDE === '1';
+export function shouldSkipCodex(): boolean {
+  return process.env.CODEMACHINE_SKIP_CODEX === '1';
 }
 
-export async function runClaudePrompt(options: {
+export async function runCodexPrompt(options: {
   agentId: string;
   prompt: string;
   cwd: string;
-  model?: string;
 }): Promise<void> {
-  if (shouldSkipClaude()) {
+  if (shouldSkipCodex()) {
     console.log(`[dry-run] ${options.agentId}: ${options.prompt.slice(0, 80)}...`);
     return;
   }
 
-  await runClaude({
+  await runCodex({
     profile: options.agentId,
     prompt: options.prompt,
     workingDir: options.cwd,
-    model: options.model,
     onData: (chunk) => {
       try {
         process.stdout.write(chunk);
@@ -72,17 +69,16 @@ export async function runAgent(
       }
     });
 
-  if (shouldSkipClaude()) {
+  if (shouldSkipCodex()) {
     logStdout(`[dry-run] ${agentId}: ${prompt.slice(0, 120)}...`);
     return '';
   }
 
   let buffered = '';
-  const result = await runClaude({
+  const result = await runCodex({
     profile: agentId,
     prompt,
     workingDir: cwd,
-    model: options.model,
     abortSignal: options.abortSignal,
     timeout: options.timeout,
     onData: (chunk) => {

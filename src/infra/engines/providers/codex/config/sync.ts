@@ -3,9 +3,9 @@ import * as path from 'node:path';
 import { homedir } from 'node:os';
 
 import type { ConfigSyncOptions } from './types.js';
-import { resolveProjectRoot, collectAgentDefinitions, mergeAdditionalAgents } from '../../../../shared/agents/index.js';
+import { resolveProjectRoot, collectAgentDefinitions, mergeAdditionalAgents } from '../../../../../shared/agents/index.js';
 import { buildConfigContent } from './config-builder.js';
-import { expandHomeDir } from '../../../../shared/utils/index.js';
+import { expandHomeDir } from '../../../../../shared/utils/index.js';
 
 export async function resolveCodexHome(codexHome?: string): Promise<string> {
   const rawPath = codexHome ?? process.env.CODEX_HOME ?? path.join(homedir(), '.codemachine', 'codex');
