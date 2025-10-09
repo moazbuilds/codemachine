@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { WorkflowTemplate } from './types.js';
-import { isWorkflowTemplate, validateWorkflowTemplate } from './validator.js';
+import { validateWorkflowTemplate } from './validator.js';
 import { ensureTemplateGlobals } from './globals.js';
 
 // Package root resolution

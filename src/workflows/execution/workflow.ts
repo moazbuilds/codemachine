@@ -155,7 +155,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     // Ensure the selected engine is used during execution
     // (executeStep falls back to default engine if step.engine is unset)
     // Mutate current step to carry the chosen engine forward
-    (step as any).engine = engineType;
+    step.engine = engineType;
 
     // Resolve model and reasoning effort for display
     const engineModule = registry.get(engineType);
