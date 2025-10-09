@@ -49,10 +49,6 @@ export function resolveModule(id: string, overrides: ModuleOverrides = {}): Work
     throw new Error(`Module ${id} is missing a promptPath configuration.`);
   }
 
-  if (typeof model !== 'string' || !model.trim()) {
-    throw new Error(`Module ${id} is missing a model configuration.`);
-  }
-
   const behavior = resolveLoopBehavior(moduleEntry.behavior, overrides);
 
   return {

@@ -11,8 +11,8 @@ export function resolveStep(id: string, overrides: StepOverrides = {}): Workflow
   const promptPath = overrides.promptPath ?? agent.promptPath;
   const model = overrides.model ?? agent.model;
 
-  if (!agentName || !promptPath || !model) {
-    throw new Error(`Agent ${id} is missing required fields (name, promptPath, or model)`);
+  if (!agentName || !promptPath) {
+    throw new Error(`Agent ${id} is missing required fields (name or promptPath)`);
   }
 
   return {
