@@ -3,6 +3,7 @@ import { homedir } from 'node:os';
 
 import { spawnProcess } from '../../../../process/spawn.js';
 import { buildCursorExecCommand } from './commands.js';
+import { metadata } from '../metadata.js';
 import { expandHomeDir } from '../../../../../shared/utils/index.js';
 import { logger } from '../../../../../shared/logging/index.js';
 
@@ -130,12 +131,14 @@ export async function runCursor(options: RunCursorOptions): Promise<RunCursorRes
   logger.debug(`Cursor runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
   logger.debug(`Cursor runner - args count: ${args.length}, model: ${model ?? 'auto'}`);
 
-  const result = await spawnProcess({
-    command,
-    args,
-    cwd: workingDir,
-    env: mergedEnv,
-    stdinInput: prompt, // Pass prompt via stdin instead of command-line argument
+  let result;
+  try {
+    result = await spawnProcess({
+      command,
+      args,
+      cwd: workingDir,
+      env: mergedEnv,
+      stdinInput: prompt, // Pass prompt via stdin instead of command-line argument
     onStdout: inheritTTY
       ? undefined
       : (chunk) => {
@@ -166,8 +169,21 @@ export async function runCursor(options: RunCursorOptions): Promise<RunCursorRes
         },
     signal: abortSignal,
     stdioMode: inheritTTY ? 'inherit' : 'pipe',
-    timeout,
-  });
+      timeout,
+    });
+  } catch (error) {
+    const err = error as unknown as { code?: string; message?: string };
+    const message = err?.message ?? '';
+    const notFound = err?.code === 'ENOENT' || /not recognized as an internal or external command/i.test(message) || /command not found/i.test(message);
+    if (notFound) {
+      const full = `${command} ${args.join(' ')}`.trim();
+      const install = metadata.installCommand;
+      const name = metadata.name;
+      logger.error(`${name} CLI not found when executing: ${full}`);
+      throw new Error(`'${command}' is not available on this system. Please install ${name} first:\n  ${install}`);
+    }
+    throw error;
+  }
 
   if (result.exitCode !== 0) {
     const errorOutput = result.stderr.trim() || result.stdout.trim() || 'no error output';

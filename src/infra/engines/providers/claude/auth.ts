@@ -124,10 +124,34 @@ export async function ensureAuth(options?: ClaudeAuthOptions): Promise<boolean> 
   console.log(`\nRunning Claude authentication...\n`);
   console.log(`Config directory: ${configDir}\n`);
 
-  await execa('claude', ['setup-token'], {
-    env: { ...process.env, CLAUDE_CONFIG_DIR: configDir },
-    stdio: 'inherit',
-  });
+  try {
+    await execa('claude', ['setup-token'], {
+      env: { ...process.env, CLAUDE_CONFIG_DIR: configDir },
+      stdio: 'inherit',
+    });
+  } catch (error) {
+    const err = error as unknown as { code?: string; stderr?: string; message?: string };
+    const stderr = err?.stderr ?? '';
+    const message = err?.message ?? '';
+    const notFound =
+      err?.code === 'ENOENT' ||
+      /not recognized as an internal or external command/i.test(stderr || message) ||
+      /command not found/i.test(stderr || message) ||
+      /No such file or directory/i.test(stderr || message);
+
+    if (notFound) {
+      console.error(`\n────────────────────────────────────────────────────────────`);
+      console.error(`  ⚠️  ${metadata.name} CLI Not Found`);
+      console.error(`────────────────────────────────────────────────────────────`);
+      console.error(`\n'${metadata.cliBinary} setup-token' failed because the CLI is missing.`);
+      console.error(`Please install ${metadata.name} CLI before trying again:\n`);
+      console.error(`  ${metadata.installCommand}\n`);
+      console.error(`────────────────────────────────────────────────────────────\n`);
+      throw new Error(`${metadata.name} CLI is not installed.`);
+    }
+
+    throw error;
+  }
 
   // Verify the credentials were created
   try {

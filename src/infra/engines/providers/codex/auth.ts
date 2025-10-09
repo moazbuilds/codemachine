@@ -74,10 +74,34 @@ export async function ensureAuth(): Promise<boolean> {
   }
 
   // Run interactive login via Codex CLI with proper env.
-  await execa('codex', ['login'], {
-    env: { ...process.env, CODEX_HOME: codexHome },
-    stdio: 'inherit',
-  });
+  try {
+    await execa('codex', ['login'], {
+      env: { ...process.env, CODEX_HOME: codexHome },
+      stdio: 'inherit',
+    });
+  } catch (error) {
+    const err = error as unknown as { code?: string; stderr?: string; message?: string };
+    const stderr = err?.stderr ?? '';
+    const message = err?.message ?? '';
+    const notFound =
+      err?.code === 'ENOENT' ||
+      /not recognized as an internal or external command/i.test(stderr || message) ||
+      /command not found/i.test(stderr || message) ||
+      /No such file or directory/i.test(stderr || message);
+
+    if (notFound) {
+      console.error(`\n────────────────────────────────────────────────────────────`);
+      console.error(`  ⚠️  ${metadata.name} CLI Not Found`);
+      console.error(`────────────────────────────────────────────────────────────`);
+      console.error(`\n'${metadata.cliBinary} login' failed because the CLI is missing.`);
+      console.error(`Please install ${metadata.name} CLI before trying again:\n`);
+      console.error(`  ${metadata.installCommand}\n`);
+      console.error(`────────────────────────────────────────────────────────────\n`);
+      throw new Error(`${metadata.name} CLI is not installed.`);
+    }
+
+    throw error;
+  }
 
   // Ensure the auth credential path exists; create a placeholder if still absent.
   try {
