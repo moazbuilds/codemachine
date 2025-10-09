@@ -77,7 +77,7 @@ On first run, CodeMachine creates a `.codemachine/` folder. Write your project r
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
   </tr>
   <tr>
-    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Cursor AI</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Cursor CLI</strong></td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
@@ -172,11 +172,11 @@ CodeMachine orchestrates workflows through sequential main agent steps and paral
 export default {
   name: 'E-Commerce Platform Builder',
   steps: [
-    resolveStep('arch-agent', { engine: 'claude' }),        // Claude designs system architecture
-    resolveStep('plan-agent', { engine: 'claude' }),        // Claude creates detailed implementation plan
-    resolveStep('code-generation', { engine: 'codex' }),    // Codex generates implementation
-    resolveStep('runtime-prep', { engine: 'codex' }),       // Codex creates automation scripts
-    resolveStep('quality-check', { engine: 'codex' }),      // Codex reviews code quality and runtime
+    resolveStep('arch-agent', { engine: 'claude', model: 'sonnet' }),        // Claude designs system architecture
+    resolveStep('plan-agent', { engine: 'claude', model: 'sonnet' }),        // Claude creates detailed implementation plan
+    resolveStep('code-generation', { engine: 'codex', model: 'gpt-5', modelReasoningEffort: 'low' }),    // Codex generates implementation
+    resolveStep('runtime-prep', { engine: 'codex', model: 'gpt-5', modelReasoningEffort: 'low' }),       // Codex creates automation scripts
+    resolveStep('quality-check', { engine: 'cursor' }),      // Codex reviews code quality and runtime
     resolveModule('check-task', {                           // Loop until all tasks complete
       loopTrigger: 'TASKS_COMPLETED=FALSE',
       loopMaxIterations: 15
