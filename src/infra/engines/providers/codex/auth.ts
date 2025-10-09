@@ -1,9 +1,20 @@
-import { stat, rm, writeFile } from 'node:fs/promises';
+import { stat, rm, writeFile, mkdir } from 'node:fs/promises';
 import * as path from 'node:path';
+import { homedir } from 'node:os';
 import { execa } from 'execa';
 
-import { resolveCodexHome } from './config/sync.js';
+import { expandHomeDir } from '../../../../shared/utils/index.js';
 import { metadata } from './metadata.js';
+
+/**
+ * Resolves the Codex home directory
+ */
+async function resolveCodexHome(codexHome?: string): Promise<string> {
+  const rawPath = codexHome ?? process.env.CODEX_HOME ?? path.join(homedir(), '.codemachine', 'codex');
+  const targetHome = expandHomeDir(rawPath);
+  await mkdir(targetHome, { recursive: true });
+  return targetHome;
+}
 
 /**
  * Check if CLI is installed

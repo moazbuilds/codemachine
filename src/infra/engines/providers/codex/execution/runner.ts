@@ -10,6 +10,8 @@ export interface RunCodexOptions {
   profile: string;
   prompt: string;
   workingDir: string;
+  model?: string;
+  modelReasoningEffort?: 'low' | 'medium' | 'high';
   env?: NodeJS.ProcessEnv;
   onData?: (chunk: string) => void;
   onErrorData?: (chunk: string) => void;
@@ -76,7 +78,7 @@ function formatCodexStreamJsonLine(line: string): string | null {
 }
 
 export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult> {
-  const { profile, prompt, workingDir, env, onData, onErrorData, abortSignal, timeout = 600000 } = options;
+  const { profile, prompt, workingDir, model, modelReasoningEffort, env, onData, onErrorData, abortSignal, timeout = 600000 } = options;
 
   if (!profile) {
     throw new Error('runCodex requires a profile.');
@@ -130,7 +132,7 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
     return result;
   };
 
-  const { command, args } = buildCodexExecCommand({ profile, workingDir, prompt });
+  const { command, args } = buildCodexExecCommand({ profile, workingDir, prompt, model, modelReasoningEffort });
 
   logger.debug(`Codex runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
   logger.debug(`Codex runner - args count: ${args.length}`);

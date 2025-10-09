@@ -2,6 +2,8 @@ export interface CodexCommandOptions {
   profile: string;
   workingDir: string;
   prompt: string;
+  model?: string;
+  modelReasoningEffort?: 'low' | 'medium' | 'high';
 }
 
 export interface CodexCommand {
@@ -10,23 +12,36 @@ export interface CodexCommand {
 }
 
 export function buildCodexExecCommand(options: CodexCommandOptions): CodexCommand {
-  const { profile, workingDir } = options;
+  const { profile, workingDir, model, modelReasoningEffort } = options;
+
+  const args = [
+    'exec',
+    '--json',
+    '--profile',
+    profile,
+    '--skip-git-repo-check',
+    '--sandbox',
+    'danger-full-access',
+    '--dangerously-bypass-approvals-and-sandbox',
+    '-C',
+    workingDir,
+  ];
+
+  // Add model if specified
+  if (model) {
+    args.push('--model', model);
+  }
+
+  // Add reasoning effort if specified
+  if (modelReasoningEffort) {
+    args.push('--config', `model_reasoning_effort="${modelReasoningEffort}"`);
+  }
+
+  args.push('-'); // Explicitly signal stdin prompt
+  // Prompt is now passed via stdin instead of as an argument
 
   return {
     command: 'codex',
-    args: [
-      'exec',
-      '--json',
-      '--profile',
-      profile,
-      '--skip-git-repo-check',
-      '--sandbox',
-      'danger-full-access',
-      '--dangerously-bypass-approvals-and-sandbox',
-      '-C',
-      workingDir,
-      '-', // Explicitly signal stdin prompt
-      // Prompt is now passed via stdin instead of as an argument
-    ],
+    args,
   };
 }
