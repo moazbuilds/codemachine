@@ -53,7 +53,13 @@ function formatElapsedTime(startTime: number): string {
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
-export function startSpinner(agentName: string, engine?: string, workflowStartTime?: number): SpinnerState {
+export function startSpinner(
+  agentName: string,
+  engine?: string,
+  workflowStartTime?: number,
+  model?: string,
+  reasoningEffort?: 'low' | 'medium' | 'high' | string,
+): SpinnerState {
   const spinnerChars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
   const now = Date.now();
   const spinnerState: SpinnerState = {
@@ -77,9 +83,11 @@ export function startSpinner(agentName: string, engine?: string, workflowStartTi
       const spinner = spinnerChars[spinnerState.index % spinnerChars.length];
       // Format engine name with proper capitalization
       const engineDisplay = engine ? ` - Engine: ${engine.charAt(0).toUpperCase() + engine.slice(1)}` : '';
+      const modelDisplay = model ? ` | Model: ${model}` : '';
+      const reasoningDisplay = reasoningEffort ? ` | Reasoning: ${reasoningEffort}` : '';
       const runtime = formatElapsedTime(spinnerState.workflowStartTime);
       // Special color for status indicator - dim yellow/orange
-      const baseMessage = `${spinner} ${agentName} is running${engineDisplay}... | Workflow Runtime: ${runtime}`;
+      const baseMessage = `${spinner} ${agentName} is running${engineDisplay}${modelDisplay}${reasoningDisplay}... | Workflow Runtime: ${runtime}`;
       const columns = typeof process.stdout.columns === 'number' && process.stdout.columns > 0 ? process.stdout.columns : 80;
       const ellipsis = '...';
       const needsTruncate = baseMessage.length > columns;

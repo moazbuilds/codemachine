@@ -1,8 +1,8 @@
 export default {
   name: 'CodeMachine Workflow',
   steps: [
-    resolveStep('git-commit', { executeOnce: true, engine: 'claude' }), // Commit the initial project specification to git
-    resolveStep('arch-agent', { executeOnce: true, engine: 'claude' }), // Define system architecture and technical design decisions
+    resolveStep('git-commit', { executeOnce: true, engine: 'cursor' }), // Commit the initial project specification to git
+    resolveStep('arch-agent', { executeOnce: true }), // Define system architecture and technical design decisions
     resolveStep('plan-agent', { executeOnce: true }), // Generate comprehensive iterative development plan with architectural artifacts
     resolveStep('task-breakdown', { executeOnce: true }), // Extract and structure tasks from project plan into JSON format
     resolveStep('git-commit', { executeOnce: true }), // Commit the task breakdown to git

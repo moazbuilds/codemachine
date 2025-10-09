@@ -157,7 +157,12 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     // Mutate current step to carry the chosen engine forward
     (step as any).engine = engineType;
 
-    const spinnerState = startSpinner(step.agentName, engineType, workflowStartTime);
+    // Resolve model and reasoning effort for display
+    const engineModule = registry.get(engineType);
+    const model = step.model ?? engineModule?.metadata.defaultModel;
+    const reasoning = step.modelReasoningEffort ?? engineModule?.metadata.defaultModelReasoningEffort;
+
+    const spinnerState = startSpinner(step.agentName, engineType, workflowStartTime, model, reasoning);
     const { stdoutLogger, stderrLogger } = createSpinnerLoggers(
       baseStdoutLogger,
       baseStderrLogger,
