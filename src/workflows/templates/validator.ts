@@ -1,97 +1,110 @@
 import type { WorkflowTemplate } from './types.js';
 
-export function isWorkflowTemplate(value: unknown): value is WorkflowTemplate {
-  if (!value || typeof value !== 'object') return false;
+export interface ValidationResult {
+  valid: boolean;
+  errors: string[];
+}
+
+export function validateWorkflowTemplate(value: unknown): ValidationResult {
+  const errors: string[] = [];
+  if (!value || typeof value !== 'object') {
+    return { valid: false, errors: ['Template is not an object'] };
+  }
+
   const obj = value as { name?: unknown; steps?: unknown };
-  if (typeof obj.name !== 'string' || obj.name.trim().length === 0) return false;
-  if (!Array.isArray(obj.steps)) return false;
-  return obj.steps.every((step) => {
-    if (!step || typeof step !== 'object') return false;
-    const candidate = step as {
-      type?: unknown;
-      agentId?: unknown;
-      agentName?: unknown;
-      promptPath?: unknown;
-      model?: unknown;
-      modelReasoningEffort?: unknown;
-      module?: unknown;
-      executeOnce?: unknown;
-    };
-    if (
-      candidate.type !== 'module' ||
-      typeof candidate.agentId !== 'string' ||
-      typeof candidate.agentName !== 'string' ||
-      typeof candidate.promptPath !== 'string'
-    ) {
-      return false;
-    }
+  if (typeof obj.name !== 'string' || obj.name.trim().length === 0) {
+    errors.push('Template.name must be a non-empty string');
+  }
+  if (!Array.isArray(obj.steps)) {
+    errors.push('Template.steps must be an array');
+  } else {
+    obj.steps.forEach((step, index) => {
+      if (!step || typeof step !== 'object') {
+        errors.push(`Step[${index}] must be an object`);
+        return;
+      }
+      const candidate = step as {
+        type?: unknown;
+        agentId?: unknown;
+        agentName?: unknown;
+        promptPath?: unknown;
+        model?: unknown;
+        modelReasoningEffort?: unknown;
+        module?: unknown;
+        executeOnce?: unknown;
+      };
 
-    if (candidate.model !== undefined && typeof candidate.model !== 'string') {
-      return false;
-    }
+      if (candidate.type !== 'module') {
+        errors.push(`Step[${index}].type must be 'module'`);
+      }
+      if (typeof candidate.agentId !== 'string') {
+        errors.push(`Step[${index}].agentId must be a string`);
+      }
+      if (typeof candidate.agentName !== 'string') {
+        errors.push(`Step[${index}].agentName must be a string`);
+      }
+      if (typeof candidate.promptPath !== 'string') {
+        errors.push(`Step[${index}].promptPath must be a string`);
+      }
 
-    if (
-      candidate.modelReasoningEffort !== undefined &&
-      candidate.modelReasoningEffort !== 'low' &&
-      candidate.modelReasoningEffort !== 'medium' &&
-      candidate.modelReasoningEffort !== 'high'
-    ) {
-      return false;
-    }
+      if (candidate.model !== undefined && typeof candidate.model !== 'string') {
+        errors.push(`Step[${index}].model must be a string`);
+      }
 
-    if (candidate.executeOnce !== undefined && typeof candidate.executeOnce !== 'boolean') {
-      return false;
-    }
+      if (candidate.modelReasoningEffort !== undefined) {
+        const mre = candidate.modelReasoningEffort;
+        if (mre !== 'low' && mre !== 'medium' && mre !== 'high') {
+          errors.push(
+            `Step[${index}].modelReasoningEffort must be one of 'low'|'medium'|'high' (got '${String(mre)}')`,
+          );
+        }
+      }
 
-    if (candidate.module === undefined) {
-      return true;
-    }
+      if (candidate.executeOnce !== undefined && typeof candidate.executeOnce !== 'boolean') {
+        errors.push(`Step[${index}].executeOnce must be a boolean`);
+      }
 
-    if (!candidate.module || typeof candidate.module !== 'object') {
-      return false;
-    }
+      if (candidate.module !== undefined) {
+        if (!candidate.module || typeof candidate.module !== 'object') {
+          errors.push(`Step[${index}].module must be an object`);
+        } else {
+          const moduleMeta = candidate.module as { id?: unknown; behavior?: unknown };
+          if (typeof moduleMeta.id !== 'string') {
+            errors.push(`Step[${index}].module.id must be a string`);
+          }
+          if (moduleMeta.behavior !== undefined) {
+            if (!moduleMeta.behavior || typeof moduleMeta.behavior !== 'object') {
+              errors.push(`Step[${index}].module.behavior must be an object`);
+            } else {
+              const behavior = moduleMeta.behavior as {
+                type?: unknown;
+                action?: unknown;
+                steps?: unknown;
+                trigger?: unknown;
+                maxIterations?: unknown;
+              };
+              if (behavior.type !== 'loop' || behavior.action !== 'stepBack') {
+                errors.push(`Step[${index}].module.behavior must be { type: 'loop', action: 'stepBack', ... }`);
+              }
+              if (typeof behavior.steps !== 'number' || behavior.steps <= 0) {
+                errors.push(`Step[${index}].module.behavior.steps must be a positive number`);
+              }
+              if (typeof behavior.trigger !== 'string') {
+                errors.push(`Step[${index}].module.behavior.trigger must be a string`);
+              }
+              if (behavior.maxIterations !== undefined && typeof behavior.maxIterations !== 'number') {
+                errors.push(`Step[${index}].module.behavior.maxIterations must be a number`);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
 
-    const moduleMeta = candidate.module as {
-      id?: unknown;
-      behavior?: unknown;
-    };
+  return { valid: errors.length === 0, errors };
+}
 
-    if (typeof moduleMeta.id !== 'string') {
-      return false;
-    }
-
-    if (moduleMeta.behavior === undefined) {
-      return true;
-    }
-
-    if (!moduleMeta.behavior || typeof moduleMeta.behavior !== 'object') {
-      return false;
-    }
-
-    const behavior = moduleMeta.behavior as {
-      type?: unknown;
-      action?: unknown;
-      steps?: unknown;
-      trigger?: unknown;
-      maxIterations?: unknown;
-    };
-
-    if (behavior.type !== 'loop' || behavior.action !== 'stepBack') {
-      return false;
-    }
-
-    if (typeof behavior.steps !== 'number' || behavior.steps <= 0) {
-      return false;
-    }
-
-    if (typeof behavior.trigger !== 'string') {
-      return false;
-    }
-
-    if (behavior.maxIterations !== undefined && typeof behavior.maxIterations !== 'number') {
-      return false;
-    }
-
-    return true;
-  });
+export function isWorkflowTemplate(value: unknown): value is WorkflowTemplate {
+  return validateWorkflowTemplate(value).valid;
 }

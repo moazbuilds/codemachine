@@ -66,8 +66,8 @@ export default {
     // COMPLETE OVERRIDE - All options combined
     // ============================================
     resolveStep('full-featured-agent', {
-      engine: 'claude',                       // Use Claude
-      model: 'sonnet',                        // With Sonnet model
+      engine: 'codex',                       // Use Codex
+      model: 'gpt-5',                        // With GPT-5 model
       modelReasoningEffort: 'high',           // Maximum thinking
       agentName: 'AI Architect Pro',          // Custom name
       promptPath: './prompts/custom/arch.txt', // Custom prompt

@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { WorkflowTemplate } from './types.js';
-import { isWorkflowTemplate } from './validator.js';
+import { isWorkflowTemplate, validateWorkflowTemplate } from './validator.js';
 import { ensureTemplateGlobals } from './globals.js';
 
 // Package root resolution
@@ -51,19 +51,22 @@ export async function loadTemplate(cwd: string, templatePath?: string): Promise<
   const codemachineTemplate = path.resolve(templatesDir, 'codemachine.workflow.js');
   const candidates = [resolvedTemplateOverride, codemachineTemplate].filter(Boolean) as string[];
 
+  const errors: string[] = [];
   for (const modPath of candidates) {
     try {
       const tpl = (await loadWorkflowModule(modPath)) as unknown;
-      if (isWorkflowTemplate(tpl)) return tpl;
-    } catch {
-      // try next candidate
+      const result = validateWorkflowTemplate(tpl);
+      if (result.valid) return tpl as WorkflowTemplate;
+      const rel = path.relative(cwd, modPath);
+      errors.push(`${rel}: ${result.errors.join('; ')}`);
+    } catch (e) {
+      const rel = path.relative(cwd, modPath);
+      errors.push(`${rel}: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
-  throw new Error(
-    `No workflow template found. Looked for: ${candidates
-      .map((p) => path.relative(cwd, p))
-      .join(', ')}`,
-  );
+  const looked = candidates.map((p) => path.relative(cwd, p)).join(', ');
+  const details = errors.length ? `\nValidation errors:\n- ${errors.join('\n- ')}` : '';
+  throw new Error(`No workflow template found. Looked for: ${looked}${details}`);
 }
 
 export async function loadTemplateWithPath(cwd: string, templatePath?: string): Promise<{ template: WorkflowTemplate; resolvedPath: string }> {
@@ -75,17 +78,20 @@ export async function loadTemplateWithPath(cwd: string, templatePath?: string): 
   const codemachineTemplate = path.resolve(templatesDir, 'codemachine.workflow.js');
   const candidates = [resolvedTemplateOverride, codemachineTemplate].filter(Boolean) as string[];
 
+  const errors: string[] = [];
   for (const modPath of candidates) {
     try {
       const tpl = (await loadWorkflowModule(modPath)) as unknown;
-      if (isWorkflowTemplate(tpl)) return { template: tpl, resolvedPath: modPath };
-    } catch {
-      // try next candidate
+      const result = validateWorkflowTemplate(tpl);
+      if (result.valid) return { template: tpl as WorkflowTemplate, resolvedPath: modPath };
+      const rel = path.relative(cwd, modPath);
+      errors.push(`${rel}: ${result.errors.join('; ')}`);
+    } catch (e) {
+      const rel = path.relative(cwd, modPath);
+      errors.push(`${rel}: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
-  throw new Error(
-    `No workflow template found. Looked for: ${candidates
-      .map((p) => path.relative(cwd, p))
-      .join(', ')}`,
-  );
+  const looked = candidates.map((p) => path.relative(cwd, p)).join(', ');
+  const details = errors.length ? `\nValidation errors:\n- ${errors.join('\n- ')}` : '';
+  throw new Error(`No workflow template found. Looked for: ${looked}${details}`);
 }
