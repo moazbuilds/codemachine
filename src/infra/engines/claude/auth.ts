@@ -4,6 +4,19 @@ import { homedir } from 'node:os';
 import { execa } from 'execa';
 
 import { expandHomeDir } from '../../../shared/utils/index.js';
+import { metadata } from './metadata.js';
+
+/**
+ * Check if CLI is installed
+ */
+async function isCliInstalled(command: string): Promise<boolean> {
+  try {
+    await execa(command, ['--version'], { timeout: 3000, reject: false });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export interface ClaudeAuthOptions {
   profile?: string;
@@ -92,6 +105,19 @@ export async function ensureAuth(options?: ClaudeAuthOptions): Promise<boolean> 
     await mkdir(claudeDir, { recursive: true });
     await writeFile(credPath, '{}', { encoding: 'utf8' });
     return true;
+  }
+
+  // Check if CLI is installed
+  const cliInstalled = await isCliInstalled(metadata.cliBinary);
+  if (!cliInstalled) {
+    console.error(`\n────────────────────────────────────────────────────────────`);
+    console.error(`  ⚠️  ${metadata.name} CLI Not Installed`);
+    console.error(`────────────────────────────────────────────────────────────`);
+    console.error(`\nThe '${metadata.cliBinary}' command is not available.`);
+    console.error(`Please install ${metadata.name} CLI first:\n`);
+    console.error(`  ${metadata.installCommand}\n`);
+    console.error(`────────────────────────────────────────────────────────────\n`);
+    throw new Error(`${metadata.name} CLI is not installed.`);
   }
 
   // Run interactive setup-token via Claude CLI with proper env

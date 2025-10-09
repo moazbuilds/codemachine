@@ -1,6 +1,31 @@
+import { createRequire } from 'node:module';
+import { existsSync } from 'node:fs';
+import { dirname, join, parse } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 import { banner, formatKeyValue, palette, divider } from './layout.js';
 import { getActiveTemplate } from '../../shared/workflows/index.js';
+
+function findPackageJson(moduleUrl: string): string {
+  let currentDir = dirname(fileURLToPath(moduleUrl));
+  const { root } = parse(currentDir);
+
+  while (true) {
+    const candidate = join(currentDir, 'package.json');
+    if (existsSync(candidate)) return candidate;
+    if (currentDir === root) break;
+    currentDir = dirname(currentDir);
+  }
+
+  throw new Error('Unable to locate package.json from main menu module');
+}
+
+function getVersion(): string {
+  const require = createRequire(import.meta.url);
+  const packageJsonPath = findPackageJson(import.meta.url);
+  const pkg = require(packageJsonPath) as { version: string };
+  return pkg.version;
+}
 
 function geminiAscii(): string {
   const codeText = [
@@ -53,8 +78,14 @@ async function renderStatus(): Promise<string> {
 
   const activeTemplate = await getActiveTemplate(cmRoot);
   const templateName = activeTemplate ? activeTemplate.replace('.workflow.js', '') : 'default';
+  const version = getVersion();
 
-  return formatKeyValue('Template', palette.success(`${templateName.toUpperCase()} - READY`));
+  const lines = [
+    formatKeyValue('Version', palette.primary(`v${version}`)),
+    formatKeyValue('Template', palette.success(`${templateName.toUpperCase()} - READY`)),
+  ];
+
+  return lines.join('\n');
 }
 
 function renderCommands(): string {

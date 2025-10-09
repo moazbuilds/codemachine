@@ -14,7 +14,7 @@ import {
   getCompletedSteps,
   markStepCompleted,
 } from '../../shared/workflows/index.js';
-import { syncCodexConfig } from '../../infra/engines/codex/index.js';
+import { registry } from '../../infra/engines/index.js';
 import { shouldSkipStep, logSkipDebug, type ActiveLoop } from '../behaviors/skip.js';
 import { handleLoopLogic, createActiveLoop } from '../behaviors/loop/controller.js';
 import { executeStep } from './step.js';
@@ -48,8 +48,14 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       }, new Map<string, { id: string; model?: unknown; modelReasoningEffort?: unknown }>()).values(),
   );
 
+  // Sync agent configurations for engines that need it
   if (workflowAgents.length > 0) {
-    await syncCodexConfig({ additionalAgents: workflowAgents });
+    const engines = registry.getAll();
+    for (const engine of engines) {
+      if (engine.syncConfig) {
+        await engine.syncConfig({ additionalAgents: workflowAgents });
+      }
+    }
   }
 
   // Load completed steps for executeOnce tracking
@@ -77,7 +83,37 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     console.log(formatAgentLog(step.agentId, `${step.agentName} started to work.`));
 
     const { stdout: baseStdoutLogger, stderr: baseStderrLogger } = getAgentLoggers(step.agentId);
-    const engineType = step.engine ?? 'codex';
+
+    // Determine engine: step override > first authenticated engine
+    let engineType: string;
+    if (step.engine) {
+      engineType = step.engine;
+    } else {
+      // Fallback: find first authenticated engine by order
+      const engines = registry.getAll();
+      let foundEngine = null;
+
+      for (const engine of engines) {
+        const isAuth = await engine.auth.isAuthenticated();
+        if (isAuth) {
+          foundEngine = engine;
+          break;
+        }
+      }
+
+      if (!foundEngine) {
+        // If no authenticated engine, use default (first by order)
+        foundEngine = registry.getDefault();
+      }
+
+      if (!foundEngine) {
+        throw new Error('No engines registered. Please install at least one engine.');
+      }
+
+      engineType = foundEngine.metadata.id;
+      console.log(formatAgentLog(step.agentId, `No engine specified, using ${foundEngine.metadata.name} (${engineType})`));
+    }
+
     const spinnerState = startSpinner(step.agentName, engineType, workflowStartTime);
     const { stdoutLogger, stderrLogger } = createSpinnerLoggers(
       baseStdoutLogger,

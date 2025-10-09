@@ -67,12 +67,19 @@ describe('auth flow', () => {
 
     await ensureAuth();
 
-    // Verify execa called with correct env and command
-    expect(execaMock).toHaveBeenCalledTimes(1);
-    const call = execaMock.mock.calls[0];
-    expect(call[0]).toBe('codex');
-    expect(call[1]).toEqual(['login']);
-    expect(call[2]?.env?.CODEX_HOME).toBe(codexHome);
+    // Verify execa called twice: once for CLI check (--version), once for login
+    expect(execaMock).toHaveBeenCalledTimes(2);
+
+    // First call: CLI validation with --version
+    const versionCall = execaMock.mock.calls[0];
+    expect(versionCall[0]).toBe('codex');
+    expect(versionCall[1]).toEqual(['--version']);
+
+    // Second call: actual login
+    const loginCall = execaMock.mock.calls[1];
+    expect(loginCall[0]).toBe('codex');
+    expect(loginCall[1]).toEqual(['login']);
+    expect(loginCall[2]?.env?.CODEX_HOME).toBe(codexHome);
 
     // Auth file should exist now
     const content = await readFile(authPath, 'utf8');

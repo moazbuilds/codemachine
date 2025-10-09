@@ -3,7 +3,6 @@ import { readFile, mkdir } from 'node:fs/promises';
 import type { WorkflowStep } from '../templates/index.js';
 import type { EngineType } from '../../infra/engines/types.js';
 import { getEngine } from '../../infra/engines/engine-factory.js';
-import { claude, codex } from '../../infra/engines/index.js';
 import { processPromptString } from '../../shared/prompts/index.js';
 
 export interface StepExecutorOptions {
@@ -68,21 +67,35 @@ export async function executeStep(
       ? Number.parseInt(process.env.CODEMACHINE_AGENT_TIMEOUT, 10)
       : 600000);
 
-  // Determine engine: step override > default to 'codex'
-  const engineType: EngineType = step.engine ?? 'codex';
+  // Determine engine: step override > default to first registered engine
+  const { registry } = await import('../../infra/engines/registry.js');
+  const defaultEngine = registry.getDefault();
+  if (!defaultEngine) {
+    throw new Error('No engines registered. Please install at least one engine.');
+  }
+  const engineType: EngineType = step.engine ?? defaultEngine.metadata.id;
   const profile = step.agentId;
 
   // Ensure authentication
   await ensureEngineAuth(engineType, profile);
 
-  // Get engine and execute
+  // Get engine and its metadata for defaults
+  const engineModule = registry.get(engineType);
+  if (!engineModule) {
+    throw new Error(`Engine not found: ${engineType}`);
+  }
   const engine = getEngine(engineType);
+
+  // Model resolution: step override > engine default
+  const model = step.model ?? engineModule.metadata.defaultModel;
+  const modelReasoningEffort = step.modelReasoningEffort ?? engineModule.metadata.defaultModelReasoningEffort;
 
   const result = await engine.run({
     profile,
     prompt,
     workingDir: cwd,
-    model: step.model,
+    model,
+    modelReasoningEffort,
     onData: (chunk) => {
       options.logger(chunk);
     },

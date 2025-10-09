@@ -6,14 +6,46 @@ import { tmpdir } from 'node:os';
 
 // Mock runCodex to capture options and simulate output
 vi.mock('../../../src/infra/engines/codex/index.js', async () => {
+  const runCodexMock = vi.fn(async (opts: { onData?: (chunk: string) => void }) => {
+    // simulate some streaming
+    opts.onData?.('stream-');
+    opts.onData?.('output');
+    return { stdout: 'final-stream-output', stderr: '' };
+  });
+
+  const ensureAuthMock = vi.fn(async () => true);
+
   return {
-    runCodex: vi.fn(async (opts: { onData?: (chunk: string) => void }) => {
-      // simulate some streaming
-      opts.onData?.('stream-');
-      opts.onData?.('output');
-      return { stdout: 'final-stream-output', stderr: '' };
-    }),
-    ensureAuth: vi.fn(async () => true),
+    runCodex: runCodexMock,
+    ensureAuth: ensureAuthMock,
+    metadata: {
+      id: 'codex',
+      name: 'Codex',
+      description: 'Mock Codex engine',
+      cliCommand: 'codex',
+      cliBinary: 'codex',
+      installCommand: 'npm install -g codex',
+      order: 1,
+    },
+    default: {
+      metadata: {
+        id: 'codex',
+        name: 'Codex',
+        description: 'Mock Codex engine',
+        cliCommand: 'codex',
+        cliBinary: 'codex',
+        installCommand: 'npm install -g codex',
+        order: 1,
+      },
+      auth: {
+        isAuthenticated: ensureAuthMock,
+        ensureAuth: ensureAuthMock,
+        clearAuth: vi.fn(),
+        nextAuthMenuAction: vi.fn(async () => 'login'),
+      },
+      run: runCodexMock,
+      syncConfig: vi.fn(),
+    },
   };
 });
 
@@ -65,7 +97,7 @@ describe('CLI agent wrapper', () => {
     process.env.CODEMACHINE_CWD = tempDir;
 
     const program = new Command();
-    registerAgentCommand(program);
+    await registerAgentCommand(program);
 
     const id = 'backend-dev';
     const profile = 'test-profile';

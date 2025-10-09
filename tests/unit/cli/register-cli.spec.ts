@@ -7,11 +7,11 @@ describe('registerCli', () => {
   let program: Command;
   let consoleSpy: ReturnType<typeof vi.spyOn>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     program = new Command();
     consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    registerCli(program);
+    await registerCli(program);
   });
 
   afterEach(() => {

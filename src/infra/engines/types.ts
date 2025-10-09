@@ -13,6 +13,7 @@ export interface EngineRunOptions {
   prompt: string;
   workingDir: string;
   model?: string;
+  modelReasoningEffort?: 'low' | 'medium' | 'high';
   env?: NodeJS.ProcessEnv;
   onData?: (chunk: string) => void;
   onErrorData?: (chunk: string) => void;

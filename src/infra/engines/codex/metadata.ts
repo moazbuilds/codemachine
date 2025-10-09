@@ -5,5 +5,9 @@ export const metadata: EngineMetadata = {
   name: 'Codex',
   description: 'Authenticate with Codex AI',
   cliCommand: 'codex',
+  cliBinary: 'codex',
+  installCommand: 'npm install -g @openai/codex',
+  defaultModel: 'gpt-5-codex',
+  defaultModelReasoningEffort: 'medium',
   order: 1,
 };

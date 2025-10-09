@@ -16,6 +16,14 @@ export interface EngineMetadata {
   description: string;
   /** CLI command namespace (e.g., 'codex', 'claude') */
   cliCommand: string;
+  /** The actual CLI binary name to check/execute (e.g., 'codex', 'claude') */
+  cliBinary: string;
+  /** Install command for the CLI (e.g., 'npm install -g @openai/codex') */
+  installCommand: string;
+  /** Default model to use for this engine (e.g., 'gpt-5-codex', 'claude-sonnet-4.5') */
+  defaultModel?: string;
+  /** Default reasoning effort for models that support it (only applies to engines like Codex) */
+  defaultModelReasoningEffort?: 'low' | 'medium' | 'high';
   /** Display order in UI (lower = first) */
   order?: number;
   /** Whether this engine is experimental */
@@ -49,6 +57,8 @@ export interface EngineModule {
   auth: EngineAuthModule;
   /** Main execution function */
   run: (options: EngineRunOptions) => Promise<EngineRunResult>;
+  /** Optional: Sync engine-specific configuration */
+  syncConfig?: (options?: unknown) => Promise<void>;
   /** Optional: Called when engine is registered */
   onRegister?: () => void;
   /** Optional: Called when engine is loaded */

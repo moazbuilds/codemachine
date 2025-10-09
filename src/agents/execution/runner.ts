@@ -2,7 +2,6 @@ import * as path from 'node:path';
 
 import type { EngineType } from '../../infra/engines/types.js';
 import { getEngine } from '../../infra/engines/engine-factory.js';
-import { claude, codex } from '../../infra/engines/index.js';
 import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
 import { MemoryStore } from '../memory/memory-store.js';
 import { loadAgentConfig } from './config.js';
@@ -59,16 +58,22 @@ export interface ExecuteAgentOptions {
  * Ensures the engine is authenticated
  */
 async function ensureEngineAuth(engineType: EngineType, _profile: string): Promise<void> {
-  if (engineType === 'claude') {
-    const isAuthed = await claude.isAuthenticated();
-    if (!isAuthed) {
-      console.error(`\nClaude authentication required`);
-      console.error(`\nRun the following command to authenticate:\n`);
-      console.error(`  CLAUDE_CONFIG_DIR=~/.codemachine/claude claude setup-token\n`);
-      throw new Error('Claude authentication required');
-    }
-  } else if (engineType === 'codex') {
-    await codex.ensureAuth();
+  const { registry } = await import('../../infra/engines/registry.js');
+  const engine = registry.get(engineType);
+
+  if (!engine) {
+    const availableEngines = registry.getAllIds().join(', ');
+    throw new Error(
+      `Unknown engine type: ${engineType}. Available engines: ${availableEngines}`
+    );
+  }
+
+  const isAuthed = await engine.auth.isAuthenticated();
+  if (!isAuthed) {
+    console.error(`\n${engine.metadata.name} authentication required`);
+    console.error(`\nRun the following command to authenticate:\n`);
+    console.error(`  codemachine auth login\n`);
+    throw new Error(`${engine.metadata.name} authentication required`);
   }
 }
 
@@ -96,12 +101,57 @@ export async function executeAgent(
 
   // Load agent config to determine engine and model
   const agentConfig = await loadAgentConfig(agentId, projectRoot ?? workingDir);
-  const engineType: EngineType = engineOverride ?? agentConfig.engine ?? 'codex'; // Default to codex for backward compatibility
-  const model = modelOverride ?? (agentConfig.model as string | undefined);
+
+  // Determine engine: CLI override > agent config > first authenticated engine
+  const { registry } = await import('../../infra/engines/registry.js');
+  let engineType: EngineType;
+  let usedFallback = false;
+
+  if (engineOverride) {
+    engineType = engineOverride;
+  } else if (agentConfig.engine) {
+    engineType = agentConfig.engine;
+  } else {
+    // Fallback: find first authenticated engine by order
+    const engines = registry.getAll();
+    let foundEngine = null;
+
+    for (const engine of engines) {
+      const isAuth = await engine.auth.isAuthenticated();
+      if (isAuth) {
+        foundEngine = engine;
+        break;
+      }
+    }
+
+    if (!foundEngine) {
+      // If no authenticated engine, use default (first by order)
+      foundEngine = registry.getDefault();
+    }
+
+    if (!foundEngine) {
+      throw new Error('No engines registered. Please install at least one engine.');
+    }
+
+    engineType = foundEngine.metadata.id;
+    usedFallback = true;
+    console.log(`ℹ️  No engine specified for agent '${agentId}', using ${foundEngine.metadata.name} (${engineType})`);
+  }
+
   const profile = profileOverride ?? agentId;
 
   // Ensure authentication
   await ensureEngineAuth(engineType, profile);
+
+  // Get engine module for defaults
+  const engineModule = registry.get(engineType);
+  if (!engineModule) {
+    throw new Error(`Engine not found: ${engineType}`);
+  }
+
+  // Model resolution: CLI override > agent config (legacy) > engine default
+  const model = modelOverride ?? (agentConfig.model as string | undefined) ?? engineModule.metadata.defaultModel;
+  const modelReasoningEffort = (agentConfig.modelReasoningEffort as 'low' | 'medium' | 'high' | undefined) ?? engineModule.metadata.defaultModelReasoningEffort;
 
   // Set up memory
   const memoryDir = path.resolve(workingDir, '.codemachine', 'memory');
@@ -120,6 +170,7 @@ export async function executeAgent(
     prompt: compositePrompt,
     workingDir,
     model,
+    modelReasoningEffort,
     onData: (chunk) => {
       totalStdout += chunk;
       if (logger) {

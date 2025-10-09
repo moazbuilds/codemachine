@@ -3,6 +3,19 @@ import * as path from 'node:path';
 import { execa } from 'execa';
 
 import { resolveCodexHome } from './config/sync.js';
+import { metadata } from './metadata.js';
+
+/**
+ * Check if CLI is installed
+ */
+async function isCliInstalled(command: string): Promise<boolean> {
+  try {
+    await execa(command, ['--version'], { timeout: 3000, reject: false });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export function getAuthFilePath(codexHome: string): string {
   return path.join(codexHome, 'auth.json');
@@ -34,6 +47,19 @@ export async function ensureAuth(): Promise<boolean> {
   if (process.env.CODEMACHINE_SKIP_AUTH === '1') {
     await writeFile(authPath, '{}', { encoding: 'utf8' });
     return true;
+  }
+
+  // Check if CLI is installed
+  const cliInstalled = await isCliInstalled(metadata.cliBinary);
+  if (!cliInstalled) {
+    console.error(`\n────────────────────────────────────────────────────────────`);
+    console.error(`  ⚠️  ${metadata.name} CLI Not Installed`);
+    console.error(`────────────────────────────────────────────────────────────`);
+    console.error(`\nThe '${metadata.cliBinary}' command is not available.`);
+    console.error(`Please install ${metadata.name} CLI first:\n`);
+    console.error(`  ${metadata.installCommand}\n`);
+    console.error(`────────────────────────────────────────────────────────────\n`);
+    throw new Error(`${metadata.name} CLI is not installed.`);
   }
 
   // Run interactive login via Codex CLI with proper env.

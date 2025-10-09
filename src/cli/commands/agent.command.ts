@@ -8,12 +8,17 @@ type AgentCommandOptions = {
 };
 
 /**
- * Registers the main agent command (uses engine from config or defaults to codex)
+ * Registers the main agent command (uses engine from config or defaults to first registered engine)
  */
-function registerMainAgentCommand(program: Command): void {
+async function registerMainAgentCommand(program: Command): Promise<void> {
+  // Import registry to get default engine name
+  const { registry } = await import('../../infra/engines/registry.js');
+  const defaultEngine = registry.getDefault();
+  const defaultEngineName = defaultEngine?.metadata.name ?? 'default engine';
+
   program
     .command('agent')
-    .description('Execute agent with engine from config (defaults to Codex)')
+    .description(`Execute agent with engine from config (defaults to ${defaultEngineName})`)
     .argument('<id>', 'Agent id from config/sub.agents.js or config/main.agents.js')
     .argument('<prompt...>', 'User request to send to the agent')
     .option('--profile <profile>', 'Engine profile to use (defaults to the agent id)')
@@ -73,7 +78,7 @@ function registerEngineAgentCommands(program: Command): void {
 /**
  * Registers all agent-related commands
  */
-export function registerAgentCommand(program: Command): void {
-  registerMainAgentCommand(program);
+export async function registerAgentCommand(program: Command): Promise<void> {
+  await registerMainAgentCommand(program);
   registerEngineAgentCommands(program);
 }

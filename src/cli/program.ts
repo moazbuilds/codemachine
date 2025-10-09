@@ -10,7 +10,7 @@ import {
   registerAgentCommand,
 } from './commands/index.js';
 
-export function registerCli(program: Command): void {
+export async function registerCli(program: Command): Promise<void> {
   const packageJsonPath = findPackageJson(import.meta.url);
   program
     .command('version')
@@ -31,7 +31,7 @@ export function registerCli(program: Command): void {
   registerStartCommand(program);
   registerTemplatesCommand(program);
   registerAuthCommands(program);
-  registerAgentCommand(program);
+  await registerAgentCommand(program);
 }
 
 function findPackageJson(moduleUrl: string): string {

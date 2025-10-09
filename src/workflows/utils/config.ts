@@ -23,7 +23,7 @@ export interface AgentConfig {
   promptPath?: string;
   model?: string;
   modelReasoningEffort?: string;
-  engine?: 'codex' | 'claude';
+  engine?: string; // Dynamic engine type from registry
   type?: string;
   [key: string]: unknown;
 }

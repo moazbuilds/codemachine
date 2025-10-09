@@ -3,7 +3,7 @@ import { existsSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 import { registerCli } from '../cli/index.js';
-import { codex } from '../infra/engines/index.js';
+import { registry } from '../infra/engines/index.js';
 import { bootstrapWorkspace } from './services/workspace/index.js';
 
 // Resolve package root to find templates directory
@@ -32,7 +32,13 @@ export async function runCodemachineCli(argv: string[] = process.argv): Promise<
     const cwd = dir || process.cwd();
     process.env.CODEMACHINE_CWD = cwd;
 
-    await codex.syncCodexConfig();
+    // Sync configurations for all engines that need it
+    const engines = registry.getAll();
+    for (const engine of engines) {
+      if (engine.syncConfig) {
+        await engine.syncConfig();
+      }
+    }
 
     // Only bootstrap if .codemachine folder doesn't exist
     const cmRoot = path.join(cwd, '.codemachine');
@@ -44,7 +50,7 @@ export async function runCodemachineCli(argv: string[] = process.argv): Promise<
     // If .codemachine exists, skip bootstrap (don't regenerate or modify)
   });
 
-  registerCli(program);
+  await registerCli(program);
 
   const [nodePath = process.execPath, scriptPath = fileURLToPath(import.meta.url)] = argv;
   const baseArgv = [nodePath, scriptPath];

@@ -42,10 +42,9 @@ describe('syncCodexConfig', () => {
     expect(content).toContain('# Model configuration');
     expect(content).toContain('model = "gpt-5-codex"');
     expect(content).toContain('# Profile configurations (dynamically generated from workflow templates and agent catalogs)');
+    // Since agents no longer have model/modelReasoningEffort in config, they use engine defaults (medium for codex)
     expect(content).toMatch(/\[profiles\.frontend-dev][\s\S]*model_reasoning_effort = "medium"/);
     expect(content).toMatch(/\[profiles\.custom-agent][\s\S]*model_reasoning_effort = "medium"/);
-    expect(content).toMatch(/\[profiles\.project-manager][\s\S]*model_reasoning_effort = "high"/);
-    expect(content).toMatch(/\[profiles\.check-task][\s\S]*model_reasoning_effort = "low"/);
   });
 
   it('does not rewrite the config when content is unchanged', async () => {
