@@ -55,8 +55,13 @@ Your instructional guide should, where applicable, cover:
 
 **You MUST execute this phase.** Using the strategy developed in Phase 1, now implement the actual solution.
 
-You are an expert developer working collaboratelly on a project. Given the following design artifacts:
+You are an expert developer working collaboratively on a project. Given the following design artifacts:
 
+**CRITICAL EXECUTION RULES:**
+- Work on ONLY the single task specified by [step_id] below
+- Do NOT work on multiple tasks or future tasks
+
+**Implementation Steps:**
 1. Analyze the manifest to understand required artifacts and their inputs and outputs.
 2. Plan your what you will do before executing it.
 3. Review task description and design artifacts to determine relationships.
