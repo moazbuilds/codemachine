@@ -1,5 +1,4 @@
 export interface CodexCommandOptions {
-  profile: string;
   workingDir: string;
   prompt: string;
   model?: string;
@@ -12,13 +11,11 @@ export interface CodexCommand {
 }
 
 export function buildCodexExecCommand(options: CodexCommandOptions): CodexCommand {
-  const { profile, workingDir, model, modelReasoningEffort } = options;
+  const { workingDir, model, modelReasoningEffort } = options;
 
   const args = [
     'exec',
     '--json',
-    '--profile',
-    profile,
     '--skip-git-repo-check',
     '--sandbox',
     'danger-full-access',

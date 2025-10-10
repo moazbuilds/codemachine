@@ -26,7 +26,6 @@ export async function runCodexPrompt(options: {
   }
 
   await runCodex({
-    profile: options.agentId,
     prompt: options.prompt,
     workingDir: options.cwd,
     onData: (chunk) => {
@@ -76,7 +75,6 @@ export async function runAgent(
 
   let buffered = '';
   const result = await runCodex({
-    profile: agentId,
     prompt,
     workingDir: cwd,
     abortSignal: options.abortSignal,

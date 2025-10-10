@@ -18,10 +18,6 @@ export interface ExecuteAgentOptions {
    */
   model?: string;
 
-  /**
-   * Engine profile to use (defaults to agentId)
-   */
-  profile?: string;
 
   /**
    * Working directory for execution
@@ -97,7 +93,7 @@ export async function executeAgent(
   prompt: string,
   options: ExecuteAgentOptions,
 ): Promise<string> {
-  const { workingDir, projectRoot, engine: engineOverride, model: modelOverride, profile: profileOverride, logger, stderrLogger, abortSignal, timeout } = options;
+  const { workingDir, projectRoot, engine: engineOverride, model: modelOverride, logger, stderrLogger, abortSignal, timeout } = options;
 
   // Load agent config to determine engine and model
   const agentConfig = await loadAgentConfig(agentId, projectRoot ?? workingDir);
@@ -136,10 +132,8 @@ export async function executeAgent(
     console.log(`ℹ️  No engine specified for agent '${agentId}', using ${foundEngine.metadata.name} (${engineType})`);
   }
 
-  const profile = profileOverride ?? agentId;
-
   // Ensure authentication
-  await ensureEngineAuth(engineType, profile);
+  await ensureEngineAuth(engineType, agentId);
 
   // Get engine module for defaults
   const engineModule = registry.get(engineType);
@@ -164,7 +158,6 @@ export async function executeAgent(
 
   let totalStdout = '';
   const result = await engine.run({
-    profile,
     prompt: compositePrompt,
     workingDir,
     model,

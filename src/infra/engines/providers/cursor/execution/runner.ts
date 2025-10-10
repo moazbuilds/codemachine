@@ -8,7 +8,6 @@ import { expandHomeDir } from '../../../../../shared/utils/index.js';
 import { logger } from '../../../../../shared/logging/index.js';
 
 export interface RunCursorOptions {
-  profile: string;
   prompt: string;
   workingDir: string;
   model?: string;
@@ -68,11 +67,7 @@ function formatStreamJsonLine(line: string): string | null {
 }
 
 export async function runCursor(options: RunCursorOptions): Promise<RunCursorResult> {
-  const { profile, prompt, workingDir, model, env, onData, onErrorData, abortSignal, timeout = 600000 } = options;
-
-  if (!profile) {
-    throw new Error('runCursor requires a profile.');
-  }
+  const { prompt, workingDir, model, env, onData, onErrorData, abortSignal, timeout = 600000 } = options;
 
   if (!prompt) {
     throw new Error('runCursor requires a prompt.');
@@ -82,7 +77,7 @@ export async function runCursor(options: RunCursorOptions): Promise<RunCursorRes
     throw new Error('runCursor requires a working directory.');
   }
 
-  // Set up CURSOR_CONFIG_DIR (shared for authentication, profile is for agent data only)
+  // Set up CURSOR_CONFIG_DIR for authentication
   const cursorConfigDir = process.env.CURSOR_CONFIG_DIR
     ? expandHomeDir(process.env.CURSOR_CONFIG_DIR)
     : path.join(homedir(), '.codemachine', 'cursor');
@@ -121,7 +116,6 @@ export async function runCursor(options: RunCursorOptions): Promise<RunCursorRes
   };
 
   const { command, args } = buildCursorExecCommand({
-    profile,
     workingDir,
     prompt,
     model,

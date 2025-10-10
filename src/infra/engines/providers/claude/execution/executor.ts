@@ -28,7 +28,6 @@ export async function runClaudePrompt(options: {
   }
 
   await runClaude({
-    profile: options.agentId,
     prompt: options.prompt,
     workingDir: options.cwd,
     model: options.model,
@@ -79,7 +78,6 @@ export async function runAgent(
 
   let buffered = '';
   const result = await runClaude({
-    profile: agentId,
     prompt,
     workingDir: cwd,
     model: options.model,

@@ -8,7 +8,6 @@ import { expandHomeDir } from '../../../../../shared/utils/index.js';
 import { logger } from '../../../../../shared/logging/index.js';
 
 export interface RunCodexOptions {
-  profile: string;
   prompt: string;
   workingDir: string;
   model?: string;
@@ -79,11 +78,7 @@ function formatCodexStreamJsonLine(line: string): string | null {
 }
 
 export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult> {
-  const { profile, prompt, workingDir, model, modelReasoningEffort, env, onData, onErrorData, abortSignal, timeout = 600000 } = options;
-
-  if (!profile) {
-    throw new Error('runCodex requires a profile.');
-  }
+  const { prompt, workingDir, model, modelReasoningEffort, env, onData, onErrorData, abortSignal, timeout = 600000 } = options;
 
   if (!prompt) {
     throw new Error('runCodex requires a prompt.');
@@ -96,7 +91,7 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
   // Prefer calling the real Codex CLI directly, mirroring runner-prompts spec
   // Example (Linux/Mac):
   //   CODEX_HOME="$HOME/.codemachine/codex" codex exec \
-  //     --profile <profile> --skip-git-repo-check \
+  //     --skip-git-repo-check \
   //     --sandbox danger-full-access --dangerously-bypass-approvals-and-sandbox \
   //     -C <workingDir> "<composite prompt>"
 
@@ -133,7 +128,7 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
     return result;
   };
 
-  const { command, args } = buildCodexExecCommand({ profile, workingDir, prompt, model, modelReasoningEffort });
+  const { command, args } = buildCodexExecCommand({ workingDir, prompt, model, modelReasoningEffort });
 
   logger.debug(`Codex runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
   logger.debug(`Codex runner - args count: ${args.length}`);
