@@ -3,7 +3,6 @@ import type { Command } from 'commander';
 import { executeAgent } from '../../agents/execution/index.js';
 
 type AgentCommandOptions = {
-  profile?: string;
   model?: string;
 };
 
@@ -21,7 +20,6 @@ async function registerMainAgentCommand(program: Command): Promise<void> {
     .description(`Execute agent with engine from config (defaults to ${defaultEngineName})`)
     .argument('<id>', 'Agent id from config/sub.agents.js or config/main.agents.js')
     .argument('<prompt...>', 'User request to send to the agent')
-    .option('--profile <profile>', 'Engine profile to use (defaults to the agent id)')
     .option('--model <model>', 'Model to use (overrides agent config)')
     .action(async (id: string, promptParts: string[], options: AgentCommandOptions) => {
       const prompt = promptParts.join(' ').trim();
@@ -31,7 +29,6 @@ async function registerMainAgentCommand(program: Command): Promise<void> {
 
       await executeAgent(id, prompt, {
         workingDir: process.cwd(),
-        profile: options.profile,
         model: options.model,
       });
     });
@@ -54,7 +51,6 @@ function registerEngineAgentCommands(program: Command): void {
         .description(`Execute ${engine.metadata.name} with an agent wrapper`)
         .argument('<id>', 'Agent id from config/sub.agents.js or config/main.agents.js')
         .argument('<prompt...>', 'User request to send to the agent')
-        .option('--profile <profile>', `${engine.metadata.name} profile to use (defaults to the agent id)`)
         .option('--model <model>', 'Model to use (overrides agent config)')
         .action(async (id: string, promptParts: string[], options: AgentCommandOptions) => {
           const prompt = promptParts.join(' ').trim();
@@ -65,7 +61,6 @@ function registerEngineAgentCommands(program: Command): void {
           await executeAgent(id, prompt, {
             engine: engine.metadata.id,
             workingDir: process.cwd(),
-            profile: options.profile,
             model: options.model,
           });
         });

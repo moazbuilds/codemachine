@@ -74,10 +74,9 @@ export async function executeStep(
     throw new Error('No engines registered. Please install at least one engine.');
   }
   const engineType: EngineType = step.engine ?? defaultEngine.metadata.id;
-  const profile = step.agentId;
 
   // Ensure authentication
-  await ensureEngineAuth(engineType, profile);
+  await ensureEngineAuth(engineType, step.agentId);
 
   // Get engine and its metadata for defaults
   const engineModule = registry.get(engineType);
@@ -91,7 +90,6 @@ export async function executeStep(
   const modelReasoningEffort = step.modelReasoningEffort ?? engineModule.metadata.defaultModelReasoningEffort;
 
   const result = await engine.run({
-    profile,
     prompt,
     workingDir: cwd,
     model,

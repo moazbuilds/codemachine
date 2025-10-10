@@ -8,7 +8,6 @@ import { expandHomeDir } from '../../../../../shared/utils/index.js';
 import { logger } from '../../../../../shared/logging/index.js';
 
 export interface RunClaudeOptions {
-  profile: string;
   prompt: string;
   workingDir: string;
   model?: string;
@@ -68,11 +67,7 @@ function formatStreamJsonLine(line: string): string | null {
 }
 
 export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeResult> {
-  const { profile, prompt, workingDir, model, env, onData, onErrorData, abortSignal, timeout = 600000 } = options;
-
-  if (!profile) {
-    throw new Error('runClaude requires a profile.');
-  }
+  const { prompt, workingDir, model, env, onData, onErrorData, abortSignal, timeout = 600000 } = options;
 
   if (!prompt) {
     throw new Error('runClaude requires a prompt.');
@@ -82,7 +77,7 @@ export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeRes
     throw new Error('runClaude requires a working directory.');
   }
 
-  // Set up CLAUDE_CONFIG_DIR (shared for authentication, profile is for agent data only)
+  // Set up CLAUDE_CONFIG_DIR for authentication
   const claudeConfigDir = process.env.CLAUDE_CONFIG_DIR
     ? expandHomeDir(process.env.CLAUDE_CONFIG_DIR)
     : path.join(homedir(), '.codemachine', 'claude');
@@ -120,7 +115,7 @@ export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeRes
     return result;
   };
 
-  const { command, args } = buildClaudeExecCommand({ profile, workingDir, prompt, model });
+  const { command, args } = buildClaudeExecCommand({ workingDir, prompt, model });
 
   logger.debug(`Claude runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
   logger.debug(`Claude runner - args count: ${args.length}, model: ${model ?? 'default'}`);

@@ -9,7 +9,6 @@
 export type EngineType = string;
 
 export interface EngineRunOptions {
-  profile: string;
   prompt: string;
   workingDir: string;
   model?: string;

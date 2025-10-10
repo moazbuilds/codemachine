@@ -19,7 +19,6 @@ describe('Engine Runner', () => {
     });
 
     const result = await runCodex({
-      profile: 'default',
       prompt: 'Hello Engine',
       workingDir,
       env: { CUSTOM: 'value' },
@@ -33,8 +32,6 @@ describe('Engine Runner', () => {
     expect(callOptions?.args).toEqual([
       'exec',
       '--json',
-      '--profile',
-      'default',
       '--skip-git-repo-check',
       '--sandbox',
       'danger-full-access',
@@ -59,7 +56,6 @@ describe('Engine Runner', () => {
 
     await expect(
       runCodex({
-        profile: 'failure',
         prompt: 'Trigger failure',
         workingDir,
       }),
@@ -86,7 +82,6 @@ describe('Engine Runner', () => {
     const handleError = vi.fn();
 
     const result = await runCodex({
-      profile: 'stream',
       prompt: 'Stream please',
       workingDir,
       onData: handleData,

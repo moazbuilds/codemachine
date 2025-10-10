@@ -1,5 +1,4 @@
 export interface CursorCommandOptions {
-  profile: string;
   workingDir: string;
   prompt: string;
   model?: string;

@@ -28,7 +28,6 @@ export async function runCursorPrompt(options: {
   }
 
   await runCursor({
-    profile: options.agentId,
     prompt: options.prompt,
     workingDir: options.cwd,
     model: options.model,
@@ -79,7 +78,6 @@ export async function runAgent(
 
   let buffered = '';
   const result = await runCursor({
-    profile: agentId,
     prompt,
     workingDir: cwd,
     model: options.model,

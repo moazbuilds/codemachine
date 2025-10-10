@@ -1,5 +1,4 @@
 export interface ClaudeCommandOptions {
-  profile: string;
   workingDir: string;
   prompt: string;
   model?: string;
