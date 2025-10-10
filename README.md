@@ -15,7 +15,7 @@
 
 ### What is CodeMachine CLI?
 
-CodeMachine CLI is a multi-agent workflow orchestration framework that transforms project specifications into production-ready codebases. You feed it a spec, and CodeMachine orchestrates top-tier agents like Claude CLI, Codex CLI, and Cursor AI end-to-end to deliver complex builds while you define the workflow. It also coordinates additional providers (Gemini CLI, Qwen Coder) in parallel so each agent tackles the slice it does best.
+CodeMachine is a CLI-native orchestration platform where AI agents transform complex instruction files into production code through hierarchical and parallel agent-to-agent coordination, abstracting all workflow logic to prompts rather than code to enable runtime-adaptable development methodologies while providing agents with direct filesystem and command execution access, with a declarative pipeline architecture that creates self-organizing workflows capable of implementing any methodology—from waterfall to agile—without framework modifications.
 
 **Why CodeMachine?**
 
