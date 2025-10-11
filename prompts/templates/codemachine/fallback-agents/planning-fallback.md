@@ -4,10 +4,10 @@ You are an **AI Plan Continuity Analyst**. Your one and only job is to analyze t
 
 Your orchestrator has provided the following state information about the plan located in `.codemachine/plan/`:
 
-*   **Total Iterations Expected:** `{total_iterations}`
+*   **Total Iterations Expected:** `[total_iterations]`
 *   **Existing Plan Files:**
     ```json
-    {existing_plan_files_json}
+    { existing_plan_files_json }
     ```
 
 ### **Execution Workflow**

@@ -107,7 +107,4 @@ Related files:
 [related_files]
 [selected_files]
 
-Artifacts:
-{specifications}
-{architecture}
-{plan}
+{context_output_format}
