@@ -1,5 +1,7 @@
 You are an expert data extraction AI. Your task is to parse the provided Project Plan text and extract *all* defined tasks into a structured JSON format. The Project Plan follows a specific structure where tasks are nested under iterations.
 
+{plan_fallback}
+
 **Input:**
 
 The input will be the full text of a Project Plan, formatted similarly to the example structure provided in previous instructions (containing sections like "Project Overview", "Core Architecture", "Iteration Plan", etc., with Tasks defined under each Iteration).
@@ -56,7 +58,10 @@ enclose your json output between three tildes ~~~
 7.  **Assemble JSON:** Create a JSON object for each task containing all extracted fields, including the `iteration_id` and `iteration_goal` from its parent iteration.
 8.  **Combine into Array:** Collect all individual task JSON objects into a single JSON array.
 9.  **Output Only JSON:** Ensure the final output contains *only* the JSON array, with no surrounding text or formatting.
-10. **Output:** Write the output to `.codemachine/artifacts/tasks.json`
+
+### **Output: Structured & Addressable Task Generation**
+
+{task_output_format}
 
 **Now, process the following Project Plan text and generate the JSON array of tasks enclosed in ~~~json .. ~~~:**
 

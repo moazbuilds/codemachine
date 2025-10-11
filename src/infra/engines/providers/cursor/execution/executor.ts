@@ -8,7 +8,7 @@ export interface RunAgentOptions {
   abortSignal?: AbortSignal;
   logger?: (chunk: string) => void;
   stderrLogger?: (chunk: string) => void;
-  timeout?: number; // Timeout in milliseconds (default: 600000ms = 10 minutes)
+  timeout?: number; // Timeout in milliseconds (default: 1800000ms = 30 minutes)
   model?: string; // Model to use (e.g., 'auto', 'gpt-5', 'sonnet-4.5')
 }
 

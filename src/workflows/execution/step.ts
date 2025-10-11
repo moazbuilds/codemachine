@@ -60,12 +60,12 @@ export async function executeStep(
   const rawPrompt = await readFile(promptPath, 'utf8');
   const prompt = await processPromptString(rawPrompt, cwd);
 
-  // Use environment variable or default to 10 minutes (600000ms)
+  // Use environment variable or default to 30 minutes (1800000ms)
   const timeout =
     options.timeout ??
     (process.env.CODEMACHINE_AGENT_TIMEOUT
       ? Number.parseInt(process.env.CODEMACHINE_AGENT_TIMEOUT, 10)
-      : 600000);
+      : 1800000);
 
   // Determine engine: step override > default to first registered engine
   const { registry } = await import('../../infra/engines/index.js');

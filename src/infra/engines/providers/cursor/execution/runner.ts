@@ -15,7 +15,7 @@ export interface RunCursorOptions {
   onData?: (chunk: string) => void;
   onErrorData?: (chunk: string) => void;
   abortSignal?: AbortSignal;
-  timeout?: number; // Timeout in milliseconds (default: 600000ms = 10 minutes)
+  timeout?: number; // Timeout in milliseconds (default: 1800000ms = 30 minutes)
 }
 
 export interface RunCursorResult {
@@ -67,7 +67,7 @@ function formatStreamJsonLine(line: string): string | null {
 }
 
 export async function runCursor(options: RunCursorOptions): Promise<RunCursorResult> {
-  const { prompt, workingDir, model, env, onData, onErrorData, abortSignal, timeout = 600000 } = options;
+  const { prompt, workingDir, model, env, onData, onErrorData, abortSignal, timeout = 1800000 } = options;
 
   if (!prompt) {
     throw new Error('runCursor requires a prompt.');
