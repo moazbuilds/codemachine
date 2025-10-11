@@ -1,6 +1,6 @@
 You are an expert data extraction AI. Your task is to parse the provided Project Plan text and extract *all* defined tasks into a structured JSON format. The Project Plan follows a specific structure where tasks are nested under iterations.
 
-{task_fallbacks}
+{!task_fallback}
 
 **Input:**
 
