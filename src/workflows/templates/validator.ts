@@ -89,8 +89,8 @@ export function validateWorkflowTemplate(value: unknown): ValidationResult {
               if (typeof behavior.steps !== 'number' || behavior.steps <= 0) {
                 errors.push(`Step[${index}].module.behavior.steps must be a positive number`);
               }
-              if (typeof behavior.trigger !== 'string') {
-                errors.push(`Step[${index}].module.behavior.trigger must be a string`);
+              if (behavior.trigger !== undefined && typeof behavior.trigger !== 'string') {
+                errors.push(`Step[${index}].module.behavior.trigger must be a string if provided`);
               }
               if (behavior.maxIterations !== undefined && typeof behavior.maxIterations !== 'number') {
                 errors.push(`Step[${index}].module.behavior.maxIterations must be a number`);

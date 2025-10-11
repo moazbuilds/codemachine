@@ -25,7 +25,7 @@ export interface LoopBehaviorConfig {
   type: 'loop';
   action: 'stepBack';
   steps: number;
-  trigger: string;
+  trigger?: string; // Optional: behavior now controlled via .codemachine/memory/behavior.json
   maxIterations?: number;
   skip?: string[];
 }

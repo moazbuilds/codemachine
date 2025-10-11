@@ -1,4 +1,5 @@
 import * as path from 'node:path';
+import * as fs from 'node:fs';
 
 import type { RunWorkflowOptions } from '../templates/index.js';
 import { loadTemplateWithPath } from '../templates/index.js';
@@ -88,6 +89,14 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
     console.log('═'.repeat(80));
     console.log(formatAgentLog(step.agentId, `${step.agentName} started to work.`));
+
+    // Reset behavior file to default "continue" before each agent run
+    const behaviorFile = path.join(cwd, '.codemachine/memory/behavior.json');
+    const behaviorDir = path.dirname(behaviorFile);
+    if (!fs.existsSync(behaviorDir)) {
+      fs.mkdirSync(behaviorDir, { recursive: true });
+    }
+    fs.writeFileSync(behaviorFile, JSON.stringify({ action: 'continue' }, null, 2));
 
     // Mark step as started (adds to notCompletedSteps)
     await markStepStarted(cmRoot, index);
@@ -202,7 +211,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         stderrLogger,
       });
 
-      const loopResult = handleLoopLogic(step, index, output, loopCounters);
+      const loopResult = handleLoopLogic(step, index, output, loopCounters, cwd);
 
       if (loopResult.decision?.shouldRepeat) {
         // Set active loop with skip list

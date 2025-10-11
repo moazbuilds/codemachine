@@ -15,6 +15,7 @@ export function handleLoopLogic(
   index: number,
   output: string,
   loopCounters: Map<string, number>,
+  cwd: string,
 ): { decision: LoopDecision | null; newIndex: number } {
   const loopKey = `${step.module?.id ?? step.agentId}:${index}`;
   const iterationCount = loopCounters.get(loopKey) ?? 0;
@@ -22,6 +23,7 @@ export function handleLoopLogic(
     behavior: step.module?.behavior,
     output,
     iterationCount,
+    cwd,
   });
 
   if (process.env.CODEMACHINE_DEBUG_LOOPS === '1') {
@@ -47,7 +49,8 @@ export function handleLoopLogic(
     console.log(
       formatAgentLog(
         step.agentId,
-        `${step.agentName} triggered a loop (match: ${step.module?.behavior?.trigger}); ` +
+        `${step.agentName} triggered a loop` +
+          `${loopDecision.reason ? ` (${loopDecision.reason})` : ''}; ` +
           `repeating previous step. Iteration ${nextIterationCount}${
             step.module?.behavior?.maxIterations ? `/${step.module.behavior.maxIterations}` : ''
           }${skipInfo}.`,
