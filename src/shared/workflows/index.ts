@@ -1,9 +1,18 @@
+// Template tracking functions
 export {
   getActiveTemplate,
   setActiveTemplate,
   hasTemplateChanged,
   getTemplatePathFromTracking,
+} from './template.js';
+
+// Step tracking functions
+export {
   getCompletedSteps,
   markStepCompleted,
-  clearCompletedSteps
-} from './tracking.js';
+  clearCompletedSteps,
+  getNotCompletedSteps,
+  markStepStarted,
+  removeFromNotCompleted,
+  clearNotCompletedSteps,
+} from './steps.js';

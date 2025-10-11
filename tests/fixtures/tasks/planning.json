@@ -4,7 +4,7 @@
       "id": "T1",
       "phase": "Planning",
       "name": "Document system boundaries and planning assumptions",
-      "acceptanceCriteria": "`docs/architecture/system-boundaries.md` captures scope, `.codemachine/plan.md` references the doc, and `docs/architecture/assumptions.md` logs new assumptions with timestamps."
+      "acceptanceCriteria": "`docs/architecture/system-boundaries.md` captures scope, `.codemachine/artifacts/plan.md` references the doc, and `docs/architecture/assumptions.md` logs new assumptions with timestamps."
     },
     {
       "id": "T2",

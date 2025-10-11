@@ -46,7 +46,8 @@ export async function bootstrapWorkspace(options?: WorkspaceBootstrapOptions): P
   const agentsDir = path.join(cmRoot, 'agents');
   const inputsDir = path.join(cmRoot, 'inputs');
   const memoryDir = path.join(cmRoot, 'memory');
-  const planDir = path.join(cmRoot, 'plan');
+  const artifactsDir = path.join(cmRoot, 'artifacts');
+  const fallbackDir = path.join(cmRoot, 'fallback');
 
   // Create all directories
   await Promise.all([
@@ -54,7 +55,8 @@ export async function bootstrapWorkspace(options?: WorkspaceBootstrapOptions): P
     ensureDir(agentsDir),
     ensureDir(inputsDir),
     ensureDir(memoryDir),
-    ensureDir(planDir)
+    ensureDir(artifactsDir),
+    ensureDir(fallbackDir)
   ]);
 
   // Ensure specifications template exists (do not overwrite if present).

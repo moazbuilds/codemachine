@@ -45,7 +45,7 @@
 
 ### Documentation (this feature)
 ```
-.codemachine/plan/
+.codemachine/artifacts/
 ├── plan.md              # This file (created by you)
 ├── research.md          # Phase 0 output (created by you)
 ├── data-model.md        # Phase 1 output (created by you)

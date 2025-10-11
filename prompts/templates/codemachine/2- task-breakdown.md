@@ -56,7 +56,7 @@ enclose your json output between three tildes ~~~
 7.  **Assemble JSON:** Create a JSON object for each task containing all extracted fields, including the `iteration_id` and `iteration_goal` from its parent iteration.
 8.  **Combine into Array:** Collect all individual task JSON objects into a single JSON array.
 9.  **Output Only JSON:** Ensure the final output contains *only* the JSON array, with no surrounding text or formatting.
-10. **Output:** Write the output to `.codemachine/plan/tasks.json`
+10. **Output:** Write the output to `.codemachine/artifacts/tasks.json`
 
 **Now, process the following Project Plan text and generate the JSON array of tasks enclosed in ~~~json .. ~~~:**
 
