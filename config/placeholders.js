@@ -8,7 +8,7 @@ module.exports = {
     plan: '.codemachine/artifacts/plan/*.md',
     plan_fallback: '.codemachine/prompts/plan_fallback.md',
     tasks: '.codemachine/artifacts/tasks.json',
-    task_fallback: '.codemachine/prompts/task_fallback.md',
+    task_fallback: '.codemachine/prompts/task_fallbacks.md',
     // Add more placeholders as needed:
   },
 
