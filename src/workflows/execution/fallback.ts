@@ -7,6 +7,7 @@ import {
   getAgentLoggers,
 } from '../../shared/logging/index.js';
 import { executeStep } from './step.js';
+import { mainAgents } from '../utils/config.js';
 
 export interface FallbackExecutionOptions {
   logger: (message: string) => void;
@@ -43,11 +44,18 @@ export async function executeFallbackStep(
 
   console.log(formatAgentLog(fallbackAgentId, `Fallback agent for ${step.agentName} started to work.`));
 
-  // Create a fallback step with the same configuration as the original
+  // Look up the fallback agent's configuration to get its prompt path
+  const fallbackAgent = mainAgents.find((agent) => agent?.id === fallbackAgentId);
+  if (!fallbackAgent) {
+    throw new Error(`Fallback agent not found: ${fallbackAgentId}`);
+  }
+
+  // Create a fallback step with the fallback agent's prompt path
   const fallbackStep: WorkflowStep = {
     ...step,
     agentId: fallbackAgentId,
-    agentName: fallbackAgentId, // Use agent ID as name for fallback
+    agentName: fallbackAgent.name || fallbackAgentId,
+    promptPath: fallbackAgent.promptPath, // Use the fallback agent's prompt, not the original step's
   };
 
   const { stdout: baseStdoutLogger, stderr: baseStderrLogger } = getAgentLoggers(fallbackAgentId);

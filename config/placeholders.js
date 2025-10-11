@@ -5,8 +5,10 @@ module.exports = {
     // Project specification document
     specifications: '.codemachine/inputs/specifications.md',
     architecture: '.codemachine/artifacts/architecture/*.md',
-    plan: '.codemachine/artifacts/plan.md',
+    plan: '.codemachine/artifacts/plan/*.md',
+    plan_fallback: '.codemachine/prompts/plan_fallback.md',
     tasks: '.codemachine/artifacts/tasks.json',
+    task_fallback: '.codemachine/prompts/task_fallback.md',
     // Add more placeholders as needed:
   },
 
@@ -15,6 +17,7 @@ module.exports = {
     orchestration_guide: 'prompts/orchestration/guide.md',
     arch_output_format: 'prompts/templates/codemachine/output_format/arch_output.md',
     plan_output_format: 'prompts/templates/codemachine/output_format/plan_output.md',
+    task_output_format: 'prompts/templates/codemachine/output_format/task_output.md',
     plan_exec_strategy: 'prompts/templates/codemachine/helpers/plan_exec_strategy.md',
     // Add codemachine package-level placeholders here
   }

@@ -82,9 +82,9 @@ export function resolveModel(model?: string): string | undefined {
 }
 
 /**
- * Default timeout for Cursor operations (10 minutes)
+ * Default timeout for Cursor operations (30 minutes)
  */
-export const DEFAULT_TIMEOUT = 600000;
+export const DEFAULT_TIMEOUT = 1800000;
 
 /**
  * Environment variable names

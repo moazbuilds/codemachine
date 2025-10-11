@@ -59,6 +59,18 @@ module.exports = [
     description: 'Handles git commit operations and commit message generation',
     promptPath: path.join(promptsDir, 'codemachine', 'git-commit.md'),
   },
+  {
+    id: 'plan-fallback',
+    name: 'Plan Fallback Agent',
+    description: 'Fixes and validates plan generation issues when plan-agent fails',
+    promptPath: path.join(promptsDir, 'codemachine', 'fallback', 'plan_fallback.md'),
+  },
+  {
+    id: 'task-fallback',
+    name: 'Task Fallback Agent',
+    description: 'Fixes and validates task breakdown issues when task-breakdown fails',
+    promptPath: path.join(promptsDir, 'codemachine', 'fallback', 'task_fallback.md'),
+  },
 
   // Folder configurations - applies settings to all agents in the folder
   {
