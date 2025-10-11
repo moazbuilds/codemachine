@@ -5,6 +5,7 @@ export interface StepOverrides {
   modelReasoningEffort?: string;
   engine?: string; // Dynamic engine type from registry
   executeOnce?: boolean;
+  notCompletedFallback?: string;
 }
 
 export interface WorkflowStep {
@@ -17,6 +18,7 @@ export interface WorkflowStep {
   engine?: string; // Dynamic engine type from registry
   module?: ModuleMetadata;
   executeOnce?: boolean;
+  notCompletedFallback?: string;
 }
 
 export interface LoopBehaviorConfig {

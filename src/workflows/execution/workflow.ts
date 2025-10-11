@@ -12,6 +12,7 @@ import {
 import {
   getTemplatePathFromTracking,
   getCompletedSteps,
+  getNotCompletedSteps,
   markStepCompleted,
   markStepStarted,
   removeFromNotCompleted,
@@ -20,6 +21,7 @@ import { registry } from '../../infra/engines/index.js';
 import { shouldSkipStep, logSkipDebug, type ActiveLoop } from '../behaviors/skip.js';
 import { handleLoopLogic, createActiveLoop } from '../behaviors/loop/controller.js';
 import { executeStep } from './step.js';
+import { shouldExecuteFallback, executeFallbackStep } from './fallback.js';
 
 export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<void> {
   const cwd = options.cwd ? path.resolve(options.cwd) : process.cwd();
@@ -62,6 +64,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
   // Load completed steps for executeOnce tracking
   const completedSteps = await getCompletedSteps(cmRoot);
+
+  // Load not completed steps for fallback tracking
+  const notCompletedSteps = await getNotCompletedSteps(cmRoot);
 
   const loopCounters = new Map<string, number>();
   let activeLoop: ActiveLoop | null = null;
@@ -161,6 +166,23 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     // (executeStep falls back to default engine if step.engine is unset)
     // Mutate current step to carry the chosen engine forward
     step.engine = engineType;
+
+    // Check if fallback should be executed before the original step
+    if (shouldExecuteFallback(step, index, notCompletedSteps)) {
+      console.log(formatAgentLog(step.agentId, `Detected incomplete step. Running fallback agent first.`));
+      try {
+        await executeFallbackStep(step, cwd, workflowStartTime, engineType);
+      } catch (error) {
+        // Fallback failed, step remains in notCompletedSteps
+        console.error(
+          formatAgentLog(
+            step.agentId,
+            `Fallback failed. Skipping original step retry.`,
+          ),
+        );
+        throw error;
+      }
+    }
 
     // Resolve model and reasoning effort for display
     const engineModule = registry.get(engineType);

@@ -26,6 +26,7 @@ export interface WorkflowStep {
   engine?: string; // Dynamic engine type from registry
   module?: ModuleMetadata;
   executeOnce?: boolean;
+  notCompletedFallback?: string; // Agent ID to run if step is in notCompletedSteps
 }
 
 export interface WorkflowTemplate {
