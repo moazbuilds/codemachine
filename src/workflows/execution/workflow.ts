@@ -13,6 +13,8 @@ import {
   getTemplatePathFromTracking,
   getCompletedSteps,
   markStepCompleted,
+  markStepStarted,
+  removeFromNotCompleted,
 } from '../../shared/workflows/index.js';
 import { registry } from '../../infra/engines/index.js';
 import { shouldSkipStep, logSkipDebug, type ActiveLoop } from '../behaviors/skip.js';
@@ -81,6 +83,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
     console.log('═'.repeat(80));
     console.log(formatAgentLog(step.agentId, `${step.agentName} started to work.`));
+
+    // Mark step as started (adds to notCompletedSteps)
+    await markStepStarted(cmRoot, index);
 
     const { stdout: baseStdoutLogger, stderr: baseStderrLogger } = getAgentLoggers(step.agentId);
 
@@ -192,6 +197,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       }
 
       stopSpinner(spinnerState);
+
+      // Remove from notCompletedSteps (step finished successfully)
+      await removeFromNotCompleted(cmRoot, index);
 
       // Mark step as completed if executeOnce is true
       if (step.executeOnce) {

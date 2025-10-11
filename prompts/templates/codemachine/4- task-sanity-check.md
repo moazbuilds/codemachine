@@ -27,7 +27,7 @@ IF there are no changes, output "NO changes."
 
 CRITICAL REQUIREMENT: After making any necessary edits (or if no edits were needed), once everything is verified and meets all requirements, you MUST update tasks.json:
 
-1. Read `.codemachine/plan/tasks.json` (or `.codemachine/tasks.json` if the first doesn't exist)
+1. Read `.codemachine/artifacts/tasks.json` (or `.codemachine/tasks.json` if the first doesn't exist)
 2. Find the task object matching the current task_id from [step]    
 3. Change the `done` field from `false` to `true` for that specific task
 4. Write the modified JSON back to tasks.json

@@ -1,6 +1,6 @@
 import * as path from 'node:path';
-import { readFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { readFile, readdir } from 'node:fs/promises';
+import { existsSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
@@ -82,12 +82,98 @@ function loadPlaceholdersConfig(): PlaceholdersConfig {
 }
 
 /**
+ * Checks if a path contains glob patterns
+ */
+function isGlobPattern(filePath: string): boolean {
+  return filePath.includes('*') || filePath.includes('?') || filePath.includes('[');
+}
+
+/**
+ * Matches files against a glob pattern
+ */
+async function matchGlobPattern(
+  baseDir: string,
+  pattern: string,
+): Promise<string[]> {
+  const absolutePattern = path.isAbsolute(pattern) ? pattern : path.resolve(baseDir, pattern);
+  const directory = path.dirname(absolutePattern);
+  const filePattern = path.basename(absolutePattern);
+
+  if (!existsSync(directory)) {
+    return [];
+  }
+
+  try {
+    const files = await readdir(directory);
+    const matchedFiles: string[] = [];
+
+    for (const file of files) {
+      const fullPath = path.join(directory, file);
+
+      // Check if it's a file (not directory)
+      try {
+        const stats = statSync(fullPath);
+        if (!stats.isFile()) continue;
+      } catch {
+        continue;
+      }
+
+      // Simple pattern matching for *.ext patterns
+      if (filePattern.startsWith('*')) {
+        const extension = filePattern.substring(1); // e.g., ".md"
+        if (file.endsWith(extension)) {
+          matchedFiles.push(fullPath);
+        }
+      } else if (filePattern === file) {
+        matchedFiles.push(fullPath);
+      }
+    }
+
+    // Sort alphabetically (a-z)
+    return matchedFiles.sort((a, b) => {
+      const nameA = path.basename(a).toLowerCase();
+      const nameB = path.basename(b).toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+  } catch (error) {
+    throw new Error(
+      `Failed to match glob pattern ${pattern}: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
+
+/**
  * Loads content for a single placeholder
  */
 async function loadPlaceholderContent(
   cwd: string,
   filePath: string,
 ): Promise<string> {
+  // Check if it's a glob pattern
+  if (isGlobPattern(filePath)) {
+    const matchedFiles = await matchGlobPattern(cwd, filePath);
+
+    if (matchedFiles.length === 0) {
+      throw new Error(`No files matched the pattern: ${filePath}`);
+    }
+
+    // Read all matched files and concatenate with <br>
+    const contents: string[] = [];
+    for (const file of matchedFiles) {
+      try {
+        const content = await readFile(file, 'utf8');
+        contents.push(content);
+      } catch (error) {
+        throw new Error(
+          `Failed to read file ${file}: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+    }
+
+    return contents.join('<br>');
+  }
+
+  // Original behavior for single files
   const absolutePath = path.isAbsolute(filePath) ? filePath : path.resolve(cwd, filePath);
 
   try {

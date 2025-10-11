@@ -10,7 +10,7 @@
 
 ### Inputs
 
-* `.codemachine/plan/tasks.json` — Task definitions and status.
+* `.codemachine/artifacts/tasks.json` — Task definitions and status.
 * `.codemachine/agents/agents-config.json` — Available agents.
 * `.codemachine/inputs/specifications.md` — User requirements.
 
