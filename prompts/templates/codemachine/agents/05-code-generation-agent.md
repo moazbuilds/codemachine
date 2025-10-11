@@ -70,41 +70,8 @@ You are an expert developer working collaboratively on a project. Given the foll
 5. You can add or edit files to finish your task successfully.
 6. Follow the design instructions.
 
-## How to Find Task Data
+## Contextual Information:
 
-**step_id**: The current task ID (first undone task in tasks.json)
+{context}
 
-**step_instructions**: The full task data formatted as:
-```
-## I1.T2
-### description: Implement user authentication with JWT tokens
-### target_files: ["src/auth/controller.ts", "src/auth/service.ts"]
-### acceptance_criteria: Users can login and receive JWT tokens
-```
-
-**instructions**: The output from Phase 1 (thinking/planning phase)
-
-**dir_structure**: Use `ls -la` to explore directories and verify file locations
-
-**related_files** / **selected_files**: Content of files specified in the task's `input_files` and `target_files`
-
----
-
-Your task is to work on step: [step_id]
-Current Stage:
-Follow instructions and generate the code.
-
-Instructions for task "[step_id]":
-[step_instructions]
-
-Task Instructions:
-[instructions]
-
-Directory Structure:
-[dir_structure]
-
-Related files:
-[related_files]
-[selected_files]
-
-{context_output_format}
+{!code_fallback}

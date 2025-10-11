@@ -12,6 +12,8 @@ module.exports = {
     tasks: '.codemachine/artifacts/tasks.json',
     all_tasks_json: '.codemachine/artifacts/tasks/*.json',
     task_fallback: '.codemachine/prompts/task_fallback.md',
+    context: '.codemachine/prompts/context.md',
+    code_fallback: '.codemachine/prompts/code_fallback.md',
     // Add more placeholders as needed:
   },
 
@@ -22,6 +24,7 @@ module.exports = {
     plan_output_format: 'prompts/templates/codemachine/output-formats/planning-output.md',
     task_output_format: 'prompts/templates/codemachine/output-formats/task-breakdown-output.md',
     context_output_format: 'prompts/templates/codemachine/output-formats/context-output.md',
+    task_validation_output_format: 'prompts/templates/codemachine/output-formats/task-validation-output.md',
     // Add codemachine package-level placeholders here
   }
 };

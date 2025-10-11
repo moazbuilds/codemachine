@@ -11,7 +11,7 @@ export default {
     resolveStep('runtime-prep', { executeOnce: true, engine: 'claude' }), // Generate robust shell scripts for project automation (install, run, lint, test)
     resolveStep('task-sanity-check', { engine: 'claude' }), // Verify generated code against task requirements and acceptance criteria
     resolveStep('git-commit', { engine: 'codex', model: 'gpt-5', modelReasoningEffort: 'low' }), // Commit the generated and verified code
-    resolveModule('check-task', { loopTrigger: 'TASKS_COMPLETED=FALSE', loopSteps: 5, loopMaxIterations: 20, loopSkip: ['runtime-prep'] }), // Loop back if tasks are not completed
+    resolveModule('check-task', { loopSteps: 5, loopMaxIterations: 20, loopSkip: ['runtime-prep'] }), // Loop back if tasks are not completed
   ],
   subAgentIds: [],
 };

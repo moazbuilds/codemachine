@@ -9,10 +9,8 @@ function resolveLoopBehavior(
     return undefined;
   }
 
+  // Trigger is now optional - behavior is controlled via .codemachine/memory/behavior.json
   const trigger = overrides.loopTrigger ?? (typeof base.trigger === 'string' ? base.trigger : undefined);
-  if (!trigger || !trigger.trim()) {
-    return undefined;
-  }
 
   const overrideSteps = typeof overrides.loopSteps === 'number' ? overrides.loopSteps : undefined;
   const baseSteps = typeof base.steps === 'number' ? base.steps : undefined;

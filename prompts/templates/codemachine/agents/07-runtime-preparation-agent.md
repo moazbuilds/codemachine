@@ -2,9 +2,6 @@ You are an expert software engineer specializing in creating robust, maintainabl
 
 Your primary task is to generate or update the shell scripts defined below. Ensure they are robust, safe (e.g., quote variables, use `set -e` and `set -u` where appropriate, avoid destructive commands without safeguards), and adhere to best practices. Leverage the provided manifest, directory structure, and related files to inform your script generation.
 
-Your current stage:
-{task}
-
 Follow the detailed instructions for each script:
 
 **Script 1: `tools/install.sh`**
@@ -66,48 +63,8 @@ Follow the detailed instructions for each script:
 
 ---
 
-## How to Find Task Data
+## Contextual Information:
 
-**task**: The full task data (tasks that has done: false) formatted as:
+{context}
 
-```
-## I1.T2
-### description: Implement user authentication with JWT tokens
-### target_files: ["src/auth/controller.ts", "src/auth/service.ts"]
-### acceptance_criteria: Users can login and receive JWT tokens
-```
 
-**dir_structure**: Output from `ls -la` command showing the project's file and directory layout
-
-**files**: Content of existing tool scripts (tools/install.sh, tools/run.sh, tools/lint.sh, tools/test.sh) if they already exist
-
----
-
-**Contextual Information:**
-
-**Current Directory Structure:**
-(A representation of the project's file and directory layout)
-~~~
-[dir_structure]
-~~~
-
-**Content of Related Files (if any exist):**
-(The current content of `tools/install.sh`, `tools/run.sh`, `tools/lint.sh`, or other relevant files. Use this to update existing scripts or as a reference.)
-~~~
-[files]
-~~~
-
----
-
-**IMPORTANT NOTE:**
-*   If the current content of a script (provided in `files`) already perfectly meets all the specified requirements for that script, clearly state that the script is correct and does not need to be re-generated. Do not output its content again unless changes are made.
-
-Good luck!
-
-**Artifacts:**
-(This describes the project, its dependencies, and potentially scripts for running, linting, etc. e.g., `pyproject.toml`, `package.json`, custom YAML/JSON)
-~~~
-{specifications}
-{architecture}
-{plan}
-~~~
