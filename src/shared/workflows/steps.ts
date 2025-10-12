@@ -9,6 +9,7 @@ interface TemplateTracking {
   lastUpdated: string;
   completedSteps?: number[];
   notCompletedSteps?: number[];
+  resumeFromLastStep?: boolean;
 }
 
 /**
@@ -201,5 +202,37 @@ export async function clearNotCompletedSteps(cmRoot: string): Promise<void> {
     await writeFile(trackingPath, JSON.stringify(data, null, 2), 'utf8');
   } catch {
     // If we can't read/write, ignore
+  }
+}
+
+/**
+ * Gets the resume starting index based on the last incomplete step.
+ * Returns the last (highest) number from notCompletedSteps array.
+ * Falls back to 0 if the feature is disabled or array is empty.
+ */
+export async function getResumeStartIndex(cmRoot: string): Promise<number> {
+  const trackingPath = path.join(cmRoot, TEMPLATE_TRACKING_FILE);
+
+  if (!existsSync(trackingPath)) {
+    return 0;
+  }
+
+  try {
+    const content = await readFile(trackingPath, 'utf8');
+    const data = JSON.parse(content) as TemplateTracking;
+
+    // Check if resume feature is enabled
+    if (!data.resumeFromLastStep) {
+      return 0;
+    }
+
+    // Get the last (highest) incomplete step index
+    if (data.notCompletedSteps && data.notCompletedSteps.length > 0) {
+      return Math.max(...data.notCompletedSteps);
+    }
+
+    return 0;
+  } catch {
+    return 0;
   }
 }

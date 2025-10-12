@@ -8,6 +8,7 @@ import {
   registerTemplatesCommand,
   registerAuthCommands,
   registerAgentCommand,
+  registerStepCommand,
 } from './commands/index.js';
 
 export async function registerCli(program: Command): Promise<void> {
@@ -32,6 +33,7 @@ export async function registerCli(program: Command): Promise<void> {
   registerTemplatesCommand(program);
   registerAuthCommands(program);
   await registerAgentCommand(program);
+  await registerStepCommand(program);
 }
 
 function findPackageJson(moduleUrl: string): string {

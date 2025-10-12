@@ -17,6 +17,7 @@ import {
   markStepCompleted,
   markStepStarted,
   removeFromNotCompleted,
+  getResumeStartIndex,
 } from '../../shared/workflows/index.js';
 import { registry } from '../../infra/engines/index.js';
 import { shouldSkipStep, logSkipDebug, type ActiveLoop } from '../behaviors/skip.js';
@@ -73,7 +74,14 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
   let activeLoop: ActiveLoop | null = null;
   const workflowStartTime = Date.now();
 
-  for (let index = 0; index < template.steps.length; index += 1) {
+  // Get the starting index based on resume configuration
+  const startIndex = await getResumeStartIndex(cmRoot);
+
+  if (startIndex > 0) {
+    console.log(`Resuming workflow from step ${startIndex}...`);
+  }
+
+  for (let index = startIndex; index < template.steps.length; index += 1) {
     const step = template.steps[index];
     if (step.type !== 'module') {
       continue;

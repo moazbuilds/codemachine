@@ -66,6 +66,12 @@ module.exports = [
     promptPath: path.join(promptsDir, 'codemachine', 'workflows', 'git-commit-workflow.md'),
   },
   {
+    id: 'cleanup-code-fallback',
+    name: 'Cleanup Code Fallback File',
+    description: 'Deletes .codemachine/prompts/code_fallback.md if it exists',
+    promptPath: path.join(promptsDir, 'codemachine', 'workflows', 'cleanup-code-fallback-workflow.md'),
+  },
+  {
     id: 'plan-fallback',
     name: 'Plan Fallback Agent',
     description: 'Fixes and validates plan generation issues when plan-agent fails',
