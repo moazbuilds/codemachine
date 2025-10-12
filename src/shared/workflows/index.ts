@@ -15,4 +15,5 @@ export {
   markStepStarted,
   removeFromNotCompleted,
   clearNotCompletedSteps,
+  getResumeStartIndex,
 } from './steps.js';
