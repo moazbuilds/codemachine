@@ -24,6 +24,7 @@ interface TemplateTracking {
   lastUpdated: string;
   completedSteps?: number[];
   notCompletedSteps?: number[];
+  resumeFromLastStep?: boolean;
 }
 
 /**
@@ -54,6 +55,9 @@ export async function setActiveTemplate(cmRoot: string, templateName: string): P
   const data: TemplateTracking = {
     activeTemplate: templateName,
     lastUpdated: new Date().toISOString(),
+    completedSteps: [],
+    notCompletedSteps: [],
+    resumeFromLastStep: true,
   };
 
   await writeFile(trackingPath, JSON.stringify(data, null, 2), 'utf8');
