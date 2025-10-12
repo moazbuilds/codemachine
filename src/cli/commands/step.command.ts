@@ -6,10 +6,18 @@ import { MemoryStore } from '../../agents/memory/memory-store.js';
 import { loadAgentTemplate, loadAgentConfig } from '../../agents/execution/index.js';
 import { getEngine } from '../../infra/engines/index.js';
 import type { EngineType } from '../../infra/engines/index.js';
+import {
+  getAgentLoggers,
+  formatAgentLog,
+  startSpinner,
+  stopSpinner,
+  createSpinnerLoggers,
+} from '../../shared/logging/index.js';
 
 type StepCommandOptions = {
   model?: string;
   engine?: string;
+  reasoning?: 'low' | 'medium' | 'high';
 };
 
 /**
@@ -45,6 +53,11 @@ async function executeStep(
   options: StepCommandOptions,
 ): Promise<void> {
   const workingDir = process.cwd();
+
+  // Validate reasoning level if provided
+  if (options.reasoning && !['low', 'medium', 'high'].includes(options.reasoning)) {
+    throw new Error(`Invalid reasoning level: ${options.reasoning}. Must be one of: low, medium, high`);
+  }
 
   // Load agent config and template
   const agentConfig = await loadAgentConfig(agentId, workingDir);
@@ -95,7 +108,7 @@ async function executeStep(
 
   // Model resolution: CLI override > agent config > engine default
   const model = options.model ?? (agentConfig.model as string | undefined) ?? engineModule.metadata.defaultModel;
-  const modelReasoningEffort = (agentConfig.modelReasoningEffort as 'low' | 'medium' | 'high' | undefined) ?? engineModule.metadata.defaultModelReasoningEffort;
+  const modelReasoningEffort = options.reasoning ?? (agentConfig.modelReasoningEffort as 'low' | 'medium' | 'high' | undefined) ?? engineModule.metadata.defaultModelReasoningEffort;
 
   // Set up memory
   const memoryDir = path.resolve(workingDir, '.codemachine', 'memory');
@@ -118,47 +131,62 @@ async function executeStep(
   // Get engine and execute
   const engine = getEngine(engineType);
 
-  console.log(`\nExecuting agent: ${agentConfig.name} (${agentId})`);
-  console.log(`Engine: ${engineModule.metadata.name} (${engineType})`);
-  console.log(`Model: ${model}`);
-  if (modelReasoningEffort) {
-    console.log(`Reasoning: ${modelReasoningEffort}`);
+  console.log('═'.repeat(80));
+  console.log(formatAgentLog(agentId, `${agentConfig.name} started to work.`));
+
+  // Get base loggers
+  const { stdout: baseStdoutLogger, stderr: baseStderrLogger } = getAgentLoggers(agentId);
+
+  // Start spinner with workflow start time
+  const workflowStartTime = Date.now();
+  const spinnerState = startSpinner(agentConfig.name, engineType, workflowStartTime, model, modelReasoningEffort);
+
+  // Wrap loggers with spinner control
+  const { stdoutLogger, stderrLogger } = createSpinnerLoggers(
+    baseStdoutLogger,
+    baseStderrLogger,
+    spinnerState,
+  );
+
+  try {
+    let totalStdout = '';
+    const result = await engine.run({
+      prompt: compositePrompt,
+      workingDir,
+      model,
+      modelReasoningEffort,
+      onData: (chunk) => {
+        totalStdout += chunk;
+        stdoutLogger(chunk);
+      },
+      onErrorData: (chunk) => {
+        stderrLogger(chunk);
+      },
+    });
+
+    stopSpinner(spinnerState);
+
+    // Store output in memory
+    const stdout = result.stdout || totalStdout;
+    const slice = stdout.slice(-2000);
+    await store.append({
+      agentId,
+      content: slice,
+      timestamp: new Date().toISOString(),
+    });
+
+    console.log(formatAgentLog(agentId, `${agentConfig.name} has completed their work.`));
+    console.log('\n' + '═'.repeat(80) + '\n');
+  } catch (error) {
+    stopSpinner(spinnerState);
+    console.error(
+      formatAgentLog(
+        agentId,
+        `${agentConfig.name} failed: ${error instanceof Error ? error.message : String(error)}`,
+      ),
+    );
+    throw error;
   }
-  console.log('');
-
-  let totalStdout = '';
-  const result = await engine.run({
-    prompt: compositePrompt,
-    workingDir,
-    model,
-    modelReasoningEffort,
-    onData: (chunk) => {
-      totalStdout += chunk;
-      try {
-        process.stdout.write(chunk);
-      } catch {
-        // ignore streaming failures
-      }
-    },
-    onErrorData: (chunk) => {
-      try {
-        process.stderr.write(chunk);
-      } catch {
-        // ignore streaming failures
-      }
-    },
-  });
-
-  // Store output in memory
-  const stdout = result.stdout || totalStdout;
-  const slice = stdout.slice(-2000);
-  await store.append({
-    agentId,
-    content: slice,
-    timestamp: new Date().toISOString(),
-  });
-
-  console.log('\n✓ Agent execution completed');
 }
 
 /**
@@ -176,6 +204,7 @@ export async function registerStepCommand(program: Command): Promise<void> {
     .argument('[prompt...]', 'Optional additional prompt to append to the agent\'s main prompt')
     .option('--model <model>', 'Model to use (overrides agent config)')
     .option('--engine <engine>', 'Engine to use (overrides agent config and defaults)')
+    .option('--reasoning <level>', 'Reasoning effort level: low, medium, or high (overrides agent config)')
     .action(async (id: string, promptParts: string[], options: StepCommandOptions) => {
       const additionalPrompt = promptParts.join(' ').trim();
       await executeStep(id, additionalPrompt, options);

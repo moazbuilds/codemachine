@@ -12,7 +12,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const require = createRequire(import.meta.url);
 
-const CLI_BUNDLE_DIR = path.resolve(__dirname, '..', '..', '..');
+// When running from dist/, go up one level to project root
+// When running from src/, go up three levels to project root
+const CLI_BUNDLE_DIR = path.basename(__dirname) === 'dist'
+  ? path.resolve(__dirname, '..')
+  : path.resolve(__dirname, '..', '..', '..');
 const CLI_PACKAGE_ROOT = (() => {
   let current = CLI_BUNDLE_DIR;
   const limit = 10;

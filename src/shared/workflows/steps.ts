@@ -49,6 +49,8 @@ export async function markStepCompleted(cmRoot: string, stepIndex: number): Prom
         activeTemplate: '',
         lastUpdated: new Date().toISOString(),
         completedSteps: [],
+        notCompletedSteps: [],
+        resumeFromLastStep: true,
       };
     }
   } else {
@@ -56,6 +58,8 @@ export async function markStepCompleted(cmRoot: string, stepIndex: number): Prom
       activeTemplate: '',
       lastUpdated: new Date().toISOString(),
       completedSteps: [],
+      notCompletedSteps: [],
+      resumeFromLastStep: true,
     };
   }
 
@@ -131,14 +135,18 @@ export async function markStepStarted(cmRoot: string, stepIndex: number): Promis
       data = {
         activeTemplate: '',
         lastUpdated: new Date().toISOString(),
+        completedSteps: [],
         notCompletedSteps: [],
+        resumeFromLastStep: true,
       };
     }
   } else {
     data = {
       activeTemplate: '',
       lastUpdated: new Date().toISOString(),
+      completedSteps: [],
       notCompletedSteps: [],
+      resumeFromLastStep: true,
     };
   }
 
@@ -206,8 +214,8 @@ export async function clearNotCompletedSteps(cmRoot: string): Promise<void> {
 }
 
 /**
- * Gets the resume starting index based on the last incomplete step.
- * Returns the last (highest) number from notCompletedSteps array.
+ * Gets the resume starting index based on the first incomplete step.
+ * Returns the first (lowest) number from notCompletedSteps array.
  * Falls back to 0 if the feature is disabled or array is empty.
  */
 export async function getResumeStartIndex(cmRoot: string): Promise<number> {
@@ -226,9 +234,9 @@ export async function getResumeStartIndex(cmRoot: string): Promise<number> {
       return 0;
     }
 
-    // Get the last (highest) incomplete step index
+    // Get the first (lowest) incomplete step index to resume from
     if (data.notCompletedSteps && data.notCompletedSteps.length > 0) {
-      return Math.max(...data.notCompletedSteps);
+      return Math.min(...data.notCompletedSteps);
     }
 
     return 0;

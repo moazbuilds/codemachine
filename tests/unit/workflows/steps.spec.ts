@@ -74,7 +74,7 @@ describe('workflow step tracking', () => {
       expect(result).toBe(0);
     });
 
-    it('returns the last (highest) step index from notCompletedSteps when resumeFromLastStep is true', async () => {
+    it('returns the first (lowest) step index from notCompletedSteps when resumeFromLastStep is true', async () => {
       const trackingPath = join(testDir, 'template.json');
       writeFileSync(
         trackingPath,
@@ -87,7 +87,7 @@ describe('workflow step tracking', () => {
       );
 
       const result = await getResumeStartIndex(testDir);
-      expect(result).toBe(5);
+      expect(result).toBe(0);
     });
 
     it('returns the correct index when notCompletedSteps has only one element', async () => {
@@ -119,7 +119,7 @@ describe('workflow step tracking', () => {
       );
 
       const result = await getResumeStartIndex(testDir);
-      expect(result).toBe(7);
+      expect(result).toBe(1);
     });
 
     it('handles corrupted tracking file gracefully', async () => {
@@ -150,7 +150,7 @@ describe('workflow step tracking', () => {
       content.resumeFromLastStep = true;
       writeFileSync(trackingPath, JSON.stringify(content));
 
-      // Should resume from step 2 (the last incomplete step)
+      // Should resume from step 2 (the first/only incomplete step)
       const result = await getResumeStartIndex(testDir);
       expect(result).toBe(2);
     });
