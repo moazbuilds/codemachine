@@ -3,7 +3,6 @@ dist/
 coverage/
 .DS_Store
 reports/
-docs/*
 
 # Ignore specific dotfiles/folders
 .codemachine
