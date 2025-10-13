@@ -219,7 +219,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         stderrLogger,
       });
 
-      const loopResult = handleLoopLogic(step, index, output, loopCounters, cwd);
+      const loopResult = await handleLoopLogic(step, index, output, loopCounters, cwd);
 
       if (loopResult.decision?.shouldRepeat) {
         // Set active loop with skip list

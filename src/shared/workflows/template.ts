@@ -21,6 +21,11 @@ const templatesDir = path.resolve(packageRoot, 'templates', 'workflows');
 
 interface TemplateTracking {
   activeTemplate: string;
+  /**
+   * Timestamp in ISO 8601 format with UTC timezone (e.g., "2025-10-13T14:40:14.123Z").
+   * The "Z" suffix explicitly indicates UTC timezone.
+   * To convert to local time in JavaScript: new Date(lastUpdated).toLocaleString()
+   */
   lastUpdated: string;
   completedSteps?: number[];
   notCompletedSteps?: number[];
@@ -41,7 +46,8 @@ export async function getActiveTemplate(cmRoot: string): Promise<string | null> 
     const content = await readFile(trackingPath, 'utf8');
     const data = JSON.parse(content) as TemplateTracking;
     return data.activeTemplate ?? null;
-  } catch {
+  } catch (error) {
+    console.warn(`Failed to read active template from tracking file: ${error instanceof Error ? error.message : String(error)}`);
     return null;
   }
 }
@@ -54,7 +60,7 @@ export async function setActiveTemplate(cmRoot: string, templateName: string): P
 
   const data: TemplateTracking = {
     activeTemplate: templateName,
-    lastUpdated: new Date().toISOString(),
+    lastUpdated: new Date().toISOString(), // ISO 8601 UTC format (e.g., "2025-10-13T14:40:14.123Z")
     completedSteps: [],
     notCompletedSteps: [],
     resumeFromLastStep: true,

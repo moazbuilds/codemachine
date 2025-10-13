@@ -17,7 +17,7 @@ async function loadFileContent(absolutePath: string): Promise<string> {
 
 /**
  * Loads content from multiple files matching a glob pattern
- * Returns concatenated content separated by <br>
+ * Returns concatenated content with clear markdown separators and file headers
  */
 async function loadGlobContent(baseDir: string, pattern: string): Promise<string> {
   const matchedFiles = await matchGlobPattern(baseDir, pattern);
@@ -26,12 +26,15 @@ async function loadGlobContent(baseDir: string, pattern: string): Promise<string
     throw new Error(`No files matched the pattern: ${pattern}`);
   }
 
-  // Read all matched files and concatenate with <br>
-  const contents: string[] = [];
+  // Read all matched files and format with headers and separators
+  const formattedContents: string[] = [];
   for (const file of matchedFiles) {
     try {
       const content = await readFile(file, 'utf8');
-      contents.push(content);
+      const fileName = path.basename(file);
+      // Format each file with a header and content
+      const formattedContent = `<!-- File: ${fileName} -->\n\n${content.trim()}`;
+      formattedContents.push(formattedContent);
     } catch (error) {
       throw new Error(
         `Failed to read file ${file}: ${error instanceof Error ? error.message : String(error)}`
@@ -39,7 +42,8 @@ async function loadGlobContent(baseDir: string, pattern: string): Promise<string
     }
   }
 
-  return contents.join('<br>');
+  // Join files with markdown horizontal rule separator
+  return formattedContents.join('\n\n---\n\n');
 }
 
 /**
