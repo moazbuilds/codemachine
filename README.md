@@ -24,7 +24,7 @@
 
 ---
 
-**What is CodeMachine?**
+## **What is CodeMachine?**
 
 CodeMachine is a CLI-native orchestration platform that transforms specification files and contextual inputs into production-ready code through coordinated multi-agent workflows. Specialized AI agents operate in hierarchical and parallel configurations with the ability for bidirectional communication, enabling runtime-adaptable methodologies that dynamically adjust to project requirements without framework modifications.
 
