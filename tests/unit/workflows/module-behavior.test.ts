@@ -50,8 +50,8 @@ describe('workflow modules', () => {
   describe('evaluateLoopBehavior', () => {
     const baseBehavior = resolveModule('check-task').module?.behavior;
 
-    it('returns null when no behavior is provided', () => {
-      const result = evaluateLoopBehavior({
+    it('returns null when no behavior is provided', async () => {
+      const result = await evaluateLoopBehavior({
         behavior: undefined,
         output: 'TASKS_COMPLETED=FALSE',
         iterationCount: 0,
@@ -61,7 +61,7 @@ describe('workflow modules', () => {
       expect(result).toBeNull();
     });
 
-    it('detects loop action from behavior.json', () => {
+    it('detects loop action from behavior.json', async () => {
       expect(baseBehavior).toBeTruthy();
 
       // Create behavior.json file with loop action
@@ -70,7 +70,7 @@ describe('workflow modules', () => {
       mkdirSync(behaviorDir, { recursive: true });
       writeFileSync(behaviorFile, JSON.stringify({ action: 'loop' }));
 
-      const result = evaluateLoopBehavior({
+      const result = await evaluateLoopBehavior({
         behavior: baseBehavior,
         output: 'Tasks review completed',
         iterationCount: 0,
@@ -80,7 +80,7 @@ describe('workflow modules', () => {
       expect(result).toMatchObject({ shouldRepeat: true, stepsBack: 1 });
     });
 
-    it('detects stop action from behavior.json', () => {
+    it('detects stop action from behavior.json', async () => {
       expect(baseBehavior).toBeTruthy();
 
       // Create behavior.json file with stop action
@@ -89,7 +89,7 @@ describe('workflow modules', () => {
       mkdirSync(behaviorDir, { recursive: true });
       writeFileSync(behaviorFile, JSON.stringify({ action: 'stop', reason: 'tasks completed' }));
 
-      const result = evaluateLoopBehavior({
+      const result = await evaluateLoopBehavior({
         behavior: baseBehavior,
         output: 'TASKS_COMPLETED=TRUE\u001B[0m',
         iterationCount: 0,
@@ -99,13 +99,13 @@ describe('workflow modules', () => {
       expect(result).toMatchObject({ shouldRepeat: false, stepsBack: 1, reason: 'tasks completed' });
     });
 
-    it('returns null when no behavior.json file exists', () => {
+    it('returns null when no behavior.json file exists', async () => {
       expect(baseBehavior).toBeTruthy();
       const output = [
         'TASKS_COMPLETED=FALSE',
         '[2025-10-03T12:07:56] tokens used: 754',
       ].join('\n');
-      const result = evaluateLoopBehavior({
+      const result = await evaluateLoopBehavior({
         behavior: baseBehavior,
         output,
         iterationCount: 0,
@@ -124,9 +124,9 @@ describe('workflow modules', () => {
       expect(behavior?.maxIterations).toBeUndefined();
     });
 
-    it('returns null when behavior.json does not exist', () => {
+    it('returns null when behavior.json does not exist', async () => {
       expect(baseBehavior).toBeTruthy();
-      const result = evaluateLoopBehavior({
+      const result = await evaluateLoopBehavior({
         behavior: baseBehavior,
         output: 'TASKS_COMPLETED=TRUE',
         iterationCount: 0,
@@ -137,7 +137,7 @@ describe('workflow modules', () => {
       expect(result).toBeNull();
     });
 
-    it('enforces max iteration limits when configured', () => {
+    it('enforces max iteration limits when configured', async () => {
       const behaviorWithLimit = resolveModule('check-task', {
         loopMaxIterations: 3,
       }).module?.behavior;
@@ -150,7 +150,7 @@ describe('workflow modules', () => {
       mkdirSync(behaviorDir, { recursive: true });
       writeFileSync(behaviorFile, JSON.stringify({ action: 'loop' }));
 
-      const result = evaluateLoopBehavior({
+      const result = await evaluateLoopBehavior({
         behavior: behaviorWithLimit,
         output: 'TASKS_COMPLETED=FALSE',
         iterationCount: 3,
@@ -161,7 +161,7 @@ describe('workflow modules', () => {
       expect(result?.reason).toContain('loop limit');
     });
 
-    it('handles engine formatted output with loop action from behavior.json', () => {
+    it('handles engine formatted output with loop action from behavior.json', async () => {
       expect(baseBehavior).toBeTruthy();
 
       // Create behavior.json file with loop action
@@ -174,7 +174,7 @@ describe('workflow modules', () => {
         '💬 MESSAGE: TASKS_COMPLETED=FALSE',
         '⏱️  Tokens: 27012in/243out (11776 cached)',
       ].join('\n');
-      const result = evaluateLoopBehavior({
+      const result = await evaluateLoopBehavior({
         behavior: baseBehavior,
         output,
         iterationCount: 0,
@@ -184,7 +184,7 @@ describe('workflow modules', () => {
       expect(result).toMatchObject({ shouldRepeat: true, stepsBack: 1 });
     });
 
-    it('handles output with thinking prefix followed by message', () => {
+    it('handles output with thinking prefix followed by message', async () => {
       expect(baseBehavior).toBeTruthy();
 
       // Create behavior.json file with loop action
@@ -198,7 +198,7 @@ describe('workflow modules', () => {
         '💬 MESSAGE: TASKS_COMPLETED=FALSE',
         '⏱️  Tokens: 27095in/294out (11776 cached)',
       ].join('\n');
-      const result = evaluateLoopBehavior({
+      const result = await evaluateLoopBehavior({
         behavior: baseBehavior,
         output,
         iterationCount: 0,
@@ -208,7 +208,7 @@ describe('workflow modules', () => {
       expect(result).toMatchObject({ shouldRepeat: true, stepsBack: 1 });
     });
 
-    it('handles JSON telemetry lines', () => {
+    it('handles JSON telemetry lines', async () => {
       expect(baseBehavior).toBeTruthy();
 
       // Create behavior.json file with loop action
@@ -222,7 +222,7 @@ describe('workflow modules', () => {
         '⏱️  Tokens: 34153in/493out (11776 cached)',
         '{"type":"turn.completed","usage":{"input_tokens":22377,"cached_input_tokens":11776,"output_tokens":493}}',
       ].join('\n');
-      const result = evaluateLoopBehavior({
+      const result = await evaluateLoopBehavior({
         behavior: baseBehavior,
         output,
         iterationCount: 0,

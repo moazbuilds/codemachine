@@ -10,16 +10,16 @@ export interface LoopDecision {
   reason?: string;
 }
 
-export function handleLoopLogic(
+export async function handleLoopLogic(
   step: WorkflowStep,
   index: number,
   output: string,
   loopCounters: Map<string, number>,
   cwd: string,
-): { decision: LoopDecision | null; newIndex: number } {
+): Promise<{ decision: LoopDecision | null; newIndex: number }> {
   const loopKey = `${step.module?.id ?? step.agentId}:${index}`;
   const iterationCount = loopCounters.get(loopKey) ?? 0;
-  const loopDecision = evaluateLoopBehavior({
+  const loopDecision = await evaluateLoopBehavior({
     behavior: step.module?.behavior,
     output,
     iterationCount,

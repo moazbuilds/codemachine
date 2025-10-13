@@ -20,7 +20,7 @@ export interface BehaviorAction {
   reason?: string;
 }
 
-export function evaluateLoopBehavior(options: LoopEvaluationOptions): LoopEvaluationResult | null {
+export async function evaluateLoopBehavior(options: LoopEvaluationOptions): Promise<LoopEvaluationResult | null> {
   const { behavior, iterationCount, cwd } = options;
 
   if (!behavior || behavior.type !== 'loop' || behavior.action !== 'stepBack') {
@@ -28,19 +28,18 @@ export function evaluateLoopBehavior(options: LoopEvaluationOptions): LoopEvalua
   }
 
   // Check for behavior file
-  const behaviorFile = path.join(cwd, '.codemachine/memory/behavior.json');
-
-  if (!fs.existsSync(behaviorFile)) {
-    // No file = no special behavior, continue normally
-    return null;
-  }
+  const behaviorFile = path.join(cwd, '.codemachine', 'memory', 'behavior.json');
 
   // Read and parse behavior action
   let behaviorAction: BehaviorAction;
   try {
-    const content = fs.readFileSync(behaviorFile, 'utf8');
+    const content = await fs.promises.readFile(behaviorFile, 'utf8');
     behaviorAction = JSON.parse(content);
   } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      // No file = no special behavior, continue normally
+      return null;
+    }
     console.error(`Failed to parse behavior file: ${error instanceof Error ? error.message : String(error)}`);
     return null;
   }
