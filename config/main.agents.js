@@ -18,10 +18,10 @@ module.exports = [
   },
   // Codemachine agents
   {
-    id: 'arch-agent-modified',
-    name: 'Architecture Agent Modified',
+    id: 'arch-agent',
+    name: 'Architecture Agent',
     description: 'Defines system architecture and technical design decisions',
-    promptPath: path.join(promptsDir, 'codemachine', 'agents', '01-architecture-agent-modified.md'),
+    promptPath: path.join(promptsDir, 'codemachine', 'agents', '01-architecture-agent.md'),
   },
   {
     id: 'plan-agent',
