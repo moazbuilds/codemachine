@@ -9,6 +9,7 @@ export const palette = {
   success: chalk.greenBright,
   warning: chalk.yellowBright,
   error: chalk.redBright,
+  dim: chalk.dim,
 } as const;
 
 export const divider = (char = '─', width = DIVIDER_WIDTH): string => {

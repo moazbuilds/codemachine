@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import { dirname, join, parse } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
+import updateNotifier from 'update-notifier';
 import { banner, formatKeyValue, palette, divider } from './layout.js';
 import { getActiveTemplate } from '../../shared/workflows/index.js';
 
@@ -20,11 +21,11 @@ function findPackageJson(moduleUrl: string): string {
   throw new Error('Unable to locate package.json from main menu module');
 }
 
-function getVersion(): string {
+function getPackageInfo(): { version: string; name: string } {
   const require = createRequire(import.meta.url);
   const packageJsonPath = findPackageJson(import.meta.url);
-  const pkg = require(packageJsonPath) as { version: string };
-  return pkg.version;
+  const pkg = require(packageJsonPath) as { version: string; name: string };
+  return { version: pkg.version, name: pkg.name };
 }
 
 function geminiAscii(): string {
@@ -78,12 +79,33 @@ async function renderStatus(): Promise<string> {
 
   const activeTemplate = await getActiveTemplate(cmRoot);
   const templateName = activeTemplate ? activeTemplate.replace('.workflow.js', '') : 'default';
-  const version = getVersion();
+  const pkg = getPackageInfo();
 
   const lines = [
-    formatKeyValue('Version', palette.primary(`v${version}`)),
-    formatKeyValue('Template', palette.success(`${templateName.toUpperCase()} - READY`)),
+    formatKeyValue('Version', palette.primary(`v${pkg.version}`)),
   ];
+
+  // Check for updates (respects NO_UPDATE_NOTIFIER and CI environments)
+  if (!process.env.NO_UPDATE_NOTIFIER && !process.env.CODEMACHINE_NO_UPDATE_CHECK) {
+    try {
+      const notifier = updateNotifier({
+        pkg,
+        updateCheckInterval: 1000 * 60 * 60 * 24, // Check once per day
+      });
+
+      if (notifier.update) {
+        const { latest, type } = notifier.update;
+        const updateText = `${palette.warning('Update available:')} v${latest} (${type})`;
+        const commandText = 'Run: ' + palette.success('npm i -g codemachine');
+        lines.push(formatKeyValue('', updateText));
+        lines.push(formatKeyValue('', commandText));
+      }
+    } catch {
+      // Silently fail if update check errors (offline, network issues, etc.)
+    }
+  }
+
+  lines.push(formatKeyValue('Template', palette.success(`${templateName.toUpperCase()} - READY`)));
 
   return lines.join('\n');
 }

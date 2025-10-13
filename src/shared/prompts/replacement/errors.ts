@@ -34,6 +34,16 @@ If you want to step back and skip this stage:
 
 Example:
 "completedSteps": [0, 1, 2]  ← Remove the last number to re-run that step
+
+To disable resume from last step (start workflow from beginning):
+1. Edit .codemachine/template.json
+2. Check if "notCompletedSteps" array is empty: []
+3. If not empty, remove all numbers from "notCompletedSteps" array
+4. Or set "resumeFromLastStep": false to disable this feature
+
+Example:
+"notCompletedSteps": []  ← Empty array means no incomplete steps to resume
+"resumeFromLastStep": false  ← Disables the resume feature entirely
 `.trim();
 
   return new PlaceholderError(message, placeholderName, filePath);
