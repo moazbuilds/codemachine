@@ -28,7 +28,7 @@ export function createKeyboardController(): KeyboardController {
     if (code === 0x03) {
       state.ctrlCount += 1;
       if (state.ctrlCount === 1) {
-        emitter.emit('interrupt', { action: 'modify-plan' });
+        emitter.emit('interrupt', { action: 'modify-artifacts' });
       } else {
         emitter.emit('exit');
       }

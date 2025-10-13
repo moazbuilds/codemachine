@@ -193,10 +193,6 @@ async function executeStep(
  * Registers the step command
  */
 export async function registerStepCommand(program: Command): Promise<void> {
-  const { registry } = await import('../../infra/engines/index.js');
-  const defaultEngine = registry.getDefault();
-  const defaultEngineName = defaultEngine?.metadata.name ?? 'default engine';
-
   program
     .command('step')
     .description('Execute a single workflow step (agent from config/main.agents.js)')

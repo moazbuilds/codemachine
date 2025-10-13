@@ -50,7 +50,7 @@ describe('Keyboard controls', () => {
 
     // Ctrl+C -> interrupt
     mockStdin.write(Buffer.from([0x03]));
-    expect(events[0]).toEqual({ type: 'interrupt', payload: { action: 'modify-plan' } });
+    expect(events[0]).toEqual({ type: 'interrupt', payload: { action: 'modify-artifacts' } });
     expect(kb.state.ctrlCount).toBe(1);
 
     // Ctrl+C again -> exit
