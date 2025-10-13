@@ -50,6 +50,10 @@ export async function executeFallbackStep(
     throw new Error(`Fallback agent not found: ${fallbackAgentId}`);
   }
 
+  if (!fallbackAgent.promptPath) {
+    throw new Error(`Fallback agent ${fallbackAgentId} is missing a promptPath configuration`);
+  }
+
   // Create a fallback step with the fallback agent's prompt path
   const fallbackStep: WorkflowStep = {
     ...step,

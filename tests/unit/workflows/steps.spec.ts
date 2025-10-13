@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import {
@@ -145,7 +145,7 @@ describe('workflow step tracking', () => {
       // Enable resume feature
       const trackingPath = join(testDir, 'template.json');
       const content = JSON.parse(
-        require('fs').readFileSync(trackingPath, 'utf8'),
+        readFileSync(trackingPath, 'utf8'),
       );
       content.resumeFromLastStep = true;
       writeFileSync(trackingPath, JSON.stringify(content));

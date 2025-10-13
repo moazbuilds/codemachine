@@ -91,14 +91,14 @@ describe('bootstrapWorkspace', () => {
     // Directories exist
     const specsPath = join(desiredCwd, '.codemachine', 'inputs', 'specifications.md');
     const memoryDir = join(desiredCwd, '.codemachine', 'memory');
-    const planDir = join(desiredCwd, '.codemachine', 'plan');
+    const artifactsDir = join(desiredCwd, '.codemachine', 'artifacts');
     const agentsJson = join(desiredCwd, '.codemachine', 'agents', 'agents-config.json');
 
     // files/dirs existence checks via stat
     await Promise.all([
       stat(specsPath),
       stat(memoryDir),
-      stat(planDir),
+      stat(artifactsDir),
       stat(agentsJson)
     ]);
 

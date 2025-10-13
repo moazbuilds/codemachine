@@ -32,6 +32,68 @@ function formatStreamJsonLine(line: string): string | null {
   try {
     const json = JSON.parse(line);
 
+    // Handle root-level tool_call messages
+    if (json.type === 'tool_call') {
+      if (json.subtype === 'started') {
+        // Extract tool name from the tool_call object
+        const toolCall = json.tool_call;
+        const toolName = Object.keys(toolCall).find(key => key.endsWith('ToolCall'));
+        const displayName = toolName ? toolName.replace('ToolCall', '') : 'unknown';
+
+        // Extract additional context from args
+        const toolData = toolCall[toolName as string];
+        const args = toolData?.args || {};
+        let context = '';
+
+        // Add relevant args based on tool type
+        if (args.path) {
+          const pathParts = args.path.split('/');
+          const shortPath = pathParts.length > 3
+            ? `.../${pathParts.slice(-2).join('/')}`
+            : args.path;
+          context = ` ${shortPath}`;
+        } else if (args.file_path) {
+          const pathParts = args.file_path.split('/');
+          const shortPath = pathParts.length > 3
+            ? `.../${pathParts.slice(-2).join('/')}`
+            : args.file_path;
+          context = ` ${shortPath}`;
+        } else if (args.pattern) {
+          context = ` "${args.pattern}"`;
+        }
+
+        return `🔧 TOOL STARTED: ${displayName}${context}`;
+      } else if (json.subtype === 'completed') {
+        const toolCall = json.tool_call;
+        const toolName = Object.keys(toolCall).find(key => key.endsWith('ToolCall'));
+        const displayName = toolName ? toolName.replace('ToolCall', '') : 'unknown';
+
+        // Extract additional context from args
+        const toolData = toolCall[toolName as string];
+        const args = toolData?.args || {};
+        let context = '';
+
+        if (args.path) {
+          const pathParts = args.path.split('/');
+          const shortPath = pathParts.length > 3
+            ? `.../${pathParts.slice(-2).join('/')}`
+            : args.path;
+          context = ` ${shortPath}`;
+        } else if (args.file_path) {
+          const pathParts = args.file_path.split('/');
+          const shortPath = pathParts.length > 3
+            ? `.../${pathParts.slice(-2).join('/')}`
+            : args.file_path;
+          context = ` ${shortPath}`;
+        } else if (args.pattern) {
+          context = ` "${args.pattern}"`;
+        }
+
+        return `✅ TOOL COMPLETED: ${displayName}${context}`;
+      }
+    }
+
+    // Handle assistant messages
     if (json.type === 'assistant' && json.message?.content) {
       for (const content of json.message.content) {
         if (content.type === 'text') {

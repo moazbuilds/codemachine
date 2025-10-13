@@ -69,7 +69,7 @@ export function handlePlaceholderLoadError(
   placeholderName: string,
   filePath: string,
   isOptional: boolean,
-  error: Error,
+  _error: Error,
 ): string {
   if (isOptional) {
     // For optional placeholders, log a warning and return empty string
