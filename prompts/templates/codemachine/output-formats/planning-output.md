@@ -120,9 +120,9 @@ The manifest MUST contain a root object with a key `locations`, which is an arra
 
 ### **3. Output Directory**
 
-All generated files (the `.md` content files and the `plan_manifest.json`) MUST be created inside the following directory: `.codemachine/artifacts/`.
+All generated files (the `.md` content files and the `plan_manifest.json`) MUST be created inside the following directory: `.codemachine/artifacts/plan/`.
 
 **Example final file paths:**
-*   `.codemachine/artifacts/01_Plan_Overview_and_Setup.md`
-*   `.codemachine/artifacts/02_Iteration_I1.md`
-*   `.codemachine/artifacts/plan_manifest.json`
+*   `.codemachine/artifacts/plan/01_Plan_Overview_and_Setup.md`
+*   `.codemachine/artifacts/plan/02_Iteration_I1.md`
+*   `.codemachine/artifacts/plan/plan_manifest.json`
