@@ -36,7 +36,6 @@ export interface ModuleMetadata {
 }
 
 export interface ModuleOverrides extends StepOverrides {
-  loopTrigger?: string;
   loopSteps?: number;
   loopMaxIterations?: number;
   loopSkip?: string[];

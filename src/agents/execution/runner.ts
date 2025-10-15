@@ -53,7 +53,7 @@ export interface ExecuteAgentOptions {
 /**
  * Ensures the engine is authenticated
  */
-async function ensureEngineAuth(engineType: EngineType, _profile: string): Promise<void> {
+async function ensureEngineAuth(engineType: EngineType): Promise<void> {
   const { registry } = await import('../../infra/engines/index.js');
   const engine = registry.get(engineType);
 
@@ -133,7 +133,7 @@ export async function executeAgent(
   }
 
   // Ensure authentication
-  await ensureEngineAuth(engineType, agentId);
+  await ensureEngineAuth(engineType);
 
   // Get engine module for defaults
   const engineModule = registry.get(engineType);

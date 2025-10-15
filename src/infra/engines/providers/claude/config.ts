@@ -11,18 +11,13 @@ export interface ClaudeConfig {
   model?: string;
 
   /**
-   * Profile/agent ID to use for this execution
-   */
-  profile: string;
-
-  /**
    * Working directory for execution
    */
   workingDir: string;
 
   /**
    * Optional custom Claude config directory
-   * Defaults to ~/.codemachine/claude/{profile}
+   * Defaults to ~/.codemachine/claude
    */
   claudeConfigDir?: string;
 }

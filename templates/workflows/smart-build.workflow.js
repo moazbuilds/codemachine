@@ -16,7 +16,7 @@ export default {
     resolveStep('agents-builder', { executeOnce: true }), // Generate specialized agent prompts tailored to the current workspace context
     resolveStep('project-manager'), // Prioritizes and sequences tasks, delegating work to other agents as needed
     resolveStep('git-commit'), // Commit the project plan to git
-    resolveModule('check-task', { loopTrigger: 'TASKS_COMPLETED=FALSE', loopSteps: 2, loopMaxIterations: 20, }),
+    resolveModule('check-task', { loopSteps: 2, loopMaxIterations: 20 }),
   ],
 
   subAgentIds: [

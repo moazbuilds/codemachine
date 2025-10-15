@@ -10,18 +10,13 @@ export interface CursorConfig {
   model?: string;
 
   /**
-   * Profile/agent ID to use for this execution
-   */
-  profile: string;
-
-  /**
    * Working directory for execution
    */
   workingDir: string;
 
   /**
    * Optional custom Cursor config directory
-   * Defaults to ~/.codemachine/cursor/{profile}
+   * Defaults to ~/.codemachine/cursor
    */
   cursorConfigDir?: string;
 }

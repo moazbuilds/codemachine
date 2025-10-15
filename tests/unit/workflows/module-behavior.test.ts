@@ -36,7 +36,6 @@ describe('workflow modules', () => {
     it('applies loop configuration when provided by workflow overrides', () => {
       const step = resolveModule('check-task', {
         agentName: 'Tasks Complete Checker',
-        loopTrigger: 'TASKS_COMPLETED=FALSE',
         loopSteps: 2,
         loopMaxIterations: 3,
       });

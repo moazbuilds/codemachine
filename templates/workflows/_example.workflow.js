@@ -78,7 +78,6 @@ export default {
     // MODULE WITH LOOP BEHAVIOR
     // ============================================
     resolveModule('check-task', {
-      loopTrigger: 'TASKS_COMPLETED=FALSE',  // Loop when this text appears in output
       loopSteps: 3,                          // Go back 3 steps when looping
       loopMaxIterations: 20,                 // Max 20 loop iterations
       loopSkip: ['plan-agent'],              // Skip these steps in loop

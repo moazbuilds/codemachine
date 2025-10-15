@@ -25,7 +25,7 @@ async function runAgentsBuilderStep(cwd: string): Promise<void> {
 /**
  * Ensures the engine is authenticated
  */
-async function ensureEngineAuth(engineType: EngineType, _profile: string): Promise<void> {
+async function ensureEngineAuth(engineType: EngineType): Promise<void> {
   const { registry } = await import('../../infra/engines/index.js');
   const engine = registry.get(engineType);
 
@@ -76,7 +76,7 @@ export async function executeStep(
   const engineType: EngineType = step.engine ?? defaultEngine.metadata.id;
 
   // Ensure authentication
-  await ensureEngineAuth(engineType, step.agentId);
+  await ensureEngineAuth(engineType);
 
   // Get engine and its metadata for defaults
   const engineModule = registry.get(engineType);
