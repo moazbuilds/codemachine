@@ -3,8 +3,12 @@ import { existsSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 import { registerCli } from '../cli/index.js';
+import { runSessionShell } from '../cli/controllers/session-shell.js';
+import { runStartupFlow } from './services/index.js';
 import { registry } from '../infra/engines/index.js';
 import { bootstrapWorkspace } from './services/workspace/index.js';
+
+const DEFAULT_SPEC_PATH = '.codemachine/inputs/specifications.md';
 
 // Resolve package root to find templates directory
 const packageRoot = (() => {
@@ -24,7 +28,17 @@ export async function runCodemachineCli(argv: string[] = process.argv): Promise<
   const program = new Command()
     .name('codemachine')
     .description('Codemachine multi-agent CLI orchestrator')
-    .option('-d, --dir <path>', 'Target workspace directory', process.cwd());
+    .option('-d, --dir <path>', 'Target workspace directory', process.cwd())
+    .option('--spec <path>', 'Path to the planning specification file', DEFAULT_SPEC_PATH)
+    .action(async (options) => {
+      // Default action: Run interactive session mode
+      const cwd = process.env.CODEMACHINE_CWD || process.cwd();
+      const specDisplayPath = options.spec ?? DEFAULT_SPEC_PATH;
+      const specificationPath = path.resolve(cwd, specDisplayPath);
+
+      const { mainMenuDisplayed } = await runStartupFlow(specDisplayPath);
+      await runSessionShell({ cwd, specificationPath, specDisplayPath, showIntro: !mainMenuDisplayed });
+    });
 
   program.hook('preAction', async () => {
     const { dir } =
@@ -52,10 +66,7 @@ export async function runCodemachineCli(argv: string[] = process.argv): Promise<
 
   await registerCli(program);
 
-  const [nodePath = process.execPath, scriptPath = fileURLToPath(import.meta.url)] = argv;
-  const baseArgv = [nodePath, scriptPath];
-  const effectiveArgv = argv.length > 2 ? argv : [...baseArgv, 'start'];
-  await program.parseAsync(effectiveArgv);
+  await program.parseAsync(argv);
 }
 
 const shouldRunCli = (() => {

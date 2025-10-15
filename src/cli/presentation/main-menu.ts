@@ -95,8 +95,8 @@ async function renderStatus(): Promise<string> {
 
       if (notifier.update) {
         const { latest, type } = notifier.update;
-        const updateText = `${palette.warning('Update available:')} v${latest} (${type})`;
-        const commandText = 'Run: ' + palette.success('npm i -g codemachine');
+        const updateText = `${palette.warning('Update available:')} ${palette.dim(`v${latest} (${type})`)}`;
+        const commandText = palette.dim('Run:') + ' ' + palette.success('npm i -g codemachine@latest');
         lines.push(formatKeyValue('', updateText));
         lines.push(formatKeyValue('', commandText));
       }
@@ -120,13 +120,14 @@ function renderCommands(): string {
   return lines.join('\n');
 }
 
-function renderSpecificationsPrompt(): string {
-  const line1 = 'Have you written the full specification in .codemachine/inputs/specifications.md?';
+function renderSpecificationsPrompt(specificationPath?: string): string {
+  const displayPath = specificationPath || '.codemachine/inputs/specifications.md';
+  const line1 = `Have you written the full specification in ${displayPath}?`;
   const line2 = 'Add any necessary context files, then run /start to begin.';
   return [line1, line2, renderSeparator()].join('\n');
 }
 
-export async function renderMainMenu(): Promise<string> {
+export async function renderMainMenu(specificationPath?: string): Promise<string> {
   const parts: string[] = [];
   parts.push(banner('CodeMachine - Multi-Agent Workflow Orchestration'));
   // Render left-aligned ASCII with MACHINE centered under CODE
@@ -136,7 +137,7 @@ export async function renderMainMenu(): Promise<string> {
   parts.push(renderSeparator());
   parts.push(renderCommands());
   parts.push(renderSeparator());
-  parts.push(renderSpecificationsPrompt());
+  parts.push(renderSpecificationsPrompt(specificationPath));
   return parts.join('\n');
 }
 

@@ -13,10 +13,14 @@ export function registerStartCommand(program: Command): void {
   program
     .command('start')
     .description('Run the workflow queue until completion (non-interactive)')
-    .option('--spec <path>', 'Path to the planning specification file', DEFAULT_SPEC_PATH)
-    .action(async (options: StartCommandOptions) => {
-      const specificationPath = path.resolve(process.cwd(), options.spec ?? DEFAULT_SPEC_PATH);
+    .option('--spec <path>', 'Path to the planning specification file')
+    .action(async (options: StartCommandOptions, command: Command) => {
       const cwd = process.env.CODEMACHINE_CWD || process.cwd();
+
+      // Use command-specific --spec if provided, otherwise fall back to global --spec, then default
+      const globalOpts = command.optsWithGlobals ? command.optsWithGlobals() : command.opts();
+      const specPath = options.spec ?? globalOpts.spec ?? DEFAULT_SPEC_PATH;
+      const specificationPath = path.resolve(cwd, specPath);
 
       console.log(`Starting workflow (spec: ${specificationPath})`);
 
