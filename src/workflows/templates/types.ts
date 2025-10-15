@@ -41,7 +41,6 @@ export interface RunWorkflowOptions {
   cwd?: string;
   templatePath?: string;
   specificationPath?: string;
-  force?: boolean;
 }
 
 export interface TaskManagerOptions {

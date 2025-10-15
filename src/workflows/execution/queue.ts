@@ -17,7 +17,7 @@ export async function runWorkflowQueue(options: RunWorkflowQueueOptions = {}): P
   const cwd = options.cwd ? path.resolve(options.cwd) : process.cwd();
   const specificationPath = options.specificationPath || path.resolve(cwd, '.codemachine', 'inputs', 'specifications.md');
 
-  await validateSpecification(specificationPath, options.force);
+  await validateSpecification(specificationPath);
   await runWorkflow(options);
 }
 

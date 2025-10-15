@@ -8,9 +8,7 @@ const DEFAULT_SPEC_TEMPLATE = `# Project Specifications
 - This file is created by workspace bootstrap and can be safely edited.
 `;
 
-export async function validateSpecification(specificationPath: string, force?: boolean): Promise<void> {
-  if (force) return;
-
+export async function validateSpecification(specificationPath: string): Promise<void> {
   const absolute = path.resolve(specificationPath);
   let specificationContents: string;
 
