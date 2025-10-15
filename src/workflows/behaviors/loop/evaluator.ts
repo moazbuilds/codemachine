@@ -16,8 +16,9 @@ export interface LoopEvaluationResult {
 }
 
 export interface BehaviorAction {
-  action: 'loop' | 'stop' | 'continue';
+  action: 'loop' | 'stop' | 'continue' | 'trigger';
   reason?: string;
+  triggerAgentId?: string; // Required when action is 'trigger'
 }
 
 export async function evaluateLoopBehavior(options: LoopEvaluationOptions): Promise<LoopEvaluationResult | null> {
