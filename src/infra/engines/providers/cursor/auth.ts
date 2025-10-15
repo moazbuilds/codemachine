@@ -24,13 +24,11 @@ async function isCliInstalled(command: string): Promise<boolean> {
 }
 
 export interface CursorAuthOptions {
-  profile?: string;
   cursorConfigDir?: string;
 }
 
 /**
  * Resolves the Cursor config directory (shared for authentication)
- * Profile is only used for agent-specific data, not authentication
  */
 export function resolveCursorConfigDir(options?: CursorAuthOptions): string {
   if (options?.cursorConfigDir) {
@@ -41,7 +39,7 @@ export function resolveCursorConfigDir(options?: CursorAuthOptions): string {
     return expandHomeDir(process.env.CURSOR_CONFIG_DIR);
   }
 
-  // Authentication is shared across all profiles
+  // Authentication is shared globally
   return path.join(homedir(), '.codemachine', 'cursor');
 }
 
@@ -65,7 +63,7 @@ export function getCursorAuthPaths(configDir: string): string[] {
 }
 
 /**
- * Checks if Cursor is authenticated for the given profile
+ * Checks if Cursor is authenticated
  */
 export async function isAuthenticated(options?: CursorAuthOptions): Promise<boolean> {
   const configDir = resolveCursorConfigDir(options);
@@ -182,7 +180,7 @@ export async function ensureAuth(options?: CursorAuthOptions): Promise<boolean> 
 }
 
 /**
- * Clears all Cursor authentication data for the given profile
+ * Clears all Cursor authentication data
  */
 export async function clearAuth(options?: CursorAuthOptions): Promise<void> {
   const configDir = resolveCursorConfigDir(options);

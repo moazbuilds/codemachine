@@ -24,13 +24,11 @@ async function isCliInstalled(command: string): Promise<boolean> {
 }
 
 export interface ClaudeAuthOptions {
-  profile?: string;
   claudeConfigDir?: string;
 }
 
 /**
  * Resolves the Claude config directory (shared for authentication)
- * Profile is only used for agent-specific data, not authentication
  */
 export function resolveClaudeConfigDir(options?: ClaudeAuthOptions): string {
   if (options?.claudeConfigDir) {
@@ -41,7 +39,7 @@ export function resolveClaudeConfigDir(options?: ClaudeAuthOptions): string {
     return expandHomeDir(process.env.CLAUDE_CONFIG_DIR);
   }
 
-  // Authentication is shared across all profiles
+  // Authentication is shared globally
   return path.join(homedir(), '.codemachine', 'claude');
 }
 
@@ -65,7 +63,7 @@ export function getClaudeAuthPaths(configDir: string): string[] {
 }
 
 /**
- * Checks if Claude is authenticated for the given profile
+ * Checks if Claude is authenticated
  */
 export async function isAuthenticated(options?: ClaudeAuthOptions): Promise<boolean> {
   // Check if token is set via environment variable
@@ -179,7 +177,7 @@ export async function ensureAuth(options?: ClaudeAuthOptions): Promise<boolean> 
 }
 
 /**
- * Clears all Claude authentication data for the given profile
+ * Clears all Claude authentication data
  */
 export async function clearAuth(options?: ClaudeAuthOptions): Promise<void> {
   const configDir = resolveClaudeConfigDir(options);

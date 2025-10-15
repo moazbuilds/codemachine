@@ -2,7 +2,7 @@
  * Claude Engine
  *
  * Provides Claude Code CLI integration with similar interface to Codex engine.
- * Supports profile-based execution, model mapping, and authentication management.
+ * Supports model mapping and authentication management.
  */
 
 import type { EngineModule } from '../../core/base.js';

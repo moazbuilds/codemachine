@@ -2,7 +2,7 @@
  * Cursor Engine
  *
  * Provides Cursor AI CLI integration with similar interface to Claude and Codex engines.
- * Supports profile-based execution, model mapping, and authentication management.
+ * Supports model mapping and authentication management.
  */
 
 import type { EngineModule } from '../../core/base.js';
