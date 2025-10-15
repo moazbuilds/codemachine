@@ -14,12 +14,11 @@ import { createTemplateHandler, createAuthHandler } from './session-handlers/ind
 export interface SessionShellOptions {
   cwd: string;
   specificationPath: string;
-  force: boolean;
   showIntro?: boolean;
 }
 
 export async function runSessionShell(options: SessionShellOptions): Promise<void> {
-  const { cwd, specificationPath, force } = options;
+  const { cwd, specificationPath } = options;
   const showIntro = options.showIntro ?? true;
 
   if (showIntro) {
@@ -117,8 +116,8 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
 
     if (raw === '/start') {
       try {
-        console.log(`Launching workflow queue (spec=${specificationPath}, force=${force})`);
-        await runWorkflowQueue({ cwd, force, specificationPath });
+        console.log(`Launching workflow queue (spec=${specificationPath})`);
+        await runWorkflowQueue({ cwd, specificationPath });
         console.log('Workflow finished. You are still in the session.');
       } catch (error) {
         console.error(error instanceof Error ? error.message : String(error));
