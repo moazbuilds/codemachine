@@ -14,15 +14,16 @@ import { createTemplateHandler, createAuthHandler } from './session-handlers/ind
 export interface SessionShellOptions {
   cwd: string;
   specificationPath: string;
+  specDisplayPath?: string; // Original path for display purposes
   showIntro?: boolean;
 }
 
 export async function runSessionShell(options: SessionShellOptions): Promise<void> {
-  const { cwd, specificationPath } = options;
+  const { cwd, specificationPath, specDisplayPath } = options;
   const showIntro = options.showIntro ?? true;
 
   if (showIntro) {
-    const menu = await renderMainMenu();
+    const menu = await renderMainMenu(specDisplayPath);
     await renderTypewriter({ text: menu + '\n' });
   }
 

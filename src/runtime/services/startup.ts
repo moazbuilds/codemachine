@@ -29,7 +29,7 @@ export interface StartupFlowResult {
   mainMenuDisplayed: boolean;
 }
 
-export async function runStartupFlow(): Promise<StartupFlowResult> {
+export async function runStartupFlow(specDisplayPath?: string): Promise<StartupFlowResult> {
   let mainMenuDisplayed = false;
 
   // Check authentication status for all registered engines
@@ -99,7 +99,7 @@ export async function runStartupFlow(): Promise<StartupFlowResult> {
       }
     }
 
-    const mainMenu = await renderMainMenu();
+    const mainMenu = await renderMainMenu(specDisplayPath);
     await renderTypewriter({ text: `${mainMenu}\n` });
     mainMenuDisplayed = true;
 
