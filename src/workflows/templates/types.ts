@@ -9,7 +9,13 @@ export interface LoopModuleBehavior {
   skip?: string[];
 }
 
-export type ModuleBehavior = LoopModuleBehavior;
+export interface TriggerModuleBehavior {
+  type: 'trigger';
+  action: 'mainAgentCall';
+  triggerAgentId: string; // Agent ID to trigger
+}
+
+export type ModuleBehavior = LoopModuleBehavior | TriggerModuleBehavior;
 
 export interface ModuleMetadata {
   id: string;

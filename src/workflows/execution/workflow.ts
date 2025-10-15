@@ -22,7 +22,9 @@ import {
 import { registry } from '../../infra/engines/index.js';
 import { shouldSkipStep, logSkipDebug, type ActiveLoop } from '../behaviors/skip.js';
 import { handleLoopLogic, createActiveLoop } from '../behaviors/loop/controller.js';
+import { handleTriggerLogic } from '../behaviors/trigger/controller.js';
 import { executeStep } from './step.js';
+import { executeTriggerAgent } from './trigger.js';
 import { shouldExecuteFallback, executeFallbackStep } from './fallback.js';
 
 export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<void> {
@@ -218,6 +220,23 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         logger: stdoutLogger,
         stderrLogger,
       });
+
+      // Check for trigger behavior first
+      const triggerResult = await handleTriggerLogic(step, output, cwd);
+      if (triggerResult?.shouldTrigger && triggerResult.triggerAgentId) {
+        try {
+          await executeTriggerAgent({
+            triggerAgentId: triggerResult.triggerAgentId,
+            cwd,
+            engineType,
+            logger: stdoutLogger,
+            stderrLogger,
+            sourceAgentId: step.agentId,
+          });
+        } catch (triggerError) {
+          // Continue with workflow even if triggered agent fails
+        }
+      }
 
       const loopResult = await handleLoopLogic(step, index, output, loopCounters, cwd);
 

@@ -13,4 +13,15 @@ module.exports = [
       action: 'stepBack',
     },
   },
+  {
+    id: 'iteration-checker',
+    name: 'Iteration Checker',
+    description: 'Checks if additional iterations are needed and can trigger other agents dynamically.',
+    promptPath: path.join(promptsDir, 'templates', 'codemachine', 'workflows', 'iteration-verification-workflow.md'),
+    behavior: {
+      type: 'trigger',
+      action: 'mainAgentCall',
+      triggerAgentId: 'git-commit', // Default agent to trigger, can be overridden by behavior.json
+    },
+  },
 ];
