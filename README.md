@@ -8,7 +8,7 @@
   <strong>CodeMachine CLI</strong> is an autonomous multi-agent platform that works locally on your computer, turning specifications into production-ready code.<br></p>
 
 <p align="center">
-  <img src="assets/images/codemachine-demo.gif" alt="CodeMachine in Action" width="800">
+  <img src="docs/assets/demo.gif" alt="CodeMachine in Action" width="800">
 </p>
 
 
@@ -201,7 +201,7 @@ We conducted a real-world comparison by monitoring development work on a project
 </p>
 
 <p align="center">
-  <a href="./docs/case-study-sustaina.md"><strong>📊 View Complete Case Study & Development Track →</strong></a>
+  <a href="./docs/case-studies/sustaina.md"><strong>📊 View Complete Case Study & Development Track →</strong></a>
 </p>
 
 ---
@@ -212,7 +212,7 @@ We conducted a real-world comparison by monitoring development work on a project
 CodeMachine orchestrates workflows through sequential main agent steps and parallel sub-agent execution. After selecting a workflow template, the main agent processes each step in order. When sub-agents are triggered, they work simultaneously on specialized tasks (e.g., frontend, backend, database), then results flow back into the main workflow. Conditional loops allow workflows to iterate until completion criteria are met.
 
 <p align="center">
-  <img src="assets/images/diagram1.jpg" alt="CodeMachine Workflow Architecture" width="550">
+  <img src="docs/concepts/images/arch-workflow.png" alt="CodeMachine Workflow Architecture" width="400">
 </p>
 
 

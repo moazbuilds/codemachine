@@ -47,7 +47,7 @@ export async function bootstrapWorkspace(options?: WorkspaceBootstrapOptions): P
   const inputsDir = path.join(cmRoot, 'inputs');
   const memoryDir = path.join(cmRoot, 'memory');
   const artifactsDir = path.join(cmRoot, 'artifacts');
-  const promptDir = path.join(cmRoot, 'prompt');
+  const promptDir = path.join(cmRoot, 'prompts');
 
   // Create all directories
   await Promise.all([

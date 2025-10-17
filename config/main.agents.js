@@ -3,19 +3,6 @@ const path = require('node:path');
 const promptsDir = path.join(__dirname, '..', 'prompts', 'templates');
 
 module.exports = [
-  // Smart Build agents
-  {
-    id: 'agents-builder',
-    name: 'Agent Builder',
-    description: 'Generates specialized agent prompts tailored to the current workspace context',
-    promptPath: path.join(promptsDir, 'smart-build', '0- agents-builder.md'),
-  },
-  {
-    id: 'project-manager',
-    name: 'Project Manager',
-    description: 'Prioritizes and sequences tasks, delegating work to other agents as needed',
-    promptPath: path.join(promptsDir, 'smart-build', '1- project-manager.md'),
-  },
   // Codemachine agents
   {
     id: 'arch-agent',
@@ -85,18 +72,11 @@ module.exports = [
   },
 
   // Folder configurations - applies settings to all agents in the folder
-  {
-    type: 'folder',
-    id: 'codemachine',
-    name: 'Codemachine',
-    description: 'Core codemachine workflow agents',
-    folderPath: path.join(promptsDir, 'codemachine'),
-  },
-  {
-    type: 'folder',
-    id: 'spec-kit',
-    name: 'Spec Kit',
-    description: 'Specification and planning agents for project setup',
-    folderPath: path.join(promptsDir, 'spec-kit'),
-  },
+  //{
+  //  type: 'folder',
+  //  id: 'codemachine',
+  //  name: 'Codemachine',
+  //  description: 'Core codemachine workflow agents',
+  //  folderPath: path.join(promptsDir, 'codemachine'),
+  //},
 ];
