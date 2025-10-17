@@ -110,22 +110,19 @@ async function executeStep(
   const model = options.model ?? (agentConfig.model as string | undefined) ?? engineModule.metadata.defaultModel;
   const modelReasoningEffort = options.reasoning ?? (agentConfig.modelReasoningEffort as 'low' | 'medium' | 'high' | undefined) ?? engineModule.metadata.defaultModelReasoningEffort;
 
-  // Set up memory
+  // Set up memory (write-only, no read)
   const memoryDir = path.resolve(workingDir, '.codemachine', 'memory');
   const adapter = new MemoryAdapter(memoryDir);
   const store = new MemoryStore(adapter);
 
-  // Build composite prompt
-  const entries = await store.list(agentId);
-  const memoryText = entries.map((e) => e.content).join('\n');
-
+  // Build composite prompt without memory
   let compositePrompt: string;
   if (additionalPrompt) {
     // If additional prompt provided, append it as a REQUEST section
-    compositePrompt = `[SYSTEM]\n${agentTemplate}\n\n[MEMORY]\n${memoryText}\n\n[REQUEST]\n${additionalPrompt}`;
+    compositePrompt = `[SYSTEM]\n${agentTemplate}\n\n[REQUEST]\n${additionalPrompt}`;
   } else {
-    // If no additional prompt, just use the template with memory
-    compositePrompt = `[SYSTEM]\n${agentTemplate}\n\n[MEMORY]\n${memoryText}`;
+    // If no additional prompt, just use the template
+    compositePrompt = `[SYSTEM]\n${agentTemplate}`;
   }
 
   // Get engine and execute

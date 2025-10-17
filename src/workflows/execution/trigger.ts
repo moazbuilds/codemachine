@@ -31,13 +31,11 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
     console.log('═'.repeat(80));
     console.log(formatAgentLog(triggerAgentId, `${triggeredAgentConfig.name} started to work (triggered).`));
 
-    // Build prompt for triggered agent with memory
+    // Build prompt for triggered agent (memory write-only, no read)
     const memoryDir = path.resolve(cwd, '.codemachine', 'memory');
     const adapter = new MemoryAdapter(memoryDir);
     const store = new MemoryStore(adapter);
-    const entries = await store.list(triggerAgentId);
-    const memoryText = entries.map((e) => e.content).join('\n');
-    const compositePrompt = `[SYSTEM]\n${triggeredAgentTemplate}\n\n[MEMORY]\n${memoryText}`;
+    const compositePrompt = `[SYSTEM]\n${triggeredAgentTemplate}`;
 
     // Get engine and resolve model/reasoning
     const engine = getEngine(engineType);

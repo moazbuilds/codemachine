@@ -4,8 +4,7 @@ import type { EngineType } from '../../infra/engines/index.js';
 import { getEngine } from '../../infra/engines/index.js';
 import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
 import { MemoryStore } from '../memory/memory-store.js';
-import { loadAgentConfig } from './config.js';
-import { buildCompositePrompt } from './prompt.js';
+import { loadAgentConfig, loadAgentTemplate } from './config.js';
 
 export interface ExecuteAgentOptions {
   /**
@@ -150,8 +149,9 @@ export async function executeAgent(
   const adapter = new MemoryAdapter(memoryDir);
   const store = new MemoryStore(adapter);
 
-  // Build composite prompt with memory
-  const compositePrompt = await buildCompositePrompt(agentId, prompt, store, projectRoot ?? workingDir);
+  // Build prompt without memory (write-only)
+  const agentTemplate = await loadAgentTemplate(agentId, projectRoot ?? workingDir);
+  const compositePrompt = `[SYSTEM]\n${agentTemplate}\n\n[REQUEST]\n${prompt}`;
 
   // Get engine and execute
   const engine = getEngine(engineType);
