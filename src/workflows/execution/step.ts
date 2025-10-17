@@ -4,6 +4,8 @@ import type { WorkflowStep } from '../templates/index.js';
 import type { EngineType } from '../../infra/engines/index.js';
 import { getEngine } from '../../infra/engines/index.js';
 import { processPromptString } from '../../shared/prompts/index.js';
+import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
+import { MemoryStore } from '../../agents/memory/memory-store.js';
 
 export interface StepExecutorOptions {
   logger: (chunk: string) => void;
@@ -89,12 +91,15 @@ export async function executeStep(
   const model = step.model ?? engineModule.metadata.defaultModel;
   const modelReasoningEffort = step.modelReasoningEffort ?? engineModule.metadata.defaultModelReasoningEffort;
 
+  // Track stdout for memory storage
+  let totalStdout = '';
   const result = await engine.run({
     prompt,
     workingDir: cwd,
     model,
     modelReasoningEffort,
     onData: (chunk) => {
+      totalStdout += chunk;
       options.logger(chunk);
     },
     onErrorData: (chunk) => {
@@ -108,6 +113,18 @@ export async function executeStep(
   if (step.agentId === 'agents-builder' || agentName.includes('builder')) {
     await runAgentsBuilderStep(cwd);
   }
+
+  // Save output to memory (write-only, no read)
+  const memoryDir = path.resolve(cwd, '.codemachine', 'memory');
+  const adapter = new MemoryAdapter(memoryDir);
+  const store = new MemoryStore(adapter);
+  const stdout = result.stdout || totalStdout;
+  const slice = stdout.slice(-2000);
+  await store.append({
+    agentId: step.agentId,
+    content: slice,
+    timestamp: new Date().toISOString(),
+  });
 
   return result.stdout;
 }
