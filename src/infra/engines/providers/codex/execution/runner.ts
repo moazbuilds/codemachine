@@ -6,6 +6,7 @@ import { buildCodexExecCommand } from './commands.js';
 import { metadata } from '../metadata.js';
 import { expandHomeDir } from '../../../../../shared/utils/index.js';
 import { logger } from '../../../../../shared/logging/index.js';
+import { createTelemetryCapture } from '../../../../../shared/telemetry/index.js';
 
 export interface RunCodexOptions {
   prompt: string;
@@ -136,6 +137,9 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
     `Codex runner - CLI: ${command} ${args.map((arg) => (/\s/.test(arg) ? `"${arg}"` : arg)).join(' ')} | stdin preview: ${prompt.slice(0, 120)}`,
   );
 
+  // Create telemetry capture instance
+  const telemetryCapture = createTelemetryCapture('codex', model, prompt, workingDir);
+
   let result;
   try {
     result = await spawnProcess({
@@ -153,6 +157,9 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
           const lines = out.trim().split('\n');
           for (const line of lines) {
             if (!line.trim()) continue;
+
+            // Capture telemetry data
+            telemetryCapture.captureFromStreamJson(line);
 
             const formatted = formatCodexStreamJsonLine(line);
             if (formatted) {
@@ -196,6 +203,9 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
 
     throw new Error(`Codex CLI exited with code ${result.exitCode}`);
   }
+
+  // Log captured telemetry
+  telemetryCapture.logCapturedTelemetry(result.exitCode);
 
   return {
     stdout: result.stdout,
