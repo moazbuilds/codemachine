@@ -6,6 +6,7 @@ import { buildClaudeExecCommand } from './commands.js';
 import { metadata } from '../metadata.js';
 import { expandHomeDir } from '../../../../../shared/utils/index.js';
 import { logger } from '../../../../../shared/logging/index.js';
+import { createTelemetryCapture } from '../../../../../shared/telemetry/index.js';
 
 export interface RunClaudeOptions {
   prompt: string;
@@ -120,6 +121,9 @@ export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeRes
   logger.debug(`Claude runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
   logger.debug(`Claude runner - args count: ${args.length}, model: ${model ?? 'default'}`);
 
+  // Create telemetry capture instance
+  const telemetryCapture = createTelemetryCapture('claude', model, prompt, workingDir);
+
   let result;
   try {
     result = await spawnProcess({
@@ -137,6 +141,9 @@ export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeRes
           const lines = out.trim().split('\n');
           for (const line of lines) {
             if (!line.trim()) continue;
+
+            // Capture telemetry data
+            telemetryCapture.captureFromStreamJson(line);
 
             const formatted = formatStreamJsonLine(line);
             if (formatted) {
@@ -180,6 +187,9 @@ export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeRes
 
     throw new Error(`Claude CLI exited with code ${result.exitCode}`);
   }
+
+  // Log captured telemetry
+  telemetryCapture.logCapturedTelemetry(result.exitCode);
 
   return {
     stdout: result.stdout,
