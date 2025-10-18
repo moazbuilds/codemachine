@@ -206,35 +206,65 @@ We conducted a real-world comparison by monitoring development work on a project
 
 ---
 
+## 📚 Documentation
 
-## 🛠️ How It Works
+**Getting Started**
+- [Prerequisites & Installation](docs/architecture.md#prerequisites)
+- [Quick Start Guide](docs/architecture.md#get-your-first-project-generated)
+  - [Writing Your Specification](docs/specification-schema.md#part-1-the-essentials-core-requirements-for-any-project)
+  - [Running the Workflow](docs/architecture.md#get-your-first-project-generated)
+- [How CodeMachine Works](docs/architecture.md#how-codemachine-works)
 
-CodeMachine orchestrates workflows through sequential main agent steps and parallel sub-agent execution. After selecting a workflow template, the main agent processes each step in order. When sub-agents are triggered, they work simultaneously on specialized tasks (e.g., frontend, backend, database), then results flow back into the main workflow. Conditional loops allow workflows to iterate until completion criteria are met.
+**Core Concepts**
+- [Agents in CodeMachine](docs/architecture.md#agents-in-codemachine)
+  - [Main Agents](docs/architecture.md#main-agents)
+  - [Sub Agents](docs/architecture.md#sub-agents)
+  - [Modules](docs/architecture.md#modules)
+  - [Dynamic Agent Generation](docs/architecture.md#dynamic-agent-generation)
+- [Communication Patterns](docs/architecture.md#agent-communication-patterns)
+  - [Sequential Execution](docs/architecture.md#1-sequential-hierarchical-communication)
+  - [Parent-Child Delegation](docs/architecture.md#2-parent-child-agent-to-agent-communication)
+- [Context Management](docs/architecture.md#agent-context-management-types)
+  - [File-Based Memory](docs/architecture.md#1-file-based-main-agent-memory)
+  - [Session Memory](docs/architecture.md#2-orchestrator-agent-session-memory)
 
-<p align="center">
-  <img src="docs/concepts/images/arch-workflow.png" alt="CodeMachine Workflow Architecture" width="400">
-</p>
+**CLI Usage**
+- [CLI Overview](docs/cli-reference.md#overview)
+  - [Global Options](docs/cli-reference.md#overview)
+  - [Interactive Mode](docs/cli-reference.md#interactive-mode)
+- [Workflow Commands](docs/cli-reference.md#workflow-commands)
+  - [Start Command](docs/cli-reference.md#start)
+  - [Template Selection](docs/cli-reference.md#templates)
+- [Development Commands](docs/cli-reference.md#development-commands)
+  - [Agent Execution](docs/cli-reference.md#agent)
+  - [Step Execution](docs/cli-reference.md#step)
+- [Authentication](docs/cli-reference.md#auth)
+  - [Login](docs/cli-reference.md#auth-login)
+  - [Logout](docs/cli-reference.md#auth-logout)
+- [Advanced Topics](docs/cli-reference.md#advanced-topics)
+  - [Engine-Specific Commands](docs/cli-reference.md#engine-specific-commands)
 
+**Creating Custom Workflows**
+- [Workflow Templates](docs/customizing-workflows.md#workflow-templates)
+  - [Template Structure](docs/customizing-workflows.md#template-structure)
+  - [Step Resolution Functions](docs/customizing-workflows.md#step-resolution-functions)
+  - [Override Options](docs/customizing-workflows.md#complete-override-options-reference)
+- [Configuring Agents](docs/customizing-workflows.md#configuration-files)
+  - [Main Agents](docs/customizing-workflows.md#main-agents-configuration)
+  - [Sub Agents](docs/customizing-workflows.md#sub-agents-configuration)
+  - [Workflow Modules](docs/customizing-workflows.md#workflow-modules-configuration)
+- [Engine & Model Selection](docs/customizing-workflows.md#engine--model-configuration)
+  - [Available Engines](docs/customizing-workflows.md#available-engines)
+  - [Model Options](docs/customizing-workflows.md#model-options)
+  - [Reasoning Levels](docs/customizing-workflows.md#reasoning-effort-levels)
+- [Advanced Patterns](docs/customizing-workflows.md#advanced-workflow-patterns)
+  - [Loop Behaviors](docs/customizing-workflows.md#workflow-modules-configuration)
+  - [Fallback Handling](docs/customizing-workflows.md#complete-override-options-reference)
+  - [Mixed Engine Workflows](docs/customizing-workflows.md#engine--model-configuration)
 
-**Example Workflow:**
+**Writing Specifications**
+- [Specification Schema](docs/specification-schema.md)
+  - [Essential Requirements](docs/specification-schema.md#part-1-the-essentials-core-requirements-for-any-project)
+  - [Advanced Specifications](docs/specification-schema.md#part-2-advanced-specifications-for-complex-or-high-fidelity-projects)
 
-```javascript
-export default {
-  name: 'Apps Builder',
-  steps: [
-     resolveStep('git-commit', { executeOnce: true }), // Commit the initial project specification to git
-    resolveStep('arch-agent', { executeOnce: true, engine: 'claude' }), // Define system architecture and technical design decisions
-    resolveStep('plan-agent', { executeOnce: true, engine: 'claude', notCompletedFallback: 'plan-fallback' }), // Generate comprehensive iterative development plan with architectural artifacts
-    resolveStep('task-breakdown', { executeOnce: true, engine: 'claude', notCompletedFallback: 'task-fallback' }), // Extract and structure tasks from project plan into JSON format
-    resolveStep('git-commit', { executeOnce: true, engine: 'codex', model: 'gpt-5', modelReasoningEffort: 'low' }), // Commit the task breakdown to git
-    resolveStep('context-manager', { engine: 'codex' , model: 'gpt-5', modelReasoningEffort: 'medium' }), // Gather and prepare relevant context from architecture, plan, and codebase for task execution
-    resolveStep('code-generation', { engine: 'codex' , model: 'gpt-5', modelReasoningEffort: 'medium' }), // Generate code implementation based on task specifications and design artifacts
-    resolveStep('runtime-prep', { executeOnce: true }), // Generate robust shell scripts for project automation (install, run, lint, test)
-    resolveStep('task-sanity-check', { engine: 'codex' , model: 'gpt-5', modelReasoningEffort: 'medium' }), // Verify generated code against task requirements and acceptance criteria
-    resolveStep('git-commit', { engine: 'codex', model: 'gpt-5', modelReasoningEffort: 'low' }), // Commit the generated and verified code
-    resolveModule('check-task', { loopSteps: 6, loopMaxIterations: 20, loopSkip: ['runtime-prep'] }), // Loop back if tasks are not completed
-  ],
-  subAgentIds: ['frontend-agent', 'backend-agent', 'database-agent', 'auth-agent', 'testing-agent', 'deployment-agent'], // Sub-agents work in parallel
-};
-```
 ---
