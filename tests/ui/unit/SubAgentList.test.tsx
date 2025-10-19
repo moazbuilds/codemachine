@@ -12,6 +12,8 @@ describe('SubAgentList', () => {
     status: 'pending',
     telemetry: { tokensIn: 0, tokensOut: 0 },
     startTime: Date.now(),
+    toolCount: 0,
+    thinkingCount: 0,
     parentId: 'agent-1',
     ...overrides,
   });
@@ -143,7 +145,7 @@ describe('SubAgentList', () => {
 
     expect(lastFrame()).toContain('agent-0');
     expect(lastFrame()).toContain('agent-9');
-    expect(lastFrame()).toContain('+5 more');
+    expect(lastFrame()).toContain('↓ 5 more below');
     expect(lastFrame()).not.toContain('agent-10');
   });
 });

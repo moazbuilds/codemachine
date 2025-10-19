@@ -19,6 +19,11 @@ export interface TelemetryCapture {
   captureFromStreamJson(line: string): void;
 
   /**
+   * Gets the captured telemetry data
+   */
+  getCaptured(): CapturedTelemetry | null;
+
+  /**
    * Logs the captured telemetry data to the telemetry log file
    */
   logCapturedTelemetry(exitCode: number): void;
@@ -74,6 +79,10 @@ export function createTelemetryCapture(
       } catch {
         // Ignore JSON parse errors - not all lines will be valid JSON
       }
+    },
+
+    getCaptured(): CapturedTelemetry | null {
+      return captured;
     },
 
     logCapturedTelemetry(exitCode: number): void {

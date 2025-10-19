@@ -3,7 +3,7 @@ import { WorkflowUIManager } from '../../../src/ui/manager/WorkflowUIManager';
 
 describe('Edge Cases and Error Handling', () => {
   let manager: WorkflowUIManager;
-  let consoleErrorSpy: any;
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     manager = new WorkflowUIManager('Edge Case Test', 5);
@@ -58,9 +58,9 @@ describe('Edge Cases and Error Handling', () => {
       const agentId = manager.addMainAgent('test-agent', 'claude', 0);
 
       // Send malformed output that might cause parsing errors
-      manager.handleOutputChunk(agentId, null as any);
-      manager.handleOutputChunk(agentId, undefined as any);
-      manager.handleOutputChunk(agentId, {} as any);
+      manager.handleOutputChunk(agentId, null as unknown as string);
+      manager.handleOutputChunk(agentId, undefined as unknown as string);
+      manager.handleOutputChunk(agentId, {} as unknown as string);
 
       // Manager should still be functional
       const state = manager.getState();
@@ -214,14 +214,14 @@ describe('Edge Cases and Error Handling', () => {
 
       // Perform operations that might fail
       try {
-        manager.handleOutputChunk(agentId, null as any);
-      } catch (e) {
+        manager.handleOutputChunk(agentId, null as unknown as string);
+      } catch (_e) {
         // Ignore
       }
 
       try {
         manager.updateAgentStatus('invalid-id', 'completed');
-      } catch (e) {
+      } catch (_e) {
         // Ignore
       }
 
@@ -290,7 +290,7 @@ describe('Edge Cases and Error Handling', () => {
       // (This is a design decision - verify it doesn't crash)
       try {
         manager.addMainAgent('after-stop', 'claude', 1);
-      } catch (e) {
+      } catch (_e) {
         // Expected to fail or be ignored
       }
     });

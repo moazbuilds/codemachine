@@ -25,8 +25,8 @@ describe('WorkflowUIManager Integration Tests', () => {
     });
 
     it('should add and track main agents', () => {
-      const agentId1 = manager.addMainAgent('test-agent-1', 'claude', 0);
-      const agentId2 = manager.addMainAgent('test-agent-2', 'codex', 1);
+      const _agentId1 = manager.addMainAgent('test-agent-1', 'claude', 0);
+      const _agentId2 = manager.addMainAgent('test-agent-2', 'codex', 1);
 
       const state = manager.getState();
 
@@ -140,7 +140,7 @@ describe('WorkflowUIManager Integration Tests', () => {
       expect(elapsed).toBeLessThan(200);
     });
 
-    it('should batch updates efficiently', (done) => {
+    it('should batch updates efficiently', async () => {
       const agentId = manager.addMainAgent('batch-agent', 'claude', 0);
 
       // Send multiple rapid updates
@@ -149,12 +149,11 @@ describe('WorkflowUIManager Integration Tests', () => {
       }
 
       // Wait for batch processing
-      setTimeout(() => {
-        const state = manager.getState();
-        // Output should be batched, not 50 separate renders
-        expect(state.outputBuffer.length).toBeGreaterThan(0);
-        done();
-      }, 100);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const state = manager.getState();
+      // Output should be batched, not 50 separate renders
+      expect(state.outputBuffer.length).toBeGreaterThan(0);
     });
   });
 });

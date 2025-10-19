@@ -1,5 +1,4 @@
 import type {
-  WorkflowState,
   AgentState,
   AgentStatus,
   AgentTelemetry,

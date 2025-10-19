@@ -7,6 +7,7 @@ import { metadata } from '../metadata.js';
 import { expandHomeDir } from '../../../../../shared/utils/index.js';
 import { logger } from '../../../../../shared/logging/index.js';
 import { createTelemetryCapture } from '../../../../../shared/telemetry/index.js';
+import type { ParsedTelemetry } from '../../../core/types.js';
 
 export interface RunClaudeOptions {
   prompt: string;
@@ -15,6 +16,7 @@ export interface RunClaudeOptions {
   env?: NodeJS.ProcessEnv;
   onData?: (chunk: string) => void;
   onErrorData?: (chunk: string) => void;
+  onTelemetry?: (telemetry: ParsedTelemetry) => void;
   abortSignal?: AbortSignal;
   timeout?: number; // Timeout in milliseconds (default: 1800000ms = 30 minutes)
 }
@@ -68,7 +70,7 @@ function formatStreamJsonLine(line: string): string | null {
 }
 
 export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeResult> {
-  const { prompt, workingDir, model, env, onData, onErrorData, abortSignal, timeout = 1800000 } = options;
+  const { prompt, workingDir, model, env, onData, onErrorData, onTelemetry, abortSignal, timeout = 1800000 } = options;
 
   if (!prompt) {
     throw new Error('runClaude requires a prompt.');
@@ -144,6 +146,20 @@ export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeRes
 
             // Capture telemetry data
             telemetryCapture.captureFromStreamJson(line);
+
+            // Emit telemetry event if captured and callback provided
+            if (onTelemetry) {
+              const captured = telemetryCapture.getCaptured();
+              if (captured && captured.tokens) {
+                onTelemetry({
+                  tokensIn: captured.tokens.input ?? 0,
+                  tokensOut: captured.tokens.output ?? 0,
+                  cached: captured.tokens.cached,
+                  cost: captured.cost,
+                  duration: captured.duration,
+                });
+              }
+            }
 
             const formatted = formatStreamJsonLine(line);
             if (formatted) {
