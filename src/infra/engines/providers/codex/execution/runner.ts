@@ -5,7 +5,6 @@ import { spawnProcess } from '../../../../process/spawn.js';
 import { buildCodexExecCommand } from './commands.js';
 import { metadata } from '../metadata.js';
 import { expandHomeDir } from '../../../../../shared/utils/index.js';
-import { logger } from '../../../../../shared/logging/index.js';
 import { createTelemetryCapture } from '../../../../../shared/telemetry/index.js';
 import type { ParsedTelemetry } from '../../../core/types.js';
 
@@ -133,11 +132,14 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
 
   const { command, args } = buildCodexExecCommand({ workingDir, prompt, model, modelReasoningEffort });
 
-  logger.debug(`Codex runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
-  logger.debug(`Codex runner - args count: ${args.length}`);
-  logger.debug(
-    `Codex runner - CLI: ${command} ${args.map((arg) => (/\s/.test(arg) ? `"${arg}"` : arg)).join(' ')} | stdin preview: ${prompt.slice(0, 120)}`,
-  );
+  // Debug logging only when LOG_LEVEL=debug
+  if (process.env.LOG_LEVEL === 'debug') {
+    console.error(`[DEBUG] Codex runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
+    console.error(`[DEBUG] Codex runner - args count: ${args.length}`);
+    console.error(
+      `[DEBUG] Codex runner - CLI: ${command} ${args.map((arg) => (/\s/.test(arg) ? `"${arg}"` : arg)).join(' ')} | stdin preview: ${prompt.slice(0, 120)}`,
+    );
+  }
 
   // Create telemetry capture instance
   const telemetryCapture = createTelemetryCapture('codex', model, prompt, workingDir);
@@ -201,7 +203,7 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
       const full = `${command} ${args.join(' ')}`.trim();
       const install = metadata.installCommand;
       const name = metadata.name;
-      logger.error(`${name} CLI not found when executing: ${full}`);
+      console.error(`[ERROR] ${name} CLI not found when executing: ${full}`);
       throw new Error(`'${command}' is not available on this system. Please install ${name} first:\n  ${install}`);
     }
     throw error;
@@ -211,7 +213,7 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
     const errorOutput = result.stderr.trim() || result.stdout.trim() || 'no error output';
     const lines = errorOutput.split('\n').slice(0, 10);
 
-    logger.error('Codex CLI execution failed', {
+    console.error('[ERROR] Codex CLI execution failed', {
       exitCode: result.exitCode,
       error: lines.join('\n'),
       command: `${command} ${args.join(' ')}`,

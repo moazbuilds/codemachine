@@ -20,6 +20,9 @@ export class WorkflowUIManager {
   private batchUpdater: BatchUpdater;
   private renderCount = 0;
   private lastRenderTime = 0;
+  private originalConsoleLog?: typeof console.log;
+  private originalConsoleError?: typeof console.error;
+  private consoleHijacked = false;
 
   constructor(workflowName: string, totalSteps: number) {
     this.state = new WorkflowUIState(workflowName, totalSteps);
@@ -59,6 +62,9 @@ export class WorkflowUIManager {
           );
         }
       });
+
+      // Hijack console to prevent breaking Ink UI
+      this.hijackConsole();
     } catch (error) {
       this.fallbackMode = true;
       console.error('Failed to initialize Ink UI, using fallback mode:', error);
@@ -67,9 +73,51 @@ export class WorkflowUIManager {
   }
 
   /**
+   * Hijack console methods to prevent output from breaking Ink UI
+   * Console messages are suppressed when UI is active
+   */
+  private hijackConsole(): void {
+    if (this.consoleHijacked || this.fallbackMode) return;
+
+    this.originalConsoleLog = console.log;
+    this.originalConsoleError = console.error;
+    this.consoleHijacked = true;
+
+    // Suppress console.log completely during UI mode
+    console.log = (..._args: unknown[]) => {
+      // Silently ignore - messages should use ui.logMessage() instead
+    };
+
+    // Allow errors through stderr for debugging
+    console.error = (...args: unknown[]) => {
+      if (this.originalConsoleError) {
+        this.originalConsoleError(...args);
+      }
+    };
+  }
+
+  /**
+   * Restore original console methods
+   */
+  private restoreConsole(): void {
+    if (!this.consoleHijacked) return;
+
+    if (this.originalConsoleLog) {
+      console.log = this.originalConsoleLog;
+    }
+    if (this.originalConsoleError) {
+      console.error = this.originalConsoleError;
+    }
+    this.consoleHijacked = false;
+  }
+
+  /**
    * Stop and cleanup Ink UI
    */
   stop(): void {
+    // Restore console first
+    this.restoreConsole();
+
     // Flush any pending updates
     this.batchUpdater.flush();
     this.batchUpdater.clear();
@@ -204,6 +252,21 @@ export class WorkflowUIManager {
     // Triggered agent support will be added in WorkflowUIState
     if (this.fallbackMode) {
       console.log(`⚡ Triggered: ${agent.name} by ${triggeredBy}`);
+    }
+  }
+
+  /**
+   * Log a workflow message (routes through UI in TTY mode, console.log in fallback)
+   * Use this instead of direct console.log to prevent breaking Ink UI
+   */
+  logMessage(agentId: string, message: string): void {
+    if (this.fallbackMode) {
+      // In fallback mode, use the colored formatAgentLog
+      const { formatAgentLog } = require('../../shared/logging/agent-loggers.js');
+      console.log(formatAgentLog(agentId, message));
+    } else {
+      // In UI mode, route through output buffer to display in UI
+      this.handleOutputChunk(agentId, message + '\n');
     }
   }
 

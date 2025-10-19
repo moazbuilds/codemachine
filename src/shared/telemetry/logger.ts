@@ -1,6 +1,5 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { logger } from '../logging/index.js';
 
 export interface TelemetryData {
   engine: string;
@@ -25,15 +24,20 @@ export function logTelemetry(data: TelemetryData): void {
     const logDir = path.join(data.workingDir, '.codemachine', 'logs');
     const logFile = path.join(logDir, 'telemetry.log');
 
-    console.error('[TELEMETRY DEBUG] logTelemetry called', {
-      workingDir: data.workingDir,
-      logDir,
-      logFile,
-    });
+    // Debug logging only when LOG_LEVEL=debug
+    if (process.env.LOG_LEVEL === 'debug') {
+      console.error('[DEBUG] logTelemetry called', {
+        workingDir: data.workingDir,
+        logDir,
+        logFile,
+      });
+    }
 
     // Ensure log directory exists
     if (!fs.existsSync(logDir)) {
-      console.error('[TELEMETRY DEBUG] Creating log directory:', logDir);
+      if (process.env.LOG_LEVEL === 'debug') {
+        console.error('[DEBUG] Creating log directory:', logDir);
+      }
       fs.mkdirSync(logDir, { recursive: true });
     }
 
@@ -59,11 +63,11 @@ export function logTelemetry(data: TelemetryData): void {
     // Append to log file
     fs.appendFileSync(logFile, logEntry, 'utf8');
 
-    console.error('[TELEMETRY DEBUG] Telemetry written successfully to:', logFile);
-    logger.debug(`Telemetry logged to ${logFile}`);
+    if (process.env.LOG_LEVEL === 'debug') {
+      console.error('[DEBUG] Telemetry written successfully to:', logFile);
+    }
   } catch (error) {
     // Don't crash on logging errors, just log the error
-    console.error('[TELEMETRY DEBUG] Failed to write telemetry:', error);
-    logger.error('Failed to write telemetry log', { error });
+    console.error('[ERROR] Failed to write telemetry:', error);
   }
 }

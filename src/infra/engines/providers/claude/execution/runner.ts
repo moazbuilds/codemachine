@@ -5,7 +5,6 @@ import { spawnProcess } from '../../../../process/spawn.js';
 import { buildClaudeExecCommand } from './commands.js';
 import { metadata } from '../metadata.js';
 import { expandHomeDir } from '../../../../../shared/utils/index.js';
-import { logger } from '../../../../../shared/logging/index.js';
 import { createTelemetryCapture } from '../../../../../shared/telemetry/index.js';
 import type { ParsedTelemetry } from '../../../core/types.js';
 
@@ -120,8 +119,11 @@ export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeRes
 
   const { command, args } = buildClaudeExecCommand({ workingDir, prompt, model });
 
-  logger.debug(`Claude runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
-  logger.debug(`Claude runner - args count: ${args.length}, model: ${model ?? 'default'}`);
+  // Debug logging only when LOG_LEVEL=debug
+  if (process.env.LOG_LEVEL === 'debug') {
+    console.error(`[DEBUG] Claude runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
+    console.error(`[DEBUG] Claude runner - args count: ${args.length}, model: ${model ?? 'default'}`);
+  }
 
   // Create telemetry capture instance
   const telemetryCapture = createTelemetryCapture('claude', model, prompt, workingDir);
@@ -185,7 +187,7 @@ export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeRes
       const full = `${command} ${args.join(' ')}`.trim();
       const install = metadata.installCommand;
       const name = metadata.name;
-      logger.error(`${name} CLI not found when executing: ${full}`);
+      console.error(`[ERROR] ${name} CLI not found when executing: ${full}`);
       throw new Error(`'${command}' is not available on this system. Please install ${name} first:\n  ${install}`);
     }
     throw error;
@@ -195,7 +197,7 @@ export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeRes
     const errorOutput = result.stderr.trim() || result.stdout.trim() || 'no error output';
     const lines = errorOutput.split('\n').slice(0, 10);
 
-    logger.error('Claude CLI execution failed', {
+    console.error('[ERROR] Claude CLI execution failed', {
       exitCode: result.exitCode,
       error: lines.join('\n'),
       command: `${command} ${args.join(' ')}`,

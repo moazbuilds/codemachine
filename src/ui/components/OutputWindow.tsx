@@ -1,5 +1,6 @@
-import React from 'react';
-import { Box, Text } from 'ink';
+import React, { useMemo } from 'react';
+import { Box, Text, useStdout } from 'ink';
+import { ScrollBox } from '@sasaplus1/ink-scroll-box';
 import type { AgentState, SubAgentState } from '../state/types';
 
 export interface OutputWindowProps {
@@ -12,30 +13,52 @@ export interface OutputWindowProps {
 /**
  * Scrollable output window showing current agent's output
  * Displays last N lines with syntax highlighting
+ * Uses ScrollBox for proper scrolling behavior
  */
 export const OutputWindow: React.FC<OutputWindowProps> = ({
   currentAgent,
   outputLines,
   autoScroll,
-  maxLines = 20,
+  maxLines,
 }) => {
+  const { stdout } = useStdout();
+
+  // Calculate available height dynamically
+  // Header: 3, Progress: 2, Telemetry: 2, Footer: 2 = 9 lines
+  // Window header: 2, footer: 1 = 3 lines
+  const terminalHeight = stdout?.rows || 40;
+  const availableHeight = Math.max(terminalHeight - 12, 10);
+  const effectiveMaxLines = maxLines || availableHeight;
+
   if (!currentAgent) {
     return (
-      <Box flexDirection="column" width="100%" height={maxLines} justifyContent="center" alignItems="center">
+      <Box flexDirection="column" width="100%" height={effectiveMaxLines} justifyContent="center" alignItems="center">
         <Text dimColor>No agent selected</Text>
       </Box>
     );
   }
 
-  // Get last N lines for display
-  const displayLines = autoScroll
-    ? outputLines.slice(-maxLines)
-    : outputLines.slice(0, maxLines);
-
   const agentType = 'parentId' in currentAgent ? 'sub-agent' : 'main';
 
+  // Calculate scroll offset for auto-scroll
+  const scrollOffset = useMemo(() => {
+    if (autoScroll && outputLines.length > effectiveMaxLines) {
+      return outputLines.length - effectiveMaxLines;
+    }
+    return 0;
+  }, [autoScroll, outputLines.length, effectiveMaxLines]);
+
+  // Prepare output lines as React nodes
+  const outputNodes = useMemo(() =>
+    outputLines.map((line, index) => (
+      <OutputLine key={index} line={line} />
+    )),
+    [outputLines]
+  );
+
   return (
-    <Box flexDirection="column" width="100%">
+    <Box flexDirection="column" width="100%" height="100%">
+      {/* Header - Fixed height */}
       <Box paddingX={1} paddingBottom={1} justifyContent="space-between">
         <Text bold underline>
           Output: {currentAgent.name}
@@ -45,20 +68,25 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
         </Text>
       </Box>
 
-      <Box flexDirection="column" paddingX={1}>
-        {displayLines.length === 0 ? (
+      {/* Scrollable output area */}
+      <Box paddingX={1} height={effectiveMaxLines}>
+        {outputLines.length === 0 ? (
           <Text dimColor>Waiting for output...</Text>
         ) : (
-          displayLines.map((line, index) => (
-            <OutputLine key={index} line={line} />
-          ))
+          <ScrollBox offset={scrollOffset} initialHeight={effectiveMaxLines}>
+            {outputNodes}
+          </ScrollBox>
         )}
       </Box>
 
-      {autoScroll && outputLines.length > maxLines && (
+      {/* Footer - Show scroll info */}
+      {outputLines.length > effectiveMaxLines && (
         <Box paddingX={1} paddingTop={1}>
           <Text dimColor>
-            Showing last {maxLines} of {outputLines.length} lines (auto-scroll enabled)
+            {autoScroll
+              ? `Showing last ${effectiveMaxLines} of ${outputLines.length} lines (auto-scroll)`
+              : `Showing first ${effectiveMaxLines} of ${outputLines.length} lines`
+            }
           </Text>
         </Box>
       )}

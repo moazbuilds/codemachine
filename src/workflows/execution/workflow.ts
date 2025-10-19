@@ -75,9 +75,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
   // Initialize Workflow UI Manager
   const ui = new WorkflowUIManager(template.name, template.steps.length);
-  ui.start();
 
-  // Pre-populate timeline with all workflow steps
+  // Pre-populate timeline with all workflow steps BEFORE starting UI
+  // This prevents duplicate renders at startup
   template.steps.forEach((step, stepIndex) => {
     if (step.type === 'module') {
       const defaultEngine = registry.getDefault();
@@ -88,6 +88,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       ui.addMainAgent(step.agentName ?? step.agentId, engineName, stepIndex);
     }
   });
+
+  // Start UI after all agents are pre-populated (single clean render)
+  ui.start();
 
   // Get the starting index based on resume configuration
   const startIndex = await getResumeStartIndex(cmRoot);
@@ -105,14 +108,14 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
     const skipResult = shouldSkipStep(step, index, completedSteps, activeLoop, ui);
     if (skipResult.skip) {
-      console.log(formatAgentLog(step.agentId, skipResult.reason!));
+      ui.logMessage(step.agentId, skipResult.reason!);
       continue;
     }
 
     logSkipDebug(step, activeLoop);
 
-    console.log('═'.repeat(80));
-    console.log(formatAgentLog(step.agentId, `${step.agentName} started to work.`));
+    ui.logMessage(step.agentId, '═'.repeat(80));
+    ui.logMessage(step.agentId, `${step.agentName} started to work.`);
 
     // Update UI status to running
     ui.updateAgentStatus(step.agentId, 'running');
@@ -193,7 +196,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       }
 
       engineType = foundEngine.metadata.id;
-      console.log(formatAgentLog(step.agentId, `No engine specified, using ${foundEngine.metadata.name} (${engineType})`));
+      ui.logMessage(step.agentId, `No engine specified, using ${foundEngine.metadata.name} (${engineType})`);
     }
 
     // Ensure the selected engine is used during execution
@@ -203,7 +206,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
     // Check if fallback should be executed before the original step
     if (shouldExecuteFallback(step, index, notCompletedSteps)) {
-      console.log(formatAgentLog(step.agentId, `Detected incomplete step. Running fallback agent first.`));
+      ui.logMessage(step.agentId, `Detected incomplete step. Running fallback agent first.`);
       try {
         await executeFallbackStep(step, cwd, workflowStartTime, engineType, ui);
       } catch (error) {
@@ -227,7 +230,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       });
 
       // Check for trigger behavior first
-      const triggerResult = await handleTriggerLogic(step, output, cwd);
+      const triggerResult = await handleTriggerLogic(step, output, cwd, ui);
       if (triggerResult?.shouldTrigger && triggerResult.triggerAgentId) {
         const triggeredAgentId = triggerResult.triggerAgentId; // Capture for use in callbacks
         try {
@@ -245,7 +248,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         }
       }
 
-      const loopResult = await handleLoopLogic(step, index, output, loopCounters, cwd);
+      const loopResult = await handleLoopLogic(step, index, output, loopCounters, cwd, ui);
 
       if (loopResult.decision?.shouldRepeat) {
         // Set active loop with skip list
@@ -287,8 +290,8 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       // Update UI status to completed
       ui.updateAgentStatus(step.agentId, 'completed');
 
-      console.log(formatAgentLog(step.agentId, `${step.agentName} has completed their work.`));
-      console.log('\n' + '═'.repeat(80) + '\n');
+      ui.logMessage(step.agentId, `${step.agentName} has completed their work.`);
+      ui.logMessage(step.agentId, '\n' + '═'.repeat(80) + '\n');
     } catch (error) {
       // Update UI status to failed
       ui.updateAgentStatus(step.agentId, 'failed');
