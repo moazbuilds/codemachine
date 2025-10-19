@@ -50,9 +50,11 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
       });
     }
 
-    console.log(formatAgentLog(sourceAgentId, `Executing triggered agent: ${triggeredAgentConfig.name ?? triggerAgentId}`));
-    console.log('═'.repeat(80));
-    console.log(formatAgentLog(triggerAgentId, `${triggeredAgentConfig.name ?? triggerAgentId} started to work (triggered).`));
+    if (ui) {
+      ui.logMessage(sourceAgentId, `Executing triggered agent: ${triggeredAgentConfig.name ?? triggerAgentId}`);
+      ui.logMessage(triggerAgentId, '═'.repeat(80));
+      ui.logMessage(triggerAgentId, `${triggeredAgentConfig.name ?? triggerAgentId} started to work (triggered).`);
+    }
 
     // Build prompt for triggered agent (memory write-only, no read)
     const memoryDir = path.resolve(cwd, '.codemachine', 'memory');
@@ -111,8 +113,10 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
       }
     }
 
-    console.log(formatAgentLog(triggerAgentId, `${triggeredAgentConfig.name ?? triggerAgentId} (triggered) has completed their work.`));
-    console.log('═'.repeat(80));
+    if (ui) {
+      ui.logMessage(triggerAgentId, `${triggeredAgentConfig.name ?? triggerAgentId} (triggered) has completed their work.`);
+      ui.logMessage(triggerAgentId, '═'.repeat(80));
+    }
   } catch (triggerError) {
     // Update UI status on failure
     if (ui) {

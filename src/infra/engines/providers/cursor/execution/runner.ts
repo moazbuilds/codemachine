@@ -5,7 +5,6 @@ import { spawnProcess } from '../../../../process/spawn.js';
 import { buildCursorExecCommand } from './commands.js';
 import { metadata } from '../metadata.js';
 import { expandHomeDir } from '../../../../../shared/utils/index.js';
-import { logger } from '../../../../../shared/logging/index.js';
 
 export interface RunCursorOptions {
   prompt: string;
@@ -184,8 +183,11 @@ export async function runCursor(options: RunCursorOptions): Promise<RunCursorRes
     cursorConfigDir
   });
 
-  logger.debug(`Cursor runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
-  logger.debug(`Cursor runner - args count: ${args.length}, model: ${model ?? 'auto'}`);
+  // Debug logging only when LOG_LEVEL=debug
+  if (process.env.LOG_LEVEL === 'debug') {
+    console.error(`[DEBUG] Cursor runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
+    console.error(`[DEBUG] Cursor runner - args count: ${args.length}, model: ${model ?? 'auto'}`);
+  }
 
   let result;
   try {
@@ -235,7 +237,7 @@ export async function runCursor(options: RunCursorOptions): Promise<RunCursorRes
       const full = `${command} ${args.join(' ')}`.trim();
       const install = metadata.installCommand;
       const name = metadata.name;
-      logger.error(`${name} CLI not found when executing: ${full}`);
+      console.error(`[ERROR] ${name} CLI not found when executing: ${full}`);
       throw new Error(`'${command}' is not available on this system. Please install ${name} first:\n  ${install}`);
     }
     throw error;
@@ -245,7 +247,7 @@ export async function runCursor(options: RunCursorOptions): Promise<RunCursorRes
     const errorOutput = result.stderr.trim() || result.stdout.trim() || 'no error output';
     const lines = errorOutput.split('\n').slice(0, 10);
 
-    logger.error('Cursor CLI execution failed', {
+    console.error('[ERROR] Cursor CLI execution failed', {
       exitCode: result.exitCode,
       error: lines.join('\n'),
       command: `${command} ${args.join(' ')}`,

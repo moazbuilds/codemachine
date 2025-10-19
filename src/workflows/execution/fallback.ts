@@ -41,7 +41,9 @@ export async function executeFallbackStep(
 
   const fallbackAgentId = step.notCompletedFallback;
 
-  console.log(formatAgentLog(fallbackAgentId, `Fallback agent for ${step.agentName} started to work.`));
+  if (ui) {
+    ui.logMessage(fallbackAgentId, `Fallback agent for ${step.agentName} started to work.`);
+  }
 
   // Look up the fallback agent's configuration to get its prompt path
   const fallbackAgent = mainAgents.find((agent) => agent?.id === fallbackAgentId);
@@ -89,10 +91,9 @@ export async function executeFallbackStep(
     // Update UI status on success
     if (ui) {
       ui.updateAgentStatus(fallbackAgentId, 'completed');
+      ui.logMessage(fallbackAgentId, `Fallback agent completed successfully.`);
+      ui.logMessage(fallbackAgentId, '═'.repeat(80));
     }
-
-    console.log(formatAgentLog(fallbackAgentId, `Fallback agent completed successfully.`));
-    console.log('═'.repeat(80));
   } catch (error) {
     // Update UI status on failure
     if (ui) {

@@ -2,10 +2,6 @@
  * Logger utility that respects LOG_LEVEL environment variable
  */
 
-declare global {
-  var __logLevelInitialized: boolean | undefined;
-}
-
 const LOG_LEVELS = {
   debug: 0,
   info: 1,
@@ -17,15 +13,7 @@ type LogLevel = keyof typeof LOG_LEVELS;
 
 function getCurrentLogLevel(): LogLevel {
   const level = (process.env.LOG_LEVEL || 'info').trim().toLowerCase() as LogLevel;
-  const resolved = LOG_LEVELS[level] !== undefined ? level : 'info';
-
-  // Debug: log the environment variable value on first call
-  if (!globalThis.__logLevelInitialized) {
-    globalThis.__logLevelInitialized = true;
-    console.error(`[LOGGER INIT] LOG_LEVEL="${process.env.LOG_LEVEL}", trimmed="${level}", resolved to: ${resolved}`);
-  }
-
-  return resolved;
+  return LOG_LEVELS[level] !== undefined ? level : 'info';
 }
 
 function shouldLog(level: LogLevel): boolean {
