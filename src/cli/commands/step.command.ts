@@ -13,6 +13,7 @@ import {
   stopSpinner,
   createSpinnerLoggers,
 } from '../../shared/logging/index.js';
+import { processPromptString } from '../../shared/prompts/index.js';
 
 type StepCommandOptions = {
   model?: string;
@@ -61,7 +62,8 @@ async function executeStep(
 
   // Load agent config and template
   const agentConfig = await loadAgentConfig(agentId, workingDir);
-  const agentTemplate = await loadAgentTemplate(agentId, workingDir);
+  const rawTemplate = await loadAgentTemplate(agentId, workingDir);
+  const agentTemplate = await processPromptString(rawTemplate, workingDir);
 
   // Determine engine: CLI override > agent config > first authenticated engine
   const { registry } = await import('../../infra/engines/index.js');

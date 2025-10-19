@@ -5,6 +5,7 @@ import { getEngine } from '../../infra/engines/index.js';
 import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
 import { MemoryStore } from '../memory/memory-store.js';
 import { loadAgentConfig, loadAgentTemplate } from './config.js';
+import { processPromptString } from '../../shared/prompts/index.js';
 
 export interface ExecuteAgentOptions {
   /**
@@ -150,7 +151,8 @@ export async function executeAgent(
   const store = new MemoryStore(adapter);
 
   // Build prompt without memory (write-only)
-  const agentTemplate = await loadAgentTemplate(agentId, projectRoot ?? workingDir);
+  const rawTemplate = await loadAgentTemplate(agentId, projectRoot ?? workingDir);
+  const agentTemplate = await processPromptString(rawTemplate, workingDir);
   const compositePrompt = `[SYSTEM]\n${agentTemplate}\n\n[REQUEST]\n${prompt}`;
 
   // Get engine and execute
