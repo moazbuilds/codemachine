@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { WorkflowUIState } from '../../../src/ui/state/WorkflowUIState';
-import type { AgentStatus } from '../../../src/ui/state/types';
 
 describe('WorkflowUIState', () => {
   let state: WorkflowUIState;

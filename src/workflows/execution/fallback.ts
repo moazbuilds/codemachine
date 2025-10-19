@@ -1,17 +1,15 @@
 import type { WorkflowStep } from '../templates/index.js';
 import {
   formatAgentLog,
-  startSpinner,
-  stopSpinner,
-  createSpinnerLoggers,
-  getAgentLoggers,
 } from '../../shared/logging/index.js';
 import { executeStep } from './step.js';
 import { mainAgents } from '../utils/config.js';
+import type { WorkflowUIManager } from '../../ui/index.js';
 
 export interface FallbackExecutionOptions {
   logger: (message: string) => void;
   stderrLogger: (message: string) => void;
+  ui?: WorkflowUIManager;
 }
 
 /**
@@ -35,6 +33,7 @@ export async function executeFallbackStep(
   cwd: string,
   workflowStartTime: number,
   engineType: string,
+  ui?: WorkflowUIManager,
 ): Promise<void> {
   if (!step.notCompletedFallback) {
     throw new Error('No fallback agent defined for this step');
@@ -62,33 +61,44 @@ export async function executeFallbackStep(
     promptPath: fallbackAgent.promptPath, // Use the fallback agent's prompt, not the original step's
   };
 
-  const { stdout: baseStdoutLogger, stderr: baseStderrLogger } = getAgentLoggers(fallbackAgentId);
-
-  const spinnerState = startSpinner(
-    fallbackAgentId,
-    engineType,
-    workflowStartTime,
-    step.model,
-    step.modelReasoningEffort,
-  );
-
-  const { stdoutLogger, stderrLogger } = createSpinnerLoggers(
-    baseStdoutLogger,
-    baseStderrLogger,
-    spinnerState,
-  );
+  // Add fallback agent to UI as sub-agent
+  if (ui) {
+    const engineName = (engineType === 'claude' || engineType === 'codex' || engineType === 'cursor')
+      ? engineType
+      : 'claude'; // fallback to claude for unknown engines
+    ui.addSubAgent(step.agentId, {
+      id: fallbackAgentId,
+      name: fallbackAgent.name || fallbackAgentId,
+      engine: engineName,
+      status: 'running',
+      parentId: step.agentId,
+      startTime: Date.now(),
+      telemetry: { tokensIn: 0, tokensOut: 0 },
+      toolCount: 0,
+      thinkingCount: 0,
+    });
+  }
 
   try {
     await executeStep(fallbackStep, cwd, {
-      logger: stdoutLogger,
-      stderrLogger,
+      logger: (chunk) => ui?.handleOutputChunk(fallbackAgentId, chunk),
+      stderrLogger: (chunk) => ui?.handleOutputChunk(fallbackAgentId, chunk),
+      ui,
     });
 
-    stopSpinner(spinnerState);
+    // Update UI status on success
+    if (ui) {
+      ui.updateAgentStatus(fallbackAgentId, 'completed');
+    }
+
     console.log(formatAgentLog(fallbackAgentId, `Fallback agent completed successfully.`));
     console.log('═'.repeat(80));
   } catch (error) {
-    stopSpinner(spinnerState);
+    // Update UI status on failure
+    if (ui) {
+      ui.updateAgentStatus(fallbackAgentId, 'failed');
+    }
+
     console.error(
       formatAgentLog(
         fallbackAgentId,

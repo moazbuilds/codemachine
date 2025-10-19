@@ -5,6 +5,7 @@ import { WorkflowUIState } from '../state/WorkflowUIState';
 import { processOutputChunk } from '../utils/outputProcessor';
 import { CircularBuffer, BatchUpdater } from '../utils/performance';
 import type { AgentStatus, LoopState, SubAgentState, TriggeredAgentState } from '../state/types';
+import type { ParsedTelemetry } from '../../infra/engines/core/types';
 
 /**
  * Orchestrates Ink lifecycle, manages state, and handles UI events
@@ -219,12 +220,12 @@ export class WorkflowUIManager {
       case 'PAUSE':
         this.state.setPaused(!this.state.getState().paused);
         // Emit pause event (workflow will handle)
-        process.emit('workflow:pause' as any);
+        (process as NodeJS.EventEmitter).emit('workflow:pause');
         break;
 
       case 'SKIP':
         // Emit skip event (workflow will handle)
-        process.emit('workflow:skip' as any);
+        (process as NodeJS.EventEmitter).emit('workflow:skip');
         break;
 
       case 'TOGGLE_EXPAND':
@@ -247,6 +248,13 @@ export class WorkflowUIManager {
         this.state.selectSubAgent(action.subAgentId);
         break;
     }
+  }
+
+  /**
+   * Update agent telemetry data
+   */
+  updateAgentTelemetry(agentId: string, telemetry: ParsedTelemetry) {
+    this.state.updateAgentTelemetry(agentId, telemetry);
   }
 
   /**

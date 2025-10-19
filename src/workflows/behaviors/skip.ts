@@ -1,5 +1,6 @@
 import type { WorkflowStep } from '../templates/index.js';
 import { formatAgentLog } from '../../shared/logging/index.js';
+import type { WorkflowUIManager } from '../../ui/index.js';
 
 export interface ActiveLoop {
   skip: string[];
@@ -10,14 +11,17 @@ export function shouldSkipStep(
   index: number,
   completedSteps: number[],
   activeLoop: ActiveLoop | null,
+  ui?: WorkflowUIManager,
 ): { skip: boolean; reason?: string } {
   // Skip step if executeOnce is true and it's already completed
   if (step.executeOnce && completedSteps.includes(index)) {
+    ui?.updateAgentStatus(step.agentId, 'skipped');
     return { skip: true, reason: `${step.agentName} skipped (already completed).` };
   }
 
   // Skip step if it's in the active loop's skip list
   if (activeLoop?.skip.includes(step.agentId)) {
+    ui?.updateAgentStatus(step.agentId, 'skipped');
     return { skip: true, reason: `${step.agentName} skipped (loop configuration).` };
   }
 

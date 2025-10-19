@@ -44,20 +44,18 @@ export class CircularBuffer<T> {
  * Throttle function to limit execution frequency
  * Ensures function is called at most once per interval
  */
-export function throttle<T extends (...args: any[]) => void>(
+export function throttle<T extends (...args: unknown[]) => void>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean;
-  let lastResult: any;
 
-  return function (this: any, ...args: Parameters<T>) {
+  return function (this: unknown, ...args: Parameters<T>) {
     if (!inThrottle) {
       inThrottle = true;
       setTimeout(() => (inThrottle = false), limit);
-      lastResult = func.apply(this, args);
+      func.apply(this, args);
     }
-    return lastResult;
   };
 }
 
@@ -65,13 +63,13 @@ export function throttle<T extends (...args: any[]) => void>(
  * Debounce function to delay execution until after calls have stopped
  * Useful for batching rapid state updates
  */
-export function debounce<T extends (...args: any[]) => void>(
+export function debounce<T extends (...args: unknown[]) => void>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null;
 
-  return function (this: any, ...args: Parameters<T>) {
+  return function (this: unknown, ...args: Parameters<T>) {
     if (timeout) {
       clearTimeout(timeout);
     }

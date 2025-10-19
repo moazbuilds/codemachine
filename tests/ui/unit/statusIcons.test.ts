@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { getStatusIcon, getStatusColor } from '../../../src/ui/utils/statusIcons';
-import type { AgentStatus } from '../../../src/ui/state/types';
 
 describe('StatusIcons', () => {
   describe('getStatusIcon', () => {

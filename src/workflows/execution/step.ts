@@ -6,11 +6,14 @@ import { getEngine } from '../../infra/engines/index.js';
 import { processPromptString } from '../../shared/prompts/index.js';
 import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
 import { MemoryStore } from '../../agents/memory/memory-store.js';
+import type { WorkflowUIManager } from '../../ui/index.js';
+import { parseTelemetryChunk } from '../../ui/index.js';
 
 export interface StepExecutorOptions {
   logger: (chunk: string) => void;
   stderrLogger: (chunk: string) => void;
   timeout?: number;
+  ui?: WorkflowUIManager;
 }
 
 async function ensureProjectScaffold(cwd: string): Promise<void> {
@@ -105,8 +108,19 @@ export async function executeStep(
     onErrorData: (chunk) => {
       options.stderrLogger(chunk);
     },
+    onTelemetry: (telemetry) => {
+      options.ui?.updateAgentTelemetry(step.agentId, telemetry);
+    },
     timeout,
   });
+
+  // Fallback: parse telemetry from final output if not captured via stream
+  if (options.ui) {
+    const finalTelemetry = parseTelemetryChunk(totalStdout);
+    if (finalTelemetry) {
+      options.ui.updateAgentTelemetry(step.agentId, finalTelemetry);
+    }
+  }
 
   const agentName = step.agentName.toLowerCase();
 

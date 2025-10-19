@@ -13,6 +13,14 @@ export interface ProcessedChunk {
  * Process engine output chunk to determine type and extract data
  */
 export function processOutputChunk(chunk: string): ProcessedChunk {
+  // Handle null/undefined input gracefully
+  if (!chunk || typeof chunk !== 'string') {
+    return {
+      type: 'text',
+      content: '',
+    };
+  }
+
   const trimmed = chunk.trim();
 
   // Detect tool usage (look for emoji indicators)

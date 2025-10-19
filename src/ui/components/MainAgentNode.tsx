@@ -16,7 +16,7 @@ export interface MainAgentNodeProps {
  */
 export const MainAgentNode: React.FC<MainAgentNodeProps> = ({
   agent,
-  index,
+  index: _index,
   isSelected,
 }) => {
   const icon = getStatusIcon(agent.status);

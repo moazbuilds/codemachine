@@ -4,11 +4,7 @@ import * as fs from 'node:fs';
 import type { RunWorkflowOptions } from '../templates/index.js';
 import { loadTemplateWithPath } from '../templates/index.js';
 import {
-  getAgentLoggers,
   formatAgentLog,
-  startSpinner,
-  stopSpinner,
-  createSpinnerLoggers,
 } from '../../shared/logging/index.js';
 import {
   getTemplatePathFromTracking,
@@ -26,6 +22,7 @@ import { handleTriggerLogic } from '../behaviors/trigger/controller.js';
 import { executeStep } from './step.js';
 import { executeTriggerAgent } from './trigger.js';
 import { shouldExecuteFallback, executeFallbackStep } from './fallback.js';
+import { WorkflowUIManager } from '../../ui/index.js';
 
 export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<void> {
   const cwd = options.cwd ? path.resolve(options.cwd) : process.cwd();
@@ -76,6 +73,22 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
   let activeLoop: ActiveLoop | null = null;
   const workflowStartTime = Date.now();
 
+  // Initialize Workflow UI Manager
+  const ui = new WorkflowUIManager(template.name, template.steps.length);
+  ui.start();
+
+  // Pre-populate timeline with all workflow steps
+  template.steps.forEach((step, stepIndex) => {
+    if (step.type === 'module') {
+      const defaultEngine = registry.getDefault();
+      const engineType = step.engine ?? defaultEngine?.metadata.id ?? 'unknown';
+      const engineName = (engineType === 'claude' || engineType === 'codex' || engineType === 'cursor')
+        ? engineType
+        : 'claude'; // fallback to claude for unknown engines
+      ui.addMainAgent(step.agentName ?? step.agentId, engineName, stepIndex);
+    }
+  });
+
   // Get the starting index based on resume configuration
   const startIndex = await getResumeStartIndex(cmRoot);
 
@@ -83,13 +96,14 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     console.log(`Resuming workflow from step ${startIndex}...`);
   }
 
-  for (let index = startIndex; index < template.steps.length; index += 1) {
+  try {
+    for (let index = startIndex; index < template.steps.length; index += 1) {
     const step = template.steps[index];
     if (step.type !== 'module') {
       continue;
     }
 
-    const skipResult = shouldSkipStep(step, index, completedSteps, activeLoop);
+    const skipResult = shouldSkipStep(step, index, completedSteps, activeLoop, ui);
     if (skipResult.skip) {
       console.log(formatAgentLog(step.agentId, skipResult.reason!));
       continue;
@@ -99,6 +113,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
     console.log('═'.repeat(80));
     console.log(formatAgentLog(step.agentId, `${step.agentName} started to work.`));
+
+    // Update UI status to running
+    ui.updateAgentStatus(step.agentId, 'running');
 
     // Reset behavior file to default "continue" before each agent run
     const behaviorFile = path.join(cwd, '.codemachine/memory/behavior.json');
@@ -110,8 +127,6 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
     // Mark step as started (adds to notCompletedSteps)
     await markStepStarted(cmRoot, index);
-
-    const { stdout: baseStdoutLogger, stderr: baseStderrLogger } = getAgentLoggers(step.agentId);
 
     // Determine engine: step override > first authenticated engine
     let engineType: string;
@@ -190,7 +205,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     if (shouldExecuteFallback(step, index, notCompletedSteps)) {
       console.log(formatAgentLog(step.agentId, `Detected incomplete step. Running fallback agent first.`));
       try {
-        await executeFallbackStep(step, cwd, workflowStartTime, engineType);
+        await executeFallbackStep(step, cwd, workflowStartTime, engineType, ui);
       } catch (error) {
         // Fallback failed, step remains in notCompletedSteps
         console.error(
@@ -199,41 +214,33 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
             `Fallback failed. Skipping original step retry.`,
           ),
         );
+        ui.updateAgentStatus(step.agentId, 'failed');
         throw error;
       }
     }
 
-    // Resolve model and reasoning effort for display
-    const engineModule = registry.get(engineType);
-    const model = step.model ?? engineModule?.metadata.defaultModel;
-    const reasoning = step.modelReasoningEffort ?? engineModule?.metadata.defaultModelReasoningEffort;
-
-    const spinnerState = startSpinner(step.agentName, engineType, workflowStartTime, model, reasoning);
-    const { stdoutLogger, stderrLogger } = createSpinnerLoggers(
-      baseStdoutLogger,
-      baseStderrLogger,
-      spinnerState,
-    );
-
     try {
       const output = await executeStep(step, cwd, {
-        logger: stdoutLogger,
-        stderrLogger,
+        logger: (chunk) => ui.handleOutputChunk(step.agentId, chunk),
+        stderrLogger: (chunk) => ui.handleOutputChunk(step.agentId, chunk),
+        ui,
       });
 
       // Check for trigger behavior first
       const triggerResult = await handleTriggerLogic(step, output, cwd);
       if (triggerResult?.shouldTrigger && triggerResult.triggerAgentId) {
+        const triggeredAgentId = triggerResult.triggerAgentId; // Capture for use in callbacks
         try {
           await executeTriggerAgent({
-            triggerAgentId: triggerResult.triggerAgentId,
+            triggerAgentId: triggeredAgentId,
             cwd,
             engineType,
-            logger: stdoutLogger,
-            stderrLogger,
+            logger: (chunk) => ui.handleOutputChunk(triggeredAgentId, chunk),
+            stderrLogger: (chunk) => ui.handleOutputChunk(triggeredAgentId, chunk),
             sourceAgentId: step.agentId,
+            ui,
           });
-        } catch (triggerError) {
+        } catch (_triggerError) {
           // Continue with workflow even if triggered agent fails
         }
       }
@@ -243,7 +250,19 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       if (loopResult.decision?.shouldRepeat) {
         // Set active loop with skip list
         activeLoop = createActiveLoop(loopResult.decision);
-        stopSpinner(spinnerState);
+
+        // Update UI loop state
+        const loopKey = `${step.module?.id ?? step.agentId}:${index}`;
+        const iteration = (loopCounters.get(loopKey) || 0) + 1;
+        ui.setLoopState({
+          active: true,
+          sourceAgent: step.agentId,
+          backSteps: loopResult.decision.stepsBack,
+          iteration,
+          maxIterations: step.module?.behavior?.type === 'loop' ? step.module.behavior.maxIterations ?? Infinity : Infinity,
+          skipList: loopResult.decision.skipList || [],
+        });
+
         index = loopResult.newIndex;
         continue;
       }
@@ -252,9 +271,10 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       const newActiveLoop = createActiveLoop(loopResult.decision);
       if (newActiveLoop !== (undefined as unknown as ActiveLoop | null)) {
         activeLoop = newActiveLoop;
+        if (!newActiveLoop) {
+          ui.setLoopState(null);
+        }
       }
-
-      stopSpinner(spinnerState);
 
       // Remove from notCompletedSteps (step finished successfully)
       await removeFromNotCompleted(cmRoot, index);
@@ -264,10 +284,15 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         await markStepCompleted(cmRoot, index);
       }
 
+      // Update UI status to completed
+      ui.updateAgentStatus(step.agentId, 'completed');
+
       console.log(formatAgentLog(step.agentId, `${step.agentName} has completed their work.`));
       console.log('\n' + '═'.repeat(80) + '\n');
     } catch (error) {
-      stopSpinner(spinnerState);
+      // Update UI status to failed
+      ui.updateAgentStatus(step.agentId, 'failed');
+
       console.error(
         formatAgentLog(
           step.agentId,
@@ -276,5 +301,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       );
       throw error;
     }
+  }
+  } finally {
+    // Always cleanup UI on workflow end
+    ui.stop();
   }
 }
