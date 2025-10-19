@@ -8,6 +8,14 @@
  */
 export type EngineType = string;
 
+export interface ParsedTelemetry {
+  tokensIn: number;
+  tokensOut: number;
+  cached?: number;
+  cost?: number;
+  duration?: number;
+}
+
 export interface EngineRunOptions {
   prompt: string;
   workingDir: string;
@@ -16,6 +24,7 @@ export interface EngineRunOptions {
   env?: NodeJS.ProcessEnv;
   onData?: (chunk: string) => void;
   onErrorData?: (chunk: string) => void;
+  onTelemetry?: (telemetry: ParsedTelemetry) => void;
   abortSignal?: AbortSignal;
   timeout?: number;
 }
