@@ -1,0 +1,73 @@
+import React from 'react';
+import { Box, Text } from 'ink';
+import type { TriggeredAgentState } from '../state/types';
+import { getStatusIcon, getStatusColor } from '../utils/statusIcons';
+import { formatDuration, formatTokens } from '../utils/formatters';
+
+export interface TriggeredAgentListProps {
+  triggeredAgents: TriggeredAgentState[];
+}
+
+/**
+ * Show triggered agents with attribution to source agent
+ * Limits display to first 5 agents to avoid screen overflow
+ */
+export const TriggeredAgentList: React.FC<TriggeredAgentListProps> = ({
+  triggeredAgents,
+}) => {
+  if (triggeredAgents.length === 0) {
+    return null;
+  }
+
+  const MAX_DISPLAY = 5;
+  const displayAgents = triggeredAgents.slice(0, MAX_DISPLAY);
+  const remaining = triggeredAgents.length - MAX_DISPLAY;
+
+  return (
+    <Box flexDirection="column" paddingX={1} marginTop={1}>
+      <Text bold>Triggered Agents:</Text>
+      {displayAgents.map((agent) => {
+        const icon = getStatusIcon(agent.status);
+        const color = getStatusColor(agent.status);
+
+        // Calculate duration
+        let duration = '';
+        if (agent.endTime) {
+          const seconds = (agent.endTime - agent.startTime) / 1000;
+          duration = formatDuration(seconds);
+        } else if (agent.status === 'running') {
+          const seconds = (Date.now() - agent.startTime) / 1000;
+          duration = formatDuration(seconds);
+        }
+
+        // Telemetry
+        const { tokensIn, tokensOut } = agent.telemetry;
+        const tokenStr = tokensIn > 0 || tokensOut > 0 ? formatTokens(tokensIn, tokensOut) : '';
+
+        return (
+          <Box key={agent.id} paddingLeft={2}>
+            <Text>
+              <Text color={color}>{icon}</Text>
+              {' '}
+              {agent.name}
+              {' '}
+              <Text dimColor>({agent.engine})</Text>
+              {' '}
+              <Text color="cyan">← {agent.triggeredBy}</Text>
+              {' '}
+              <Text dimColor>[{agent.triggerCondition}]</Text>
+              {duration && <Text> • {duration}</Text>}
+              {tokenStr && <Text dimColor> • {tokenStr}</Text>}
+              {agent.error && <Text color="red"> • Error: {agent.error}</Text>}
+            </Text>
+          </Box>
+        );
+      })}
+      {remaining > 0 && (
+        <Box paddingLeft={2}>
+          <Text dimColor>+{remaining} more</Text>
+        </Box>
+      )}
+    </Box>
+  );
+};
