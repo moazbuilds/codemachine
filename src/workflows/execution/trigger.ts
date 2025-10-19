@@ -5,6 +5,7 @@ import { loadAgentConfig, loadAgentTemplate } from '../../agents/execution/index
 import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
 import { MemoryStore } from '../../agents/memory/memory-store.js';
 import { formatAgentLog } from '../../shared/logging/index.js';
+import { processPromptString } from '../../shared/prompts/index.js';
 
 export interface TriggerExecutionOptions {
   triggerAgentId: string;
@@ -25,7 +26,8 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
   try {
     // Load agent config and template from config/main.agents.js
     const triggeredAgentConfig = await loadAgentConfig(triggerAgentId, cwd);
-    const triggeredAgentTemplate = await loadAgentTemplate(triggerAgentId, cwd);
+    const rawTemplate = await loadAgentTemplate(triggerAgentId, cwd);
+    const triggeredAgentTemplate = await processPromptString(rawTemplate, cwd);
 
     console.log(formatAgentLog(sourceAgentId, `Executing triggered agent: ${triggeredAgentConfig.name}`));
     console.log('═'.repeat(80));

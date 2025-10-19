@@ -1,4 +1,5 @@
 import { loadAgentTemplate } from './config.js';
+import { processPromptString } from '../../shared/prompts/index.js';
 
 /**
  * Builds a composite prompt combining system template and user request
@@ -9,7 +10,8 @@ export async function buildCompositePrompt(
   request: string,
   projectRoot?: string,
 ): Promise<string> {
-  const template = await loadAgentTemplate(agentId, projectRoot);
+  const rawTemplate = await loadAgentTemplate(agentId, projectRoot);
+  const template = await processPromptString(rawTemplate, projectRoot ?? process.cwd());
   const composite = `[SYSTEM]\n${template}\n\n[REQUEST]\n${request}`;
   return composite;
 }
