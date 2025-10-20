@@ -25,6 +25,7 @@ export class WorkflowUIState {
       triggeredAgents: [],
       loopState: null,
       expandedNodes: new Set(),
+      outputBuffers: new Map(),
       outputBuffer: [],
       scrollPosition: 0,
       autoScroll: true,
@@ -47,9 +48,14 @@ export class WorkflowUIState {
       this.completedAgents.add(id);
     }
 
+    // Initialize buffer for this agent
+    const newOutputBuffers = new Map(this.state.outputBuffers);
+    newOutputBuffers.set(id, []);
+
     this.state = {
       ...this.state,
       agents: [...this.state.agents, agent],
+      outputBuffers: newOutputBuffers,
     };
 
     this.notifyListeners();
@@ -64,10 +70,15 @@ export class WorkflowUIState {
 
     // Auto-select agent when it starts running
     if (status === 'running') {
+      // Clear this agent's buffer and select it
+      const newOutputBuffers = new Map(this.state.outputBuffers);
+      newOutputBuffers.set(agentId, []);
+
       this.state = {
         ...this.state,
         selectedAgentId: agentId,
-        outputBuffer: [], // Clear output buffer for new agent
+        outputBuffers: newOutputBuffers,
+        outputBuffer: [], // Clear current display buffer
         scrollPosition: 0,
       };
     }
@@ -81,12 +92,24 @@ export class WorkflowUIState {
   }
 
   appendOutput(agentId: string, line: string): void {
-    const buffer = maintainCircularBuffer([...this.state.outputBuffer, line], 1000);
+    // Get or create buffer for this specific agent
+    const newOutputBuffers = new Map(this.state.outputBuffers);
+    const agentBuffer = newOutputBuffers.get(agentId) || [];
+    const updatedAgentBuffer = maintainCircularBuffer([...agentBuffer, line], 1000);
+    newOutputBuffers.set(agentId, updatedAgentBuffer);
+
+    // Update the current display buffer if this agent is selected
+    const currentOutputBuffer = this.state.selectedAgentId === agentId
+      ? updatedAgentBuffer
+      : this.state.outputBuffer;
 
     this.state = {
       ...this.state,
-      outputBuffer: buffer,
-      scrollPosition: this.state.autoScroll ? buffer.length - 1 : this.state.scrollPosition,
+      outputBuffers: newOutputBuffers,
+      outputBuffer: currentOutputBuffer,
+      scrollPosition: this.state.autoScroll && this.state.selectedAgentId === agentId
+        ? updatedAgentBuffer.length - 1
+        : this.state.scrollPosition,
     };
 
     this.notifyListeners();
@@ -102,10 +125,15 @@ export class WorkflowUIState {
   }
 
   selectAgent(agentId: string): void {
+    // Get the selected agent's buffer
+    const agentBuffer = this.state.outputBuffers.get(agentId) || [];
+
     this.state = {
       ...this.state,
       selectedAgentId: agentId,
       selectedSubAgentId: null, // Clear sub-agent selection
+      outputBuffer: agentBuffer, // Switch display to this agent's buffer
+      scrollPosition: this.state.autoScroll ? agentBuffer.length - 1 : this.state.scrollPosition,
     };
 
     this.notifyListeners();

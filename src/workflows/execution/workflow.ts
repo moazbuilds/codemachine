@@ -122,11 +122,12 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
     logSkipDebug(step, activeLoop);
 
+    // Update UI status to running (this clears the output buffer)
+    ui.updateAgentStatus(step.agentId, 'running');
+
+    // Log start message AFTER clearing buffer
     ui.logMessage(step.agentId, '═'.repeat(80));
     ui.logMessage(step.agentId, `${step.agentName} started to work.`);
-
-    // Update UI status to running
-    ui.updateAgentStatus(step.agentId, 'running');
 
     // Reset behavior file to default "continue" before each agent run
     const behaviorFile = path.join(cwd, '.codemachine/memory/behavior.json');
@@ -284,6 +285,10 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       // This must happen BEFORE loop logic to ensure UI updates even when loops trigger
       ui.updateAgentStatus(step.agentId, 'completed');
 
+      // Log completion messages BEFORE loop check (so they're part of current agent's output)
+      ui.logMessage(step.agentId, `${step.agentName} has completed their work.`);
+      ui.logMessage(step.agentId, '\n' + '═'.repeat(80) + '\n');
+
       const loopResult = await handleLoopLogic(step, index, output, loopCounters, cwd, ui);
 
       if (loopResult.decision?.shouldRepeat) {
@@ -315,9 +320,6 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
           ui.clearLoopRound(step.agentId);
         }
       }
-
-      ui.logMessage(step.agentId, `${step.agentName} has completed their work.`);
-      ui.logMessage(step.agentId, '\n' + '═'.repeat(80) + '\n');
     } catch (error) {
       // Check if this was a user-requested skip (abort)
       if (error instanceof Error && error.name === 'AbortError') {
