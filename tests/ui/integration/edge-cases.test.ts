@@ -178,13 +178,13 @@ describe('Edge Cases and Error Handling', () => {
       manager.updateAgentStatus(agent3, 'running');
 
       manager.updateAgentStatus(agent1, 'completed');
-      manager.updateAgentStatus(agent2, 'failed');
+      manager.updateAgentStatus(agent2, 'retrying');
       manager.updateAgentStatus(agent3, 'completed');
 
       const state = manager.getState();
 
       expect(state.agents[0].status).toBe('completed');
-      expect(state.agents[1].status).toBe('failed');
+      expect(state.agents[1].status).toBe('retrying');
       expect(state.agents[2].status).toBe('completed');
       expect(state.uniqueCompleted).toBe(2); // Only 2 completed successfully
     });

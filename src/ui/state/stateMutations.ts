@@ -46,7 +46,7 @@ export function updateAgentStatusInList(
       ? {
           ...agent,
           status,
-          endTime: (status === 'completed' || status === 'failed')
+          endTime: (status === 'completed')
             ? Date.now()
             : agent.endTime,
         }

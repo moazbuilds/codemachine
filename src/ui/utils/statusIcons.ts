@@ -11,12 +11,8 @@ export function getStatusIcon(status: AgentStatus): string {
       return '⠋';  // Spinner (will animate in Ink)
     case 'completed':
       return '✓';  // Checkmark
-    case 'failed':
-      return '✗';  // X mark
     case 'skipped':
       return '●';  // Filled circle
-    case 'paused':
-      return '⏸';  // Pause symbol
     case 'retrying':
       return '⟳';  // Retry symbol
     default:
@@ -31,12 +27,8 @@ export function getStatusColor(status: AgentStatus): string {
   switch (status) {
     case 'completed':
       return 'green';
-    case 'failed':
-      return 'red';
     case 'running':
       return 'blue';
-    case 'paused':
-      return 'yellow';
     default:
       return 'white';
   }

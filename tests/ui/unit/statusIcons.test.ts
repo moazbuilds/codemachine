@@ -15,16 +15,8 @@ describe('StatusIcons', () => {
       expect(getStatusIcon('completed')).toBe('✓');
     });
 
-    it('should return correct icon for failed', () => {
-      expect(getStatusIcon('failed')).toBe('✗');
-    });
-
     it('should return correct icon for skipped', () => {
       expect(getStatusIcon('skipped')).toBe('●');
-    });
-
-    it('should return correct icon for paused', () => {
-      expect(getStatusIcon('paused')).toBe('⏸');
     });
 
     it('should return correct icon for retrying', () => {
@@ -37,16 +29,8 @@ describe('StatusIcons', () => {
       expect(getStatusColor('completed')).toBe('green');
     });
 
-    it('should return red for failed', () => {
-      expect(getStatusColor('failed')).toBe('red');
-    });
-
     it('should return blue for running', () => {
       expect(getStatusColor('running')).toBe('blue');
-    });
-
-    it('should return yellow for paused', () => {
-      expect(getStatusColor('paused')).toBe('yellow');
     });
 
     it('should return white for other statuses', () => {

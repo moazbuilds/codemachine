@@ -17,7 +17,6 @@ export interface WorkflowDashboardProps {
 }
 
 export type UIAction =
-  | { type: 'PAUSE' }
   | { type: 'SKIP' }
   | { type: 'QUIT' }
   | { type: 'TOGGLE_EXPAND'; agentId: string }
@@ -50,8 +49,6 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
   useInput((input, key) => {
     if (input === 'q') {
       onAction({ type: 'QUIT' });
-    } else if (input === 'p') {
-      onAction({ type: 'PAUSE' });
     } else if (input === 's') {
       onAction({ type: 'SKIP' });
     } else if (input === 't') {
@@ -163,7 +160,7 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
         }}
       />
 
-      <StatusFooter currentView="workflow" paused={state.paused} />
+      <StatusFooter currentView="workflow" />
     </Box>
   );
 };

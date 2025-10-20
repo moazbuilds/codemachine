@@ -35,7 +35,6 @@ export class WorkflowUIState {
       showTelemetryView: false,
       selectedAgentId: null,
       selectedSubAgentId: null,
-      paused: false,
     };
   }
 
@@ -144,15 +143,6 @@ export class WorkflowUIState {
     this.state = {
       ...this.state,
       autoScroll: !this.state.autoScroll,
-    };
-
-    this.notifyListeners();
-  }
-
-  setPaused(paused: boolean): void {
-    this.state = {
-      ...this.state,
-      paused,
     };
 
     this.notifyListeners();

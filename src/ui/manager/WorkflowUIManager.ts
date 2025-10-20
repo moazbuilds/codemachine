@@ -281,12 +281,6 @@ export class WorkflowUIManager {
         process.exit(0);
         break;
 
-      case 'PAUSE':
-        this.state.setPaused(!this.state.getState().paused);
-        // Emit pause event (workflow will handle)
-        (process as NodeJS.EventEmitter).emit('workflow:pause');
-        break;
-
       case 'SKIP':
         // Emit skip event (workflow will handle)
         (process as NodeJS.EventEmitter).emit('workflow:skip');

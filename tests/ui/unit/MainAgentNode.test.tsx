@@ -74,9 +74,9 @@ describe('MainAgentNode', () => {
     expect(lastFrame()).toContain('01:05');
   });
 
-  it('should display failed agent with error icon', () => {
+  it('should display retrying agent with error icon', () => {
     const agent = createAgent({
-      status: 'failed',
+      status: 'retrying',
       error: 'API timeout',
     });
     const { lastFrame } = render(

@@ -100,10 +100,10 @@ describe('TriggeredAgentList', () => {
     expect(lastFrame()).toContain('00:45');
   });
 
-  it('should show error message for failed agents', () => {
+  it('should show error message for retrying agents', () => {
     const agents = [
       createTriggeredAgent({
-        status: 'failed',
+        status: 'retrying',
         error: 'Trigger condition not met',
       }),
     ];

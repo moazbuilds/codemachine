@@ -95,11 +95,7 @@ export async function executeFallbackStep(
       ui.logMessage(fallbackAgentId, '═'.repeat(80));
     }
   } catch (error) {
-    // Update UI status on failure
-    if (ui) {
-      ui.updateAgentStatus(fallbackAgentId, 'failed');
-    }
-
+    // Don't update status to failed - let it stay as running/retrying
     console.error(
       formatAgentLog(
         fallbackAgentId,

@@ -88,11 +88,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         : 'claude'; // fallback to claude for unknown engines
 
       // Determine initial status based on completion tracking
-      let initialStatus: 'pending' | 'completed' | 'failed' = 'pending';
+      let initialStatus: 'pending' | 'completed' = 'pending';
       if (completedSteps.includes(stepIndex)) {
         initialStatus = 'completed';
-      } else if (notCompletedSteps.includes(stepIndex)) {
-        initialStatus = 'failed';
       }
 
       ui.addMainAgent(step.agentName ?? step.agentId, engineName, stepIndex, initialStatus);
@@ -227,7 +225,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
             `Fallback failed. Skipping original step retry.`,
           ),
         );
-        ui.updateAgentStatus(step.agentId, 'failed');
+        // Don't update status to failed - just let it stay as running or retrying
         throw error;
       }
     }
@@ -303,9 +301,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       ui.logMessage(step.agentId, `${step.agentName} has completed their work.`);
       ui.logMessage(step.agentId, '\n' + '═'.repeat(80) + '\n');
     } catch (error) {
-      // Update UI status to failed
-      ui.updateAgentStatus(step.agentId, 'failed');
-
+      // Don't update status to failed - let it stay as running/retrying
       console.error(
         formatAgentLog(
           step.agentId,
