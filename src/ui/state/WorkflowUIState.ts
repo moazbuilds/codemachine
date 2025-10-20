@@ -14,16 +14,12 @@ export class WorkflowUIState {
   private listeners: Set<() => void> = new Set();
   private completedAgents: Set<string> = new Set();
 
-  constructor(workflowName: string, totalSteps: number) {
+  constructor(workflowName: string) {
     this.state = {
       workflowName,
       version: '0.3.1',
       packageName: 'codemachine',
       startTime: Date.now(),
-      currentStep: 0,
-      totalSteps,
-      uniqueCompleted: 0,
-      totalExecuted: 0,
       agents: [],
       subAgents: new Map(),
       triggeredAgents: [],
@@ -38,16 +34,13 @@ export class WorkflowUIState {
     };
   }
 
-  addMainAgent(name: string, engine: 'claude' | 'codex' | 'cursor', index: number, initialStatus?: AgentStatus): string {
-    const { id, agent } = createNewAgent(name, engine);
+  addMainAgent(name: string, engine: 'claude' | 'codex' | 'cursor', index: number, initialStatus?: AgentStatus, customAgentId?: string): string {
+    const { id, agent } = createNewAgent(name, engine, customAgentId);
 
     // If initial status is provided, override the default 'pending' status
     if (initialStatus) {
       agent.status = initialStatus;
     }
-
-    // Only count as executed if not setting a completed status on initialization
-    const incrementExecuted = initialStatus !== 'completed' ? 1 : 0;
 
     // If initializing as completed, mark it in completedAgents
     if (initialStatus === 'completed') {
@@ -57,9 +50,6 @@ export class WorkflowUIState {
     this.state = {
       ...this.state,
       agents: [...this.state.agents, agent],
-      totalExecuted: this.state.totalExecuted + incrementExecuted,
-      currentStep: index + 1,
-      uniqueCompleted: initialStatus === 'completed' ? this.state.uniqueCompleted + 1 : this.state.uniqueCompleted,
     };
 
     this.notifyListeners();
@@ -72,12 +62,19 @@ export class WorkflowUIState {
       agents: updateAgentStatusInList(this.state.agents, agentId, status),
     };
 
-    if (status === 'completed' && !this.completedAgents.has(agentId)) {
-      this.completedAgents.add(agentId);
+    // Auto-select agent when it starts running
+    if (status === 'running') {
       this.state = {
         ...this.state,
-        uniqueCompleted: this.state.uniqueCompleted + 1,
+        selectedAgentId: agentId,
+        outputBuffer: [], // Clear output buffer for new agent
+        scrollPosition: 0,
       };
+    }
+
+    // Track completed agents
+    if (status === 'completed') {
+      this.completedAgents.add(agentId);
     }
 
     this.notifyListeners();

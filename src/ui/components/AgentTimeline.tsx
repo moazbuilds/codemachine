@@ -5,6 +5,7 @@ import { MainAgentNode } from './MainAgentNode';
 import { SubAgentSummary } from './SubAgentSummary';
 import { SubAgentList } from './SubAgentList';
 import { TriggeredAgentList } from './TriggeredAgentList';
+import { isAgentSelected } from '../utils/agentSelection';
 
 export interface AgentTimelineProps {
   mainAgents: AgentState[];
@@ -44,7 +45,7 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
     const nodes: React.ReactNode[] = [];
 
     mainAgents.forEach((agent, index) => {
-      const isSelected = agent.id === selectedAgentId;
+      const isSelected = isAgentSelected(agent.id, selectedAgentId, selectedSubAgentId);
       const isExpanded = expandedNodes.has(agent.id);
       const agentSubAgents = subAgents.get(agent.id) || [];
       const hasSubAgents = agentSubAgents.length > 0;

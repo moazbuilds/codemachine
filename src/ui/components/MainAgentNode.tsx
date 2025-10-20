@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Text } from 'ink';
+import Spinner from 'ink-spinner';
 import type { AgentState } from '../state/types';
 import { getStatusIcon, getStatusColor } from '../utils/statusIcons';
 import { formatDuration, formatTokens } from '../utils/formatters';
@@ -19,7 +20,6 @@ export const MainAgentNode: React.FC<MainAgentNodeProps> = ({
   index: _index,
   isSelected,
 }) => {
-  const icon = getStatusIcon(agent.status);
   const color = getStatusColor(agent.status);
   const prefix = isSelected ? '> ' : '  ';
 
@@ -51,7 +51,13 @@ export const MainAgentNode: React.FC<MainAgentNodeProps> = ({
     <Box paddingX={1}>
       <Text>
         {prefix}
-        <Text color={color}>{icon}</Text>
+        {agent.status === 'running' ? (
+          <Text color={color}>
+            <Spinner type="dots" />
+          </Text>
+        ) : (
+          <Text color={color}>{getStatusIcon(agent.status)}</Text>
+        )}
         {' '}
         <Text bold>{agent.name}</Text>
         {' '}

@@ -4,43 +4,36 @@ import { describe, it, expect } from 'vitest';
 import { BrandingHeader } from '../../../src/ui/components/BrandingHeader';
 
 describe('BrandingHeader', () => {
-  it('should render workflow name and runtime', () => {
+  it('should display ASCII art branding', () => {
     const { lastFrame } = render(
       <BrandingHeader
-        workflowName="Test Workflow"
-        runtime="00:12:45"
         version="0.3.1"
-        packageName="codemachine"
+        currentDir="/home/user/projects/codemachine"
       />
     );
 
-    expect(lastFrame()).toContain('Test Workflow');
-    expect(lastFrame()).toContain('00:12:45');
+    expect(lastFrame()).toContain('CodeMachine');
   });
 
   it('should display version', () => {
     const { lastFrame } = render(
       <BrandingHeader
-        workflowName="Test Workflow"
-        runtime="00:00:05"
         version="0.3.1"
-        packageName="codemachine"
+        currentDir="/home/user/projects/codemachine"
       />
     );
 
-    expect(lastFrame()).toContain('0.3.1');
+    expect(lastFrame()).toContain('v0.3.1');
   });
 
-  it('should show CodeMachine branding', () => {
+  it('should display current directory', () => {
     const { lastFrame } = render(
       <BrandingHeader
-        workflowName="Test Workflow"
-        runtime="00:00:05"
         version="0.3.1"
-        packageName="codemachine"
+        currentDir="/home/user/projects/codemachine"
       />
     );
 
-    expect(lastFrame()).toContain('CodeMachine');
+    expect(lastFrame()).toContain('/home/user/projects/codemachine');
   });
 });

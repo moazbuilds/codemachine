@@ -25,8 +25,8 @@ export class WorkflowUIManager {
   private originalConsoleError?: typeof console.error;
   private consoleHijacked = false;
 
-  constructor(workflowName: string, totalSteps: number) {
-    this.state = new WorkflowUIState(workflowName, totalSteps);
+  constructor(workflowName: string) {
+    this.state = new WorkflowUIState(workflowName);
     this.outputBuffer = new CircularBuffer(1000);
     this.batchUpdater = new BatchUpdater(50); // 50ms batching
   }
@@ -141,8 +141,8 @@ export class WorkflowUIManager {
   /**
    * Add a main workflow agent
    */
-  addMainAgent(name: string, engine: 'claude' | 'codex' | 'cursor', index: number, initialStatus?: AgentStatus): string {
-    const agentId = this.state.addMainAgent(name, engine, index, initialStatus);
+  addMainAgent(name: string, engine: 'claude' | 'codex' | 'cursor', index: number, initialStatus?: AgentStatus, customAgentId?: string): string {
+    const agentId = this.state.addMainAgent(name, engine, index, initialStatus, customAgentId);
 
     // Auto-select first non-completed agent (or first agent if all are completed)
     const currentState = this.state.getState();

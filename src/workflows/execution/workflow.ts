@@ -74,7 +74,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
   const workflowStartTime = Date.now();
 
   // Initialize Workflow UI Manager
-  const ui = new WorkflowUIManager(template.name, template.steps.length);
+  const ui = new WorkflowUIManager(template.name);
 
   // Pre-populate timeline with all workflow steps BEFORE starting UI
   // This prevents duplicate renders at startup
@@ -93,7 +93,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         initialStatus = 'completed';
       }
 
-      ui.addMainAgent(step.agentName ?? step.agentId, engineName, stepIndex, initialStatus);
+      ui.addMainAgent(step.agentName ?? step.agentId, engineName, stepIndex, initialStatus, step.agentId);
     }
   });
 
@@ -256,6 +256,19 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         }
       }
 
+      // Remove from notCompletedSteps immediately after successful execution
+      // This must happen BEFORE loop logic to ensure cleanup even when loops trigger
+      await removeFromNotCompleted(cmRoot, index);
+
+      // Mark step as completed if executeOnce is true
+      if (step.executeOnce) {
+        await markStepCompleted(cmRoot, index);
+      }
+
+      // Update UI status to completed
+      // This must happen BEFORE loop logic to ensure UI updates even when loops trigger
+      ui.updateAgentStatus(step.agentId, 'completed');
+
       const loopResult = await handleLoopLogic(step, index, output, loopCounters, cwd, ui);
 
       if (loopResult.decision?.shouldRepeat) {
@@ -286,17 +299,6 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
           ui.setLoopState(null);
         }
       }
-
-      // Remove from notCompletedSteps (step finished successfully)
-      await removeFromNotCompleted(cmRoot, index);
-
-      // Mark step as completed if executeOnce is true
-      if (step.executeOnce) {
-        await markStepCompleted(cmRoot, index);
-      }
-
-      // Update UI status to completed
-      ui.updateAgentStatus(step.agentId, 'completed');
 
       ui.logMessage(step.agentId, `${step.agentName} has completed their work.`);
       ui.logMessage(step.agentId, '\n' + '═'.repeat(80) + '\n');

@@ -83,10 +83,10 @@ describe('WorkflowUIManager Integration Tests', () => {
       expect(state.selectedAgentId).toBe(agentId);
     });
 
-    it('should handle pause state', () => {
-      manager.addMainAgent('test-agent', 'claude', 0);
+    it('should track agent selection', () => {
+      const agentId = manager.addMainAgent('test-agent', 'claude', 0);
 
-      expect(manager.getState().paused).toBe(false);
+      expect(manager.getState().selectedAgentId).toBe(agentId);
     });
 
     it('should track total executions', () => {

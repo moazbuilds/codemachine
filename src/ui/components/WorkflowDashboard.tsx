@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Box, useInput } from 'ink';
 import type { WorkflowState } from '../state/types';
 import { BrandingHeader } from './BrandingHeader';
-import { ProgressLine } from './ProgressLine';
 import { LoopIndicator } from './LoopIndicator';
 import { AgentTimeline } from './AgentTimeline';
 import { OutputWindow } from './OutputWindow';
@@ -10,6 +9,7 @@ import { TelemetryBar } from './TelemetryBar';
 import { TelemetryDetailView } from './TelemetryDetailView';
 import { StatusFooter } from './StatusFooter';
 import { formatRuntime } from '../utils/formatters';
+import { getOutputAgent } from '../utils/agentSelection';
 
 export interface WorkflowDashboardProps {
   state: WorkflowState;
@@ -63,12 +63,8 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
     }
   });
 
-  // Get current agent for output window
-  const currentAgent = state.selectedSubAgentId
-    ? Array.from(state.subAgents.values())
-        .flat()
-        .find((sa) => sa.id === state.selectedSubAgentId) || null
-    : state.agents.find((a) => a.id === state.selectedAgentId) || null;
+  // Get current agent for output window using centralized logic
+  const currentAgent = getOutputAgent(state);
 
   // Calculate cumulative telemetry
   const cumulativeStats = {
@@ -96,18 +92,8 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
   return (
     <Box flexDirection="column" height="100%">
       <BrandingHeader
-        workflowName={state.workflowName}
-        runtime={runtime}
         version={state.version}
-        packageName={state.packageName}
-      />
-
-      <ProgressLine
-        currentStep={state.currentStep}
-        totalSteps={state.totalSteps}
-        uniqueCompleted={state.uniqueCompleted}
-        totalExecuted={state.totalExecuted}
-        loopIteration={state.loopState?.iteration}
+        currentDir={process.cwd()}
       />
 
       {state.loopState && <LoopIndicator loopState={state.loopState} />}
@@ -140,22 +126,11 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
       </Box>
 
       <TelemetryBar
-        current={
-          currentAgent
-            ? {
-                tokensIn: currentAgent.telemetry.tokensIn,
-                tokensOut: currentAgent.telemetry.tokensOut,
-                cost: currentAgent.telemetry.cost,
-                cached: currentAgent.telemetry.cached,
-                engine: currentAgent.engine,
-                isSubAgent: 'parentId' in currentAgent,
-              }
-            : undefined
-        }
-        cumulative={{
+        workflowName={state.workflowName}
+        runtime={runtime}
+        total={{
           tokensIn: cumulativeStats.totalTokensIn,
           tokensOut: cumulativeStats.totalTokensOut,
-          cost: cumulativeStats.totalCost,
           cached: cumulativeStats.totalCached,
         }}
       />

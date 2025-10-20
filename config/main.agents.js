@@ -71,6 +71,26 @@ module.exports = [
     promptPath: path.join(promptsDir, 'codemachine', 'fallback-agents', 'task-breakdown-fallback.md'),
   },
 
+  // Test agents
+  {
+    id: 'test-agent-1',
+    name: 'Test Agent 1',
+    description: 'First test agent for workflow testing',
+    promptPath: path.join(promptsDir, 'test-workflows', 'test-agent-1.md'),
+  },
+  {
+    id: 'test-agent-2',
+    name: 'Test Agent 2',
+    description: 'Second test agent for workflow testing',
+    promptPath: path.join(promptsDir, 'test-workflows', 'test-agent-2.md'),
+  },
+  {
+    id: 'test-agent-3',
+    name: 'Test Agent 3',
+    description: 'Third test agent for workflow testing',
+    promptPath: path.join(promptsDir, 'test-workflows', 'test-agent-3.md'),
+  },
+
   // Folder configurations - applies settings to all agents in the folder
   //{
   //  type: 'folder',

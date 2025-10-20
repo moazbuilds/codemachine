@@ -70,10 +70,6 @@ export interface WorkflowState {
   version: string;
   packageName: string;
   startTime: number;
-  currentStep: number;
-  totalSteps: number;
-  uniqueCompleted: number;
-  totalExecuted: number;
 
   agents: AgentState[];
   subAgents: Map<string, SubAgentState[]>;

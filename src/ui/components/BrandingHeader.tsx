@@ -1,30 +1,25 @@
 import React from 'react';
-import { Box, Text } from 'ink';
+import { Text } from 'ink';
 
 export interface BrandingHeaderProps {
-  workflowName: string;
-  runtime: string;
   version: string;
-  packageName: string;
+  currentDir: string;
 }
 
 /**
- * Display workflow header with branding, version, and runtime
+ * Display package branding with ASCII art, version and current directory
  */
 export const BrandingHeader: React.FC<BrandingHeaderProps> = ({
-  workflowName,
-  runtime,
   version,
+  currentDir,
 }) => {
   return (
-    <Box flexDirection="column" borderStyle="single" paddingX={1}>
-      <Box justifyContent="space-between">
-        <Text bold>🤖 CodeMachine v{version} • Multi-Agent Workflow Orchestration</Text>
-      </Box>
-      <Box justifyContent="space-between">
-        <Text>📝 Workflow: {workflowName}</Text>
-        <Text>Runtime: {runtime}</Text>
-      </Box>
-    </Box>
+    <Text>
+      {` _____       _     _____         _   _
+|     |___ _| |___|     |___ ___| |_|_|___ ___
+|   --| . | . | -_| | | | .'|  _|   | |   | -_| v${version}
+|_____|___|___|___|_|_|_|__,|___|_|_|_|_|_|___| ${currentDir}
+`}
+    </Text>
   );
 };

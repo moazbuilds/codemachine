@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Text } from 'ink';
+import Spinner from 'ink-spinner';
 import type { SubAgentState } from '../state/types';
 import { getStatusIcon, getStatusColor } from '../utils/statusIcons';
 import { formatDuration, formatTokens } from '../utils/formatters';
@@ -58,7 +59,6 @@ export const SubAgentList: React.FC<SubAgentListProps> = ({
       )}
 
       {visibleItems.map((agent) => {
-        const icon = getStatusIcon(agent.status);
         const color = getStatusColor(agent.status);
         const isSelected = agent.id === selectedSubAgentId;
         const prefix = isSelected ? '> ' : '  ';
@@ -81,7 +81,13 @@ export const SubAgentList: React.FC<SubAgentListProps> = ({
           <Box key={agent.id}>
             <Text>
               {prefix}
-              <Text color={color}>{icon}</Text>
+              {agent.status === 'running' ? (
+                <Text color={color}>
+                  <Spinner type="dots" />
+                </Text>
+              ) : (
+                <Text color={color}>{getStatusIcon(agent.status)}</Text>
+              )}
               {' '}
               {agent.name}
               {' '}

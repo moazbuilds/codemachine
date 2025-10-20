@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Text } from 'ink';
+import Spinner from 'ink-spinner';
 import type { TriggeredAgentState } from '../state/types';
 import { getStatusIcon, getStatusColor } from '../utils/statusIcons';
 import { formatDuration, formatTokens } from '../utils/formatters';
@@ -27,7 +28,6 @@ export const TriggeredAgentList: React.FC<TriggeredAgentListProps> = ({
     <Box flexDirection="column" paddingX={1} marginTop={1}>
       <Text bold>Triggered Agents:</Text>
       {displayAgents.map((agent) => {
-        const icon = getStatusIcon(agent.status);
         const color = getStatusColor(agent.status);
 
         // Calculate duration
@@ -47,7 +47,13 @@ export const TriggeredAgentList: React.FC<TriggeredAgentListProps> = ({
         return (
           <Box key={agent.id} paddingLeft={2}>
             <Text>
-              <Text color={color}>{icon}</Text>
+              {agent.status === 'running' ? (
+                <Text color={color}>
+                  <Spinner type="dots" />
+                </Text>
+              ) : (
+                <Text color={color}>{getStatusIcon(agent.status)}</Text>
+              )}
               {' '}
               {agent.name}
               {' '}
