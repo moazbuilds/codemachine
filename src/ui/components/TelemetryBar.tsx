@@ -21,7 +21,13 @@ export const TelemetryBar: React.FC<TelemetryBarProps> = ({ workflowName, runtim
   }`;
 
   return (
-    <Box paddingX={1} borderStyle="single" justifyContent="space-between">
+    <Box
+      paddingX={1}
+      paddingBottom={1}
+      borderStyle="round"
+      justifyContent="space-between"
+      width="100%"
+    >
       <Text>
         <Text bold>{workflowName}</Text>
         <Text dimColor> • {runtime}</Text>
