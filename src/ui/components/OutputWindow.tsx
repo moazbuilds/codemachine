@@ -1,24 +1,20 @@
 import React, { useMemo } from 'react';
 import { Box, Text, useStdout } from 'ink';
-import { ScrollBox } from '@sasaplus1/ink-scroll-box';
 import type { AgentState, SubAgentState } from '../state/types';
 
 export interface OutputWindowProps {
   currentAgent: AgentState | SubAgentState | null;
   outputLines: string[];
-  autoScroll: boolean;
   maxLines?: number;
 }
 
 /**
- * Scrollable output window showing current agent's output
+ * Output window showing current agent's output
  * Displays last N lines with syntax highlighting
- * Uses ScrollBox for proper scrolling behavior
  */
 export const OutputWindow: React.FC<OutputWindowProps> = ({
   currentAgent,
   outputLines,
-  autoScroll,
   maxLines,
 }) => {
   const { stdout } = useStdout();
@@ -40,20 +36,19 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
 
   const agentType = 'parentId' in currentAgent ? 'sub-agent' : 'main';
 
-  // Calculate scroll offset for auto-scroll
-  const scrollOffset = useMemo(() => {
-    if (autoScroll && outputLines.length > effectiveMaxLines) {
-      return outputLines.length - effectiveMaxLines;
+  const visibleLines = useMemo(() => {
+    if (outputLines.length > effectiveMaxLines) {
+      return outputLines.slice(outputLines.length - effectiveMaxLines);
     }
-    return 0;
-  }, [autoScroll, outputLines.length, effectiveMaxLines]);
+    return outputLines;
+  }, [outputLines, effectiveMaxLines]);
 
   // Prepare output lines as React nodes
   const outputNodes = useMemo(() =>
-    outputLines.map((line, index) => (
+    visibleLines.map((line, index) => (
       <OutputLine key={index} line={line} />
     )),
-    [outputLines]
+    [visibleLines]
   );
 
   return (
@@ -68,28 +63,14 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
         </Text>
       </Box>
 
-      {/* Scrollable output area */}
-      <Box paddingX={1} height={effectiveMaxLines}>
+      {/* Output area */}
+      <Box paddingX={1} height={effectiveMaxLines} flexDirection="column">
         {outputLines.length === 0 ? (
           <Text dimColor>Waiting for output...</Text>
         ) : (
-          <ScrollBox offset={scrollOffset} initialHeight={effectiveMaxLines}>
-            {outputNodes}
-          </ScrollBox>
+          <Box flexDirection="column">{outputNodes}</Box>
         )}
       </Box>
-
-      {/* Footer - Show scroll info */}
-      {outputLines.length > effectiveMaxLines && (
-        <Box paddingX={1} paddingTop={1}>
-          <Text dimColor>
-            {autoScroll
-              ? `Showing last ${effectiveMaxLines} of ${outputLines.length} lines (auto-scroll)`
-              : `Showing first ${effectiveMaxLines} of ${outputLines.length} lines`
-            }
-          </Text>
-        </Box>
-      )}
     </Box>
   );
 };

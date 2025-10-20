@@ -6,6 +6,7 @@ import { processOutputChunk } from '../utils/outputProcessor';
 import { CircularBuffer, BatchUpdater } from '../utils/performance';
 import type { AgentStatus, LoopState, SubAgentState, TriggeredAgentState } from '../state/types';
 import type { ParsedTelemetry } from '../../infra/engines/core/types';
+import { formatAgentLog } from '../../shared/logging/agent-loggers.js';
 
 /**
  * Orchestrates Ink lifecycle, manages state, and handles UI events
@@ -140,11 +141,12 @@ export class WorkflowUIManager {
   /**
    * Add a main workflow agent
    */
-  addMainAgent(name: string, engine: 'claude' | 'codex' | 'cursor', index: number): string {
-    const agentId = this.state.addMainAgent(name, engine, index);
+  addMainAgent(name: string, engine: 'claude' | 'codex' | 'cursor', index: number, initialStatus?: AgentStatus): string {
+    const agentId = this.state.addMainAgent(name, engine, index, initialStatus);
 
-    // Auto-select first agent
-    if (index === 0) {
+    // Auto-select first non-completed agent (or first agent if all are completed)
+    const currentState = this.state.getState();
+    if (currentState.selectedAgentId === null && initialStatus !== 'completed') {
       this.state.selectAgent(agentId);
     }
 
@@ -262,7 +264,6 @@ export class WorkflowUIManager {
   logMessage(agentId: string, message: string): void {
     if (this.fallbackMode) {
       // In fallback mode, use the colored formatAgentLog
-      const { formatAgentLog } = require('../../shared/logging/agent-loggers.js');
       console.log(formatAgentLog(agentId, message));
     } else {
       // In UI mode, route through output buffer to display in UI

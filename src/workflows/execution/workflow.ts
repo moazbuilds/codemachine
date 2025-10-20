@@ -78,6 +78,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
   // Pre-populate timeline with all workflow steps BEFORE starting UI
   // This prevents duplicate renders at startup
+  // Set initial status based on completion tracking
   template.steps.forEach((step, stepIndex) => {
     if (step.type === 'module') {
       const defaultEngine = registry.getDefault();
@@ -85,7 +86,16 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       const engineName = (engineType === 'claude' || engineType === 'codex' || engineType === 'cursor')
         ? engineType
         : 'claude'; // fallback to claude for unknown engines
-      ui.addMainAgent(step.agentName ?? step.agentId, engineName, stepIndex);
+
+      // Determine initial status based on completion tracking
+      let initialStatus: 'pending' | 'completed' | 'failed' = 'pending';
+      if (completedSteps.includes(stepIndex)) {
+        initialStatus = 'completed';
+      } else if (notCompletedSteps.includes(stepIndex)) {
+        initialStatus = 'failed';
+      }
+
+      ui.addMainAgent(step.agentName ?? step.agentId, engineName, stepIndex, initialStatus);
     }
   });
 
