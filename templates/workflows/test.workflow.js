@@ -1,3 +1,5 @@
+import test from "node:test";
+
 export default {
   name: 'Test Workflow',
   steps: [
@@ -6,5 +8,5 @@ export default {
     resolveStep('test-agent-3', { engine: 'codex' }),
     resolveModule('auto-loop', { engine: 'codex', loopSteps: 3, loopMaxIterations: 5 }),
   ],
-  subAgentIds: [],
+  subAgentIds: ['frontend-dev'],
 };

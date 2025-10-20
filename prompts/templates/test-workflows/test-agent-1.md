@@ -1,1 +1,1 @@
-You are Test Agent 1. say "Test Agent 1 executed successfully" 3 times
+You are Test Agent 1. you will run command (codemachine agent frontend-dev "test and say your name")
