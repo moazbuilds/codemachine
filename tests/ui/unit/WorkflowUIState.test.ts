@@ -41,6 +41,38 @@ describe('WorkflowUIState', () => {
 
       expect(id1).not.toBe(id2);
     });
+
+    it('should initialize agent with provided status', () => {
+      state.addMainAgent('test-agent', 'claude', 0, 'completed');
+
+      const currentState = state.getState();
+      expect(currentState.agents[0].status).toBe('completed');
+      expect(currentState.uniqueCompleted).toBe(1);
+    });
+
+    it('should not increment totalExecuted when initializing as completed', () => {
+      state.addMainAgent('test-agent-1', 'claude', 0, 'completed');
+      state.addMainAgent('test-agent-2', 'codex', 1, 'pending');
+
+      const currentState = state.getState();
+      expect(currentState.totalExecuted).toBe(1); // Only pending agent counts
+      expect(currentState.uniqueCompleted).toBe(1);
+    });
+
+    it('should default to pending status when no initial status provided', () => {
+      state.addMainAgent('test-agent', 'claude', 0);
+
+      const currentState = state.getState();
+      expect(currentState.agents[0].status).toBe('pending');
+    });
+
+    it('should support failed initial status', () => {
+      state.addMainAgent('test-agent', 'claude', 0, 'failed');
+
+      const currentState = state.getState();
+      expect(currentState.agents[0].status).toBe('failed');
+      expect(currentState.totalExecuted).toBe(1);
+    });
   });
 
   describe('updateAgentStatus', () => {

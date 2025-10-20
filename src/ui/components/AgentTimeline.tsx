@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { Box, Text, useStdout } from 'ink';
-import { ScrollBox } from '@sasaplus1/ink-scroll-box';
 import type { AgentState, SubAgentState, TriggeredAgentState } from '../state/types';
 import { MainAgentNode } from './MainAgentNode';
 import { SubAgentSummary } from './SubAgentSummary';
@@ -22,7 +21,6 @@ export interface AgentTimelineProps {
 /**
  * Container for all agent displays (main, sub, triggered)
  * Displays main agents in a timeline with expandable sub-agents
- * Uses ScrollBox for proper scrolling behavior
  */
 export const AgentTimeline: React.FC<AgentTimelineProps> = ({
   mainAgents,
@@ -107,11 +105,9 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
         <Text bold underline>Main Workflow Steps</Text>
       </Box>
 
-      {/* Scrollable agent list */}
-      <Box height={availableHeight}>
-        <ScrollBox offset={0} initialHeight={availableHeight}>
-          {agentNodes}
-        </ScrollBox>
+      {/* Agent list */}
+      <Box height={availableHeight} flexDirection="column">
+        {agentNodes}
       </Box>
     </Box>
   );

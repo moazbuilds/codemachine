@@ -39,14 +39,28 @@ export class WorkflowUIState {
     };
   }
 
-  addMainAgent(name: string, engine: 'claude' | 'codex' | 'cursor', index: number): string {
+  addMainAgent(name: string, engine: 'claude' | 'codex' | 'cursor', index: number, initialStatus?: AgentStatus): string {
     const { id, agent } = createNewAgent(name, engine);
+
+    // If initial status is provided, override the default 'pending' status
+    if (initialStatus) {
+      agent.status = initialStatus;
+    }
+
+    // Only count as executed if not setting a completed status on initialization
+    const incrementExecuted = initialStatus !== 'completed' ? 1 : 0;
+
+    // If initializing as completed, mark it in completedAgents
+    if (initialStatus === 'completed') {
+      this.completedAgents.add(id);
+    }
 
     this.state = {
       ...this.state,
       agents: [...this.state.agents, agent],
-      totalExecuted: this.state.totalExecuted + 1,
+      totalExecuted: this.state.totalExecuted + incrementExecuted,
       currentStep: index + 1,
+      uniqueCompleted: initialStatus === 'completed' ? this.state.uniqueCompleted + 1 : this.state.uniqueCompleted,
     };
 
     this.notifyListeners();
