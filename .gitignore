@@ -13,7 +13,6 @@ package-lock.json
 .env.example
 .npmrc
 
-# Ignore folders starting with .tmp
 .tmp*
 .vscode
 .codemachine/logs
