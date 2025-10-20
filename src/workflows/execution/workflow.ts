@@ -230,11 +230,20 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       }
     }
 
+    // Set up skip listener and abort controller for this step
+    const abortController = new AbortController();
+    const skipListener = () => {
+      ui.logMessage(step.agentId, '⏭️  Skip requested by user...');
+      abortController.abort();
+    };
+    process.once('workflow:skip', skipListener);
+
     try {
       const output = await executeStep(step, cwd, {
         logger: (chunk) => ui.handleOutputChunk(step.agentId, chunk),
         stderrLogger: (chunk) => ui.handleOutputChunk(step.agentId, chunk),
         ui,
+        abortSignal: abortController.signal,
       });
 
       // Check for trigger behavior first
@@ -250,9 +259,15 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
             stderrLogger: (chunk) => ui.handleOutputChunk(triggeredAgentId, chunk),
             sourceAgentId: step.agentId,
             ui,
+            abortSignal: abortController.signal,
           });
-        } catch (_triggerError) {
-          // Continue with workflow even if triggered agent fails
+        } catch (triggerError) {
+          // Check if this was a user-requested skip (abort)
+          if (triggerError instanceof Error && triggerError.name === 'AbortError') {
+            ui.updateAgentStatus(triggeredAgentId, 'skipped');
+            ui.logMessage(triggeredAgentId, `Triggered agent was skipped by user.`);
+          }
+          // Continue with workflow even if triggered agent fails or is skipped
         }
       }
 
@@ -303,14 +318,25 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       ui.logMessage(step.agentId, `${step.agentName} has completed their work.`);
       ui.logMessage(step.agentId, '\n' + '═'.repeat(80) + '\n');
     } catch (error) {
-      // Don't update status to failed - let it stay as running/retrying
-      console.error(
-        formatAgentLog(
-          step.agentId,
-          `${step.agentName} failed: ${error instanceof Error ? error.message : String(error)}`,
-        ),
-      );
-      throw error;
+      // Check if this was a user-requested skip (abort)
+      if (error instanceof Error && error.name === 'AbortError') {
+        ui.updateAgentStatus(step.agentId, 'skipped');
+        ui.logMessage(step.agentId, `${step.agentName} was skipped by user.`);
+        ui.logMessage(step.agentId, '\n' + '═'.repeat(80) + '\n');
+        // Continue to next step - don't throw
+      } else {
+        // Don't update status to failed - let it stay as running/retrying
+        console.error(
+          formatAgentLog(
+            step.agentId,
+            `${step.agentName} failed: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+        );
+        throw error;
+      }
+    } finally {
+      // Always clean up the skip listener
+      process.removeListener('workflow:skip', skipListener);
     }
   }
   } finally {

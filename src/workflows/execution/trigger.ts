@@ -17,6 +17,7 @@ export interface TriggerExecutionOptions {
   stderrLogger: (chunk: string) => void;
   sourceAgentId: string; // The agent that triggered this execution
   ui?: WorkflowUIManager;
+  abortSignal?: AbortSignal;
 }
 
 /**
@@ -24,7 +25,7 @@ export interface TriggerExecutionOptions {
  * This bypasses the workflow and allows triggering any agent, even outside the workflow
  */
 export async function executeTriggerAgent(options: TriggerExecutionOptions): Promise<void> {
-  const { triggerAgentId, cwd, engineType, logger, stderrLogger, sourceAgentId, ui } = options;
+  const { triggerAgentId, cwd, engineType, logger, stderrLogger, sourceAgentId, ui, abortSignal } = options;
 
   try {
     // Load agent config and template from config/main.agents.js
@@ -85,6 +86,7 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
       onTelemetry: (telemetry) => {
         ui?.updateAgentTelemetry(triggerAgentId, telemetry);
       },
+      abortSignal,
     });
 
     // Fallback: parse telemetry from final output if not captured via stream
