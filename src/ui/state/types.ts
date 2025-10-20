@@ -33,6 +33,7 @@ export interface AgentState {
   error?: string;
   toolCount: number;
   thinkingCount: number;
+  loopRound?: number;  // Current loop iteration number (e.g., 1, 2, 3...)
 }
 
 /**

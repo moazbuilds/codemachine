@@ -228,13 +228,22 @@ export class WorkflowUIManager {
    * Set loop state
    */
   setLoopState(loopState: LoopState | null): void {
-    // Loop state will be added to WorkflowUIState in next iteration
-    // For now, just log
+    // Update state with loop information
+    this.state.setLoopState(loopState);
+
+    // Log in fallback mode
     if (this.fallbackMode && loopState) {
       console.log(
         `Loop: ${loopState.sourceAgent} → Back ${loopState.backSteps} steps • Iteration ${loopState.iteration}/${loopState.maxIterations}`
       );
     }
+  }
+
+  /**
+   * Clear loop round indicator for an agent
+   */
+  clearLoopRound(agentId: string): void {
+    this.state.clearLoopRound(agentId);
   }
 
   /**

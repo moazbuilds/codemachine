@@ -1,4 +1,4 @@
-import type { WorkflowState, AgentStatus, AgentTelemetry } from './types';
+import type { WorkflowState, AgentStatus, AgentTelemetry, LoopState } from './types';
 import {
   createNewAgent,
   updateAgentStatusInList,
@@ -164,6 +164,40 @@ export class WorkflowUIState {
       agents: this.state.agents.map((agent) =>
         agent.id === agentId
           ? { ...agent, thinkingCount: agent.thinkingCount + 1 }
+          : agent
+      ),
+    };
+
+    this.notifyListeners();
+  }
+
+  setLoopState(loopState: LoopState | null): void {
+    this.state = {
+      ...this.state,
+      loopState,
+    };
+
+    // Update the source agent's loop round
+    if (loopState && loopState.active) {
+      this.state = {
+        ...this.state,
+        agents: this.state.agents.map((agent) =>
+          agent.id === loopState.sourceAgent
+            ? { ...agent, loopRound: loopState.iteration }
+            : agent
+        ),
+      };
+    }
+
+    this.notifyListeners();
+  }
+
+  clearLoopRound(agentId: string): void {
+    this.state = {
+      ...this.state,
+      agents: this.state.agents.map((agent) =>
+        agent.id === agentId
+          ? { ...agent, loopRound: undefined }
           : agent
       ),
     };
