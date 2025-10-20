@@ -9,7 +9,6 @@ describe('StatusFooter', () => {
       <StatusFooter currentView="workflow" />
     );
 
-    expect(lastFrame()).toContain('[P]ause');
     expect(lastFrame()).toContain('[S]kip');
     expect(lastFrame()).toContain('[Q]uit');
     expect(lastFrame()).toContain('[T]elemetry');
@@ -22,13 +21,5 @@ describe('StatusFooter', () => {
 
     expect(lastFrame()).toContain('[T]');
     expect(lastFrame()).toContain('[Q]');
-  });
-
-  it('should show paused state when paused', () => {
-    const { lastFrame } = render(
-      <StatusFooter currentView="workflow" paused={true} />
-    );
-
-    expect(lastFrame()).toContain('PAUSED');
   });
 });

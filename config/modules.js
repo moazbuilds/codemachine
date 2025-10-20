@@ -24,4 +24,14 @@ module.exports = [
       triggerAgentId: 'git-commit', // Default agent to trigger, can be overridden by behavior.json
     },
   },
+  {
+    id: 'auto-loop',
+    name: 'Auto Loop',
+    description: 'Simple auto loop module for testing - always signals to continue looping.',
+    promptPath: path.join(promptsDir, 'templates', 'test-workflows', 'auto-loop.md'),
+    behavior: {
+      type: 'loop',
+      action: 'stepBack',
+    },
+  },
 ];

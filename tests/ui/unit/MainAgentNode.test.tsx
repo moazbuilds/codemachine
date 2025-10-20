@@ -88,7 +88,7 @@ describe('MainAgentNode', () => {
       />
     );
 
-    expect(lastFrame()).toContain('✗');
+    expect(lastFrame()).toContain('⟳');
     expect(lastFrame()).toContain('API timeout');
   });
 

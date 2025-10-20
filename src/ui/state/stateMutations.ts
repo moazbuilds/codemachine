@@ -10,9 +10,10 @@ import type {
 
 export function createNewAgent(
   name: string,
-  engine: 'claude' | 'codex' | 'cursor'
+  engine: 'claude' | 'codex' | 'cursor',
+  customAgentId?: string
 ): { id: string; agent: AgentState } {
-  const id = `agent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const id = customAgentId ?? `agent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   const agent: AgentState = {
     id,
     name,
