@@ -10,5 +10,4 @@ reports/
 .env.example
 .npmrc
 
-# Ignore folders starting with .tmp
 .tmp*
