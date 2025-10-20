@@ -51,7 +51,7 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
       const hasSubAgents = agentSubAgents.length > 0;
 
       nodes.push(
-        <Box key={agent.id} flexDirection="column">
+        <Box key={`${agent.id}-${index}`} flexDirection="column">
           <MainAgentNode
             agent={agent}
             index={index + 1}

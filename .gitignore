@@ -4,6 +4,8 @@ coverage/
 .DS_Store
 reports/
 
+package-lock.json
+
 # Ignore specific dotfiles/folders
 .codemachine
 .env
