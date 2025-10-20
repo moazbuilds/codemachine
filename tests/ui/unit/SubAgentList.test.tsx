@@ -110,11 +110,11 @@ describe('SubAgentList', () => {
     expect(lastFrame()).toContain('00:30');
   });
 
-  it('should show error message for failed agents', () => {
+  it('should show error message for retrying agents', () => {
     const subAgents = [
       createSubAgent({
         name: 'validator',
-        status: 'failed',
+        status: 'retrying',
         error: 'Connection timeout',
       }),
     ];

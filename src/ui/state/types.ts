@@ -5,9 +5,7 @@ export type AgentStatus =
   | 'pending'      // ○ - Not yet started
   | 'running'      // ⠋ - Currently executing
   | 'completed'    // ✓ - Successfully finished
-  | 'failed'       // ✗ - Execution failed
   | 'skipped'      // ● - Skipped in loop
-  | 'paused'       // ⏸ - Execution paused
   | 'retrying';    // ⟳ - Retrying after failure
 
 /**
@@ -91,5 +89,4 @@ export interface WorkflowState {
   showTelemetryView: boolean;
   selectedAgentId: string | null;
   selectedSubAgentId: string | null;
-  paused: boolean;
 }

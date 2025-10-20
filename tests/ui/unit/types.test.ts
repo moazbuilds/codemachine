@@ -16,9 +16,7 @@ describe('UI Type Definitions', () => {
         'pending',
         'running',
         'completed',
-        'failed',
         'skipped',
-        'paused',
         'retrying',
       ];
 

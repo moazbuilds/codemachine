@@ -135,7 +135,7 @@ try {
       onOutput: (chunk) => ui.handleOutputChunk(agentId, chunk),
     });
 
-    ui.updateAgentStatus(agentId, result.success ? 'completed' : 'failed');
+    ui.updateAgentStatus(agentId, 'completed');
   }
 } finally {
   ui.stop(); // Always cleanup

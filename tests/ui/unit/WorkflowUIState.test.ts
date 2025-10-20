@@ -66,11 +66,11 @@ describe('WorkflowUIState', () => {
       expect(currentState.agents[0].status).toBe('pending');
     });
 
-    it('should support failed initial status', () => {
-      state.addMainAgent('test-agent', 'claude', 0, 'failed');
+    it('should support skipped initial status', () => {
+      state.addMainAgent('test-agent', 'claude', 0, 'skipped');
 
       const currentState = state.getState();
-      expect(currentState.agents[0].status).toBe('failed');
+      expect(currentState.agents[0].status).toBe('skipped');
       expect(currentState.totalExecuted).toBe(1);
     });
   });

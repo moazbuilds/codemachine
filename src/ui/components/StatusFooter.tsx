@@ -3,15 +3,12 @@ import { Box, Text } from 'ink';
 
 export interface StatusFooterProps {
   currentView: 'workflow' | 'telemetry';
-  paused?: boolean;
 }
 
 /**
  * Show keyboard shortcuts at bottom of screen
  */
-export const StatusFooter: React.FC<StatusFooterProps> = ({ currentView, paused }) => {
-  const pausedText = paused ? ' • PAUSED' : '';
-
+export const StatusFooter: React.FC<StatusFooterProps> = ({ currentView }) => {
   if (currentView === 'telemetry') {
     return (
       <Box paddingX={1}>
@@ -23,7 +20,7 @@ export const StatusFooter: React.FC<StatusFooterProps> = ({ currentView, paused 
   return (
     <Box paddingX={1}>
       <Text dimColor>
-        Keys: [P]ause [S]kip [Q]uit [↑↓]Scroll [ENTER]Open [Space]Collapse [T]elemetry Detail{pausedText}
+        Keys: [S]kip [Q]uit [↑↓]Scroll [ENTER]Open [Space]Collapse [T]elemetry Detail
       </Text>
     </Box>
   );

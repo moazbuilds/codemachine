@@ -27,7 +27,6 @@ export const SubAgentSummary: React.FC<SubAgentSummaryProps> = ({
     completed: 0,
     running: 0,
     pending: 0,
-    failed: 0,
   };
 
   let totalIn = 0;
@@ -45,7 +44,6 @@ export const SubAgentSummary: React.FC<SubAgentSummaryProps> = ({
   if (counts.completed > 0) statusParts.push(`${counts.completed} completed`);
   if (counts.running > 0) statusParts.push(`${counts.running} running`);
   if (counts.pending > 0) statusParts.push(`${counts.pending} pending`);
-  if (counts.failed > 0) statusParts.push(`${counts.failed} failed`);
 
   const statusStr = statusParts.join(', ');
   const tokenStr = totalIn > 0 || totalOut > 0 ? formatTokens(totalIn, totalOut) : '';

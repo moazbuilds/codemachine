@@ -106,11 +106,8 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
 
     // Update UI status on completion
     if (ui) {
-      if (triggeredResult.stderr) {
-        ui.updateAgentStatus(triggerAgentId, 'failed');
-      } else {
-        ui.updateAgentStatus(triggerAgentId, 'completed');
-      }
+      // Always mark as completed (no failed status)
+      ui.updateAgentStatus(triggerAgentId, 'completed');
     }
 
     if (ui) {
@@ -118,11 +115,7 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
       ui.logMessage(triggerAgentId, '═'.repeat(80));
     }
   } catch (triggerError) {
-    // Update UI status on failure
-    if (ui) {
-      ui.updateAgentStatus(triggerAgentId, 'failed');
-    }
-
+    // Don't update status to failed - let it stay as running/retrying
     console.error(
       formatAgentLog(
         sourceAgentId,
