@@ -93,7 +93,15 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         initialStatus = 'completed';
       }
 
-      ui.addMainAgent(step.agentName ?? step.agentId, engineName, stepIndex, initialStatus, step.agentId);
+      const agentId = ui.addMainAgent(step.agentName ?? step.agentId, engineName, stepIndex, initialStatus, step.agentId);
+
+    // Update agent with step information
+    const state = ui.getState();
+    const agent = state.agents.find(a => a.id === agentId);
+    if (agent) {
+      agent.stepIndex = stepIndex;
+      agent.totalSteps = template.steps.filter(s => s.type === 'module').length;
+    }
     }
   });
 

@@ -59,6 +59,7 @@ export function startSpinner(
   workflowStartTime?: number,
   model?: string,
   reasoningEffort?: 'low' | 'medium' | 'high' | string,
+  stepInfo?: { current: number; total: number },
 ): SpinnerState {
   const spinnerChars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
   const now = Date.now();
@@ -87,7 +88,8 @@ export function startSpinner(
       const reasoningDisplay = reasoningEffort ? ` | Reasoning: ${reasoningEffort}` : '';
       const runtime = formatElapsedTime(spinnerState.workflowStartTime);
       // Special color for status indicator - dim yellow/orange
-      const baseMessage = `${spinner} ${agentName} is running${engineDisplay}${modelDisplay}${reasoningDisplay}... | Workflow Runtime: ${runtime}`;
+      const stepDisplay = stepInfo ? ` (Step ${stepInfo.current}/${stepInfo.total})` : '';
+      const baseMessage = `${spinner} ${agentName}${stepDisplay} is running${engineDisplay}${modelDisplay}${reasoningDisplay}... | Workflow Runtime: ${runtime}`;
       const columns = typeof process.stdout.columns === 'number' && process.stdout.columns > 0 ? process.stdout.columns : 80;
       const ellipsis = '...';
       const needsTruncate = baseMessage.length > columns;
