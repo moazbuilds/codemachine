@@ -79,7 +79,8 @@ export interface WorkflowState {
   loopState: LoopState | null;
   expandedNodes: Set<string>;
 
-  outputBuffer: string[];     // Last 1000 lines
+  outputBuffers: Map<string, string[]>;     // Agent ID -> buffer mapping (last 1000 lines per agent)
+  outputBuffer: string[];     // Current selected agent's output buffer (for backward compatibility)
   scrollPosition: number;
   autoScroll: boolean;
 
