@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Box, useInput } from 'ink';
 import type { WorkflowState } from '../state/types';
 import { BrandingHeader } from './BrandingHeader';
-import { LoopIndicator } from './LoopIndicator';
 import { AgentTimeline } from './AgentTimeline';
 import { OutputWindow } from './OutputWindow';
 import { TelemetryBar } from './TelemetryBar';
@@ -95,8 +94,6 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
         version={state.version}
         currentDir={process.cwd()}
       />
-
-      {state.loopState && <LoopIndicator loopState={state.loopState} />}
 
       {/* Main content area with fixed height constraint */}
       <Box flexGrow={1} flexDirection="row">

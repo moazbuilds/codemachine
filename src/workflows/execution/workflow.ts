@@ -312,6 +312,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         activeLoop = newActiveLoop;
         if (!newActiveLoop) {
           ui.setLoopState(null);
+          ui.clearLoopRound(step.agentId);
         }
       }
 

@@ -48,25 +48,32 @@ export const MainAgentNode: React.FC<MainAgentNodeProps> = ({
   const activityStr = activities.length > 0 ? ` • ${activities.join(', ')}` : '';
 
   return (
-    <Box paddingX={1}>
-      <Text>
-        {prefix}
-        {agent.status === 'running' ? (
-          <Text color={color}>
-            <Spinner type="dots" />
-          </Text>
-        ) : (
-          <Text color={color}>{getStatusIcon(agent.status)}</Text>
-        )}
-        {' '}
-        <Text bold>{agent.name}</Text>
-        {' '}
-        <Text dimColor>({agent.engine})</Text>
-        {duration && <Text> • {duration}</Text>}
-        {tokenStr && <Text dimColor> • {tokenStr}</Text>}
-        {activityStr && <Text dimColor>{activityStr}</Text>}
-        {agent.error && <Text color="red"> • Error: {agent.error}</Text>}
-      </Text>
+    <Box flexDirection="column">
+      <Box paddingX={1}>
+        <Text>
+          {prefix}
+          {agent.status === 'running' ? (
+            <Text color={color}>
+              <Spinner type="dots" />
+            </Text>
+          ) : (
+            <Text color={color}>{getStatusIcon(agent.status)}</Text>
+          )}
+          {' '}
+          <Text bold>{agent.name}</Text>
+          {' '}
+          <Text dimColor>({agent.engine})</Text>
+          {duration && <Text> • {duration}</Text>}
+          {tokenStr && <Text dimColor> • {tokenStr}</Text>}
+          {activityStr && <Text dimColor>{activityStr}</Text>}
+          {agent.error && <Text color="red"> • Error: {agent.error}</Text>}
+        </Text>
+      </Box>
+      {agent.loopRound && agent.loopRound > 0 && (
+        <Box paddingX={1}>
+          <Text dimColor>  ⎿  Round {agent.loopRound}</Text>
+        </Box>
+      )}
     </Box>
   );
 };
