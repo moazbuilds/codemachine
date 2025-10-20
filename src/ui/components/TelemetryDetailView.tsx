@@ -48,7 +48,7 @@ export const TelemetryDetailView: React.FC<TelemetryDetailViewProps> = ({
 
   return (
     <Box flexDirection="column" paddingX={1}>
-      <Box paddingY={1} borderStyle="single">
+      <Box paddingY={1} borderStyle="single" borderColor="cyan">
         <Text bold>🤖 CodeMachine • Workflow Telemetry Dashboard</Text>
       </Box>
 
@@ -101,7 +101,7 @@ export const TelemetryDetailView: React.FC<TelemetryDetailViewProps> = ({
         </Box>
       )}
 
-      <Box flexDirection="column" paddingY={1} borderStyle="single">
+      <Box flexDirection="column" paddingY={1} borderStyle="single" borderColor="cyan">
         <Text bold>Grand Total</Text>
         <Box paddingTop={1}>
           <Text>

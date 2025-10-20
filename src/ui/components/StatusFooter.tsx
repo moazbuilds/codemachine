@@ -20,7 +20,7 @@ export const StatusFooter: React.FC<StatusFooterProps> = ({ currentView }) => {
   return (
     <Box paddingX={1}>
       <Text dimColor>
-        Keys: [S]kip [Q]uit [↑↓]Scroll [ENTER]Open [Space]Collapse [T]elemetry Detail
+        Keys: [S]kip [Q]uit [↑↓]Scroll [ENTER]Open [T]elemetry Detail
       </Text>
     </Box>
   );

@@ -98,7 +98,7 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
       {/* Main content area with fixed height constraint */}
       <Box flexGrow={1} flexDirection="row">
         {/* Workflow Steps - Fixed width */}
-        <Box width={75} flexDirection="column" borderStyle="single">
+        <Box width={75} flexDirection="column" borderStyle="single" borderColor="cyan">
           <AgentTimeline
             mainAgents={state.agents}
             subAgents={state.subAgents}
@@ -113,7 +113,7 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
         </Box>
 
         {/* Agent Output - Takes remaining space with constrained height */}
-        <Box flexGrow={1} flexDirection="column" borderStyle="single">
+        <Box flexGrow={1} flexDirection="column" borderStyle="single" borderColor="cyan">
           <OutputWindow
             currentAgent={currentAgent}
             outputLines={state.outputBuffer}

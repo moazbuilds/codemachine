@@ -14,7 +14,7 @@ export const BrandingHeader: React.FC<BrandingHeaderProps> = ({
   currentDir,
 }) => {
   return (
-    <Text>
+    <Text color="cyan">
       {` _____       _     _____         _   _
 |     |___ _| |___|     |___ ___| |_|_|___ ___
 |   --| . | . | -_| | | | .'|  _|   | |   | -_| v${version}
