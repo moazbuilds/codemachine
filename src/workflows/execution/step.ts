@@ -14,6 +14,7 @@ export interface StepExecutorOptions {
   stderrLogger: (chunk: string) => void;
   timeout?: number;
   ui?: WorkflowUIManager;
+  abortSignal?: AbortSignal;
 }
 
 async function ensureProjectScaffold(cwd: string): Promise<void> {
@@ -111,6 +112,7 @@ export async function executeStep(
     onTelemetry: (telemetry) => {
       options.ui?.updateAgentTelemetry(step.agentId, telemetry);
     },
+    abortSignal: options.abortSignal,
     timeout,
   });
 

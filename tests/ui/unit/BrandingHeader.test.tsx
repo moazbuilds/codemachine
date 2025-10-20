@@ -12,7 +12,8 @@ describe('BrandingHeader', () => {
       />
     );
 
-    expect(lastFrame()).toContain('CodeMachine');
+    expect(lastFrame()).toContain('_____');
+    expect(lastFrame()).toContain('|     |___');
   });
 
   it('should display version', () => {
