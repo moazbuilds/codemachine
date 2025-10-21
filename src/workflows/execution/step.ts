@@ -82,6 +82,11 @@ export async function executeStep(
       prompt: promptPath,
       parentId: options.parentId
     });
+
+    // Notify UI about the monitoring ID mapping
+    if (options.ui) {
+      options.ui.registerMonitoringId(step.agentId, monitoringAgentId);
+    }
   }
 
   // Use environment variable or default to 30 minutes (1800000ms)

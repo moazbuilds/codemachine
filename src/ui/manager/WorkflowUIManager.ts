@@ -7,6 +7,7 @@ import { CircularBuffer, BatchUpdater } from '../utils/performance';
 import type { AgentStatus, LoopState, SubAgentState, TriggeredAgentState } from '../state/types';
 import type { ParsedTelemetry, EngineType } from '../../infra/engines/index.js';
 import { formatAgentLog } from '../../shared/logging/agent-loggers.js';
+import { AgentMonitorService, convertChildrenToSubAgents } from '../../agents/monitoring/index.js';
 
 /**
  * Orchestrates Ink lifecycle, manages state, and handles UI events
@@ -24,6 +25,8 @@ export class WorkflowUIManager {
   private originalConsoleLog?: typeof console.log;
   private originalConsoleError?: typeof console.error;
   private consoleHijacked = false;
+  private agentIdMap: Map<string, number> = new Map(); // UI agent ID → Monitoring agent ID
+  private syncInterval?: NodeJS.Timeout;
 
   constructor(workflowName: string, totalSteps: number = 0) {
     this.state = new WorkflowUIState(workflowName, totalSteps);
@@ -66,6 +69,9 @@ export class WorkflowUIManager {
 
       // Hijack console to prevent breaking Ink UI
       this.hijackConsole();
+
+      // Start syncing sub-agents from registry
+      this.startSubAgentSync();
     } catch (error) {
       this.fallbackMode = true;
       console.error('Failed to initialize Ink UI, using fallback mode:', error);
@@ -116,6 +122,12 @@ export class WorkflowUIManager {
    * Stop and cleanup Ink UI
    */
   stop(): void {
+    // Stop sub-agent sync
+    if (this.syncInterval) {
+      clearInterval(this.syncInterval);
+      this.syncInterval = undefined;
+    }
+
     // Restore console first
     this.restoreConsole();
 
@@ -338,5 +350,80 @@ export class WorkflowUIManager {
    */
   getState() {
     return this.state.getState();
+  }
+
+  /**
+   * Register mapping between UI agent ID and monitoring agent ID
+   * Called by workflow execution when agents are registered
+   */
+  registerMonitoringId(uiAgentId: string, monitoringAgentId: number): void {
+    this.agentIdMap.set(uiAgentId, monitoringAgentId);
+  }
+
+  /**
+   * Sync sub-agents from registry to UI state
+   * Polls registry and converts ALL descendants (children, grandchildren, etc.) to SubAgentState
+   */
+  private syncSubAgentsFromRegistry(): void {
+    try {
+      const monitor = AgentMonitorService.getInstance();
+      const currentState = this.state.getState();
+
+      // For each main agent in UI, sync ALL its descendants from registry
+      for (const mainAgent of currentState.agents) {
+        const monitoringId = this.agentIdMap.get(mainAgent.id);
+
+        if (monitoringId === undefined) {
+          continue; // Agent not registered in monitoring yet
+        }
+
+        // Get FULL subtree (all descendants recursively) from registry
+        // This captures orchestration sessions AND their spawned agents
+        const subtree = monitor.getFullSubtree(monitoringId);
+
+        if (subtree.length <= 1) {
+          // Only the root agent exists, no descendants
+          continue;
+        }
+
+        // Filter out the root agent itself (we only want descendants)
+        const descendants = subtree.filter(agent => agent.id !== monitoringId);
+
+        if (descendants.length === 0) {
+          continue; // No descendants yet
+        }
+
+        // Convert to SubAgentState with UI parent override
+        // This flattens the hierarchy: all descendants show under the main agent
+        const subAgents = convertChildrenToSubAgents(
+          descendants,
+          mainAgent.engine, // Dynamic engine from main agent
+          mainAgent.id      // Override parentId to flatten hierarchy
+        );
+
+        // Update UI state for each sub-agent
+        for (const subAgent of subAgents) {
+          this.addSubAgent(mainAgent.id, subAgent);
+        }
+      }
+    } catch (error) {
+      // Silently ignore sync errors to prevent UI crashes
+      // Registry may not exist yet or be temporarily locked
+    }
+  }
+
+  /**
+   * Start periodic sync of sub-agents from registry
+   */
+  private startSubAgentSync(): void {
+    // Initial sync
+    this.syncSubAgentsFromRegistry();
+
+    // Poll every 500ms
+    this.syncInterval = setInterval(() => {
+      if (!this.fallbackMode) {
+        this.syncSubAgentsFromRegistry();
+      }
+    }, 500);
   }
 }
