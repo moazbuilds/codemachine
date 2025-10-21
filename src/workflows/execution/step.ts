@@ -8,6 +8,7 @@ import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
 import { MemoryStore } from '../../agents/index.js';
 import type { WorkflowUIManager } from '../../ui/index.js';
 import { parseTelemetryChunk } from '../../ui/index.js';
+import { AgentMonitorService, AgentLoggerService } from '../../agents/monitoring/index.js';
 
 export interface StepExecutorOptions {
   logger: (chunk: string) => void;
@@ -15,6 +16,10 @@ export interface StepExecutorOptions {
   timeout?: number;
   ui?: WorkflowUIManager;
   abortSignal?: AbortSignal;
+  /** Parent agent ID for tracking relationships */
+  parentId?: number;
+  /** Disable monitoring (for special cases) */
+  disableMonitoring?: boolean;
 }
 
 async function ensureProjectScaffold(cwd: string): Promise<void> {
@@ -66,6 +71,19 @@ export async function executeStep(
   const rawPrompt = await readFile(promptPath, 'utf8');
   const prompt = await processPromptString(rawPrompt, cwd);
 
+  // Initialize monitoring (unless explicitly disabled)
+  const monitor = !options.disableMonitoring ? AgentMonitorService.getInstance() : null;
+  const loggerService = !options.disableMonitoring ? AgentLoggerService.getInstance() : null;
+  let monitoringAgentId: number | undefined;
+
+  if (monitor && loggerService) {
+    monitoringAgentId = monitor.register({
+      name: step.agentId,
+      prompt: promptPath,
+      parentId: options.parentId
+    });
+  }
+
   // Use environment variable or default to 30 minutes (1800000ms)
   const timeout =
     options.timeout ??
@@ -97,50 +115,86 @@ export async function executeStep(
 
   // Track stdout for memory storage
   let totalStdout = '';
-  const result = await engine.run({
-    prompt,
-    workingDir: cwd,
-    model,
-    modelReasoningEffort,
-    onData: (chunk) => {
-      totalStdout += chunk;
-      options.logger(chunk);
-    },
-    onErrorData: (chunk) => {
-      options.stderrLogger(chunk);
-    },
-    onTelemetry: (telemetry) => {
-      options.ui?.updateAgentTelemetry(step.agentId, telemetry);
-    },
-    abortSignal: options.abortSignal,
-    timeout,
-  });
 
-  // Fallback: parse telemetry from final output if not captured via stream
-  if (options.ui) {
-    const finalTelemetry = parseTelemetryChunk(totalStdout);
-    if (finalTelemetry) {
-      options.ui.updateAgentTelemetry(step.agentId, finalTelemetry);
+  try {
+    const result = await engine.run({
+      prompt,
+      workingDir: cwd,
+      model,
+      modelReasoningEffort,
+      onData: (chunk) => {
+        totalStdout += chunk;
+
+        // Dual-stream: write to log file AND original logger
+        if (loggerService && monitoringAgentId !== undefined) {
+          loggerService.write(monitoringAgentId, chunk);
+        }
+
+        options.logger(chunk);
+      },
+      onErrorData: (chunk) => {
+        // Also log stderr to file
+        if (loggerService && monitoringAgentId !== undefined) {
+          loggerService.write(monitoringAgentId, `[STDERR] ${chunk}`);
+        }
+
+        options.stderrLogger(chunk);
+      },
+      onTelemetry: (telemetry) => {
+        options.ui?.updateAgentTelemetry(step.agentId, telemetry);
+
+        // Update telemetry in monitoring
+        if (monitor && monitoringAgentId !== undefined) {
+          monitor.updateTelemetry(monitoringAgentId, telemetry);
+        }
+      },
+      abortSignal: options.abortSignal,
+      timeout,
+    });
+
+    // Fallback: parse telemetry from final output if not captured via stream
+    if (options.ui) {
+      const finalTelemetry = parseTelemetryChunk(totalStdout);
+      if (finalTelemetry) {
+        options.ui.updateAgentTelemetry(step.agentId, finalTelemetry);
+      }
     }
+
+    const agentName = step.agentName.toLowerCase();
+
+    if (step.agentId === 'agents-builder' || agentName.includes('builder')) {
+      await runAgentsBuilderStep(cwd);
+    }
+
+    // Save output to memory (write-only, no read)
+    const memoryDir = path.resolve(cwd, '.codemachine', 'memory');
+    const adapter = new MemoryAdapter(memoryDir);
+    const store = new MemoryStore(adapter);
+    const stdout = result.stdout || totalStdout;
+    const slice = stdout.slice(-2000);
+    await store.append({
+      agentId: step.agentId,
+      content: slice,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Mark agent as completed
+    if (monitor && monitoringAgentId !== undefined) {
+      monitor.complete(monitoringAgentId);
+      if (loggerService) {
+        loggerService.closeStream(monitoringAgentId);
+      }
+    }
+
+    return result.stdout;
+  } catch (error) {
+    // Mark agent as failed
+    if (monitor && monitoringAgentId !== undefined) {
+      monitor.fail(monitoringAgentId, error as Error);
+      if (loggerService) {
+        loggerService.closeStream(monitoringAgentId);
+      }
+    }
+    throw error;
   }
-
-  const agentName = step.agentName.toLowerCase();
-
-  if (step.agentId === 'agents-builder' || agentName.includes('builder')) {
-    await runAgentsBuilderStep(cwd);
-  }
-
-  // Save output to memory (write-only, no read)
-  const memoryDir = path.resolve(cwd, '.codemachine', 'memory');
-  const adapter = new MemoryAdapter(memoryDir);
-  const store = new MemoryStore(adapter);
-  const stdout = result.stdout || totalStdout;
-  const slice = stdout.slice(-2000);
-  await store.append({
-    agentId: step.agentId,
-    content: slice,
-    timestamp: new Date().toISOString(),
-  });
-
-  return result.stdout;
 }

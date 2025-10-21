@@ -1,0 +1,126 @@
+import { OrchestrationParser } from './parser.js';
+import { OrchestrationExecutor } from './executor.js';
+import type { OrchestrationResult } from './types.js';
+import { AgentMonitorService } from '../monitoring/index.js';
+import * as logger from '../../shared/logging/logger.js';
+import chalk from 'chalk';
+
+export interface OrchestrationOptions {
+  /** Working directory for agent execution */
+  workingDir: string;
+
+  /** Optional logger for agent output */
+  logger?: (agentName: string, chunk: string) => void;
+}
+
+/**
+ * Main orchestration service
+ * Coordinates parsing and execution of multi-agent orchestration
+ */
+export class OrchestrationService {
+  private static instance: OrchestrationService;
+  private parser: OrchestrationParser;
+
+  private constructor() {
+    this.parser = new OrchestrationParser();
+    logger.debug('OrchestrationService initialized');
+  }
+
+  /**
+   * Get singleton instance
+   */
+  static getInstance(): OrchestrationService {
+    if (!OrchestrationService.instance) {
+      OrchestrationService.instance = new OrchestrationService();
+    }
+    return OrchestrationService.instance;
+  }
+
+  /**
+   * Execute an orchestration script
+   */
+  async execute(script: string, options: OrchestrationOptions): Promise<OrchestrationResult> {
+    console.log(chalk.bold('\n🎭 Starting orchestration...\n'));
+    console.log(chalk.dim(`Script: ${script}\n`));
+
+    // Parse the script
+    let plan;
+    try {
+      plan = this.parser.parse(script);
+      logger.debug(`Parsed orchestration plan with ${plan.groups.length} groups`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(chalk.red(`\n✗ Failed to parse orchestration script: ${message}\n`));
+      throw error;
+    }
+
+    // Register orchestration session as a parent agent
+    const monitor = AgentMonitorService.getInstance();
+    const parentId = monitor.register({
+      name: 'orchestration-session',
+      prompt: script
+    });
+
+    console.log(chalk.dim(`Orchestration session ID: ${parentId}\n`));
+
+    // Create executor
+    const executor = new OrchestrationExecutor({
+      workingDir: options.workingDir,
+      parentId,
+      logger: options.logger
+    });
+
+    // Execute the plan
+    let result;
+    try {
+      result = await executor.execute(plan);
+
+      // Mark orchestration as complete
+      monitor.complete(parentId);
+
+      // Print summary
+      this.printSummary(result);
+
+      return result;
+    } catch (error) {
+      // Mark orchestration as failed
+      monitor.fail(parentId, error as Error);
+
+      console.error(chalk.red(`\n✗ Orchestration failed: ${error}\n`));
+      throw error;
+    }
+  }
+
+  /**
+   * Print execution summary
+   */
+  private printSummary(result: OrchestrationResult): void {
+    console.log('\n' + chalk.bold('═'.repeat(60)));
+    console.log(chalk.bold('Orchestration Summary'));
+    console.log(chalk.bold('═'.repeat(60)) + '\n');
+
+    const succeeded = result.results.filter(r => r.success).length;
+    const failed = result.results.filter(r => !r.success).length;
+
+    console.log(`${chalk.dim('Total agents:')} ${result.results.length}`);
+    console.log(`${chalk.green('✓ Succeeded:')} ${succeeded}`);
+    if (failed > 0) {
+      console.log(`${chalk.red('✗ Failed:')} ${failed}`);
+    }
+
+    console.log('\n' + chalk.bold('Agent Results:'));
+    result.results.forEach((r, index) => {
+      const icon = r.success ? chalk.green('✓') : chalk.red('✗');
+      const status = r.success ? chalk.green('Completed') : chalk.red('Failed');
+      console.log(`  ${index + 1}. ${icon} ${chalk.bold(r.name)} - ${status} (ID: ${r.agentId})`);
+      if (r.error) {
+        console.log(`     ${chalk.red('Error:')} ${r.error}`);
+      }
+    });
+
+    console.log('\n' + chalk.dim('─'.repeat(60)));
+    console.log(chalk.dim(`View logs: codemachine agents logs <id>`));
+    console.log(chalk.dim(`List all agents: codemachine agents`));
+    console.log('');
+  }
+}

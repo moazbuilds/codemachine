@@ -9,6 +9,8 @@ import {
   registerAuthCommands,
   registerAgentCommand,
   registerStepCommand,
+  registerAgentsCommand,
+  registerOrchestrateCommand,
 } from './commands/index.js';
 
 export async function registerCli(program: Command): Promise<void> {
@@ -32,6 +34,8 @@ export async function registerCli(program: Command): Promise<void> {
   registerStartCommand(program);
   registerTemplatesCommand(program);
   registerAuthCommands(program);
+  registerAgentsCommand(program);
+  registerOrchestrateCommand(program);
   await registerAgentCommand(program);
   await registerStepCommand(program);
 }
