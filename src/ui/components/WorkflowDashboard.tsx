@@ -7,12 +7,14 @@ import { OutputWindow } from './OutputWindow';
 import { TelemetryBar } from './TelemetryBar';
 import { TelemetryDetailView } from './TelemetryDetailView';
 import { StatusFooter } from './StatusFooter';
+import { LogViewer } from './LogViewer';
 import { formatRuntime } from '../utils/formatters';
 import { getOutputAgent } from '../utils/agentSelection';
 
 export interface WorkflowDashboardProps {
   state: WorkflowState;
   onAction: (action: UIAction) => void;
+  getMonitoringId: (uiId: string) => number | undefined;
 }
 
 export type UIAction =
@@ -21,7 +23,10 @@ export type UIAction =
   | { type: 'TOGGLE_EXPAND'; agentId: string }
   | { type: 'TOGGLE_TELEMETRY' }
   | { type: 'SELECT_AGENT'; agentId: string }
-  | { type: 'SELECT_SUB_AGENT'; subAgentId: string };
+  | { type: 'SELECT_SUB_AGENT'; subAgentId: string }
+  | { type: 'NAVIGATE_UP' }
+  | { type: 'NAVIGATE_DOWN' }
+  | { type: 'SELECT_ITEM'; itemId: string; itemType: 'main' | 'summary' | 'sub' };
 
 /**
  * Main container component for workflow UI
@@ -30,9 +35,11 @@ export type UIAction =
 export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
   state,
   onAction,
+  getMonitoringId,
 }) => {
   const [showTelemetry, setShowTelemetry] = useState(false);
   const [runtime, setRuntime] = useState('00:00:00');
+  const [logViewerAgentId, setLogViewerAgentId] = useState<string | null>(null);
 
   // Update runtime every second
   useEffect(() => {
@@ -52,9 +59,19 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
     } else if (input === 't') {
       setShowTelemetry(!showTelemetry);
       onAction({ type: 'TOGGLE_TELEMETRY' });
-    } else if (key.return && state.selectedAgentId) {
-      // Enter key toggles expansion of selected agent's sub-agents
+    } else if (key.upArrow) {
+      onAction({ type: 'NAVIGATE_UP' });
+    } else if (key.downArrow) {
+      onAction({ type: 'NAVIGATE_DOWN' });
+    } else if (key.return && state.selectedItemType === 'summary' && state.selectedAgentId) {
+      // Enter key toggles expansion only when summary is selected
       onAction({ type: 'TOGGLE_EXPAND', agentId: state.selectedAgentId });
+    } else if (key.ctrl && input === 'l') {
+      // Ctrl+L opens log viewer for selected agent
+      const agentId = state.selectedSubAgentId || state.selectedAgentId;
+      if (agentId) {
+        setLogViewerAgentId(agentId);
+      }
     }
   });
 
@@ -69,6 +86,17 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
     totalCost: state.agents.reduce((sum, a) => sum + (a.telemetry.cost || 0), 0),
     loopIterations: state.loopState?.iteration,
   };
+
+  // Log viewer (highest priority)
+  if (logViewerAgentId) {
+    return (
+      <LogViewer
+        uiAgentId={logViewerAgentId}
+        onClose={() => setLogViewerAgentId(null)}
+        getMonitoringId={getMonitoringId}
+      />
+    );
+  }
 
   // Telemetry detail view
   if (showTelemetry) {
@@ -102,6 +130,7 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
             selectedAgentId={state.selectedAgentId}
             expandedNodes={state.expandedNodes}
             selectedSubAgentId={state.selectedSubAgentId}
+            selectedItemType={state.selectedItemType}
             onSelectAgent={(agentId) => onAction({ type: 'SELECT_AGENT', agentId })}
             onToggleExpand={(agentId) => onAction({ type: 'TOGGLE_EXPAND', agentId })}
             onSelectSubAgent={(subAgentId) => onAction({ type: 'SELECT_SUB_AGENT', subAgentId })}

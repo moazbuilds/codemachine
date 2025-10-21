@@ -9,9 +9,12 @@ describe('StatusFooter', () => {
       <StatusFooter currentView="workflow" />
     );
 
-    expect(lastFrame()).toContain('[S]kip');
-    expect(lastFrame()).toContain('[Q]uit');
-    expect(lastFrame()).toContain('[T]elemetry');
+    expect(lastFrame()).toContain('[↑↓] Navigate');
+    expect(lastFrame()).toContain('[ENTER] Expand/Collapse');
+    expect(lastFrame()).toContain('[Ctrl+L] Full Logs');
+    expect(lastFrame()).toContain('[T] Telemetry');
+    expect(lastFrame()).toContain('[S] Skip');
+    expect(lastFrame()).toContain('[Q] Quit');
   });
 
   it('should display telemetry view shortcuts', () => {

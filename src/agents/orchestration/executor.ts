@@ -8,8 +8,8 @@ export interface ExecutorOptions {
   /** Working directory for agent execution */
   workingDir: string;
 
-  /** Parent agent ID (the orchestration session) */
-  parentId: number;
+  /** Parent agent ID (the orchestration session) - optional for standalone orchestration */
+  parentId?: number;
 
   /** Optional logger for agent output */
   logger?: (agentName: string, chunk: string) => void;

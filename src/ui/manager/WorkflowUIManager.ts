@@ -52,6 +52,7 @@ export class WorkflowUIManager {
         React.createElement(WorkflowDashboard, {
           state: this.state.getState(),
           onAction: this.handleAction.bind(this),
+          getMonitoringId: this.getMonitoringAgentId.bind(this),
         })
       );
 
@@ -62,6 +63,7 @@ export class WorkflowUIManager {
             React.createElement(WorkflowDashboard, {
               state: this.state.getState(),
               onAction: this.handleAction.bind(this),
+              getMonitoringId: this.getMonitoringAgentId.bind(this),
             })
           );
         }
@@ -327,7 +329,18 @@ export class WorkflowUIManager {
         // Telemetry view is handled internally by WorkflowDashboard
         break;
 
-      
+      case 'NAVIGATE_UP':
+        this.state.navigateUp();
+        break;
+
+      case 'NAVIGATE_DOWN':
+        this.state.navigateDown();
+        break;
+
+      case 'SELECT_ITEM':
+        this.state.selectItem(action.itemId, action.itemType);
+        break;
+
       case 'SELECT_AGENT':
         this.state.selectAgent(action.agentId);
         break;
@@ -350,6 +363,14 @@ export class WorkflowUIManager {
    */
   getState() {
     return this.state.getState();
+  }
+
+  /**
+   * Get monitoring agent ID from UI agent ID
+   * Used by LogViewer to access log files
+   */
+  getMonitoringAgentId(uiAgentId: string): number | undefined {
+    return this.agentIdMap.get(uiAgentId);
   }
 
   /**
@@ -406,7 +427,7 @@ export class WorkflowUIManager {
           this.addSubAgent(mainAgent.id, subAgent);
         }
       }
-    } catch (error) {
+    } catch (_error) {
       // Silently ignore sync errors to prevent UI crashes
       // Registry may not exist yet or be temporarily locked
     }

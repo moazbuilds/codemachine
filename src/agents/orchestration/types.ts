@@ -61,8 +61,8 @@ export interface AgentExecutionResult {
  * Result of orchestrated execution
  */
 export interface OrchestrationResult {
-  /** Parent agent ID (the orchestration session) */
-  parentId: number;
+  /** Parent agent ID (the orchestration session) - undefined for standalone orchestration */
+  parentId?: number;
 
   /** Results from all executed agents */
   results: AgentExecutionResult[];
