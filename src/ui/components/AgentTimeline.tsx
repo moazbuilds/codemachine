@@ -37,7 +37,7 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
   onSelectSubAgent,
 }) => {
   const { stdout } = useStdout();
-  const terminalSize = useTerminalResize();
+  const _terminalSize = useTerminalResize();
 
   // Calculate available height dynamically using centralized utility
   // Recalculates when terminal size changes

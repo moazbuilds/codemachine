@@ -1,0 +1,76 @@
+import type { ParsedTelemetry } from '../../ui/utils/telemetryParser.js';
+
+/**
+ * Agent execution status
+ */
+export type AgentStatus = 'running' | 'completed' | 'failed';
+
+/**
+ * Complete agent record stored in registry
+ */
+export interface AgentRecord {
+  /** Unique auto-incremented ID */
+  id: number;
+
+  /** Agent name/type (e.g., 'frontend', 'backend', 'plan-creator') */
+  name: string;
+
+  /** Current execution status */
+  status: AgentStatus;
+
+  /** Parent agent ID (for sub-agents spawned via workflow triggers or orchestration) */
+  parentId?: number;
+
+  /** ISO timestamp when agent started */
+  startTime: string;
+
+  /** ISO timestamp when agent completed/failed */
+  endTime?: string;
+
+  /** Execution duration in milliseconds */
+  duration?: number;
+
+  /** Original prompt/instruction given to agent */
+  prompt: string;
+
+  /** Absolute path to agent's log file */
+  logPath: string;
+
+  /** Telemetry data (tokens, cost, etc.) */
+  telemetry?: ParsedTelemetry;
+
+  /** Child agent IDs spawned by this agent */
+  children: number[];
+
+  /** Error message if status is 'failed' */
+  error?: string;
+}
+
+/**
+ * Input for registering a new agent
+ */
+export interface RegisterAgentInput {
+  name: string;
+  prompt: string;
+  parentId?: number;
+}
+
+/**
+ * Persisted registry structure
+ */
+export interface AgentRegistryData {
+  /** Last assigned agent ID */
+  lastId: number;
+
+  /** Map of agent ID to agent record */
+  agents: Record<number, AgentRecord>;
+}
+
+/**
+ * Query filters for retrieving agents
+ */
+export interface AgentQueryFilters {
+  status?: AgentStatus | AgentStatus[];
+  parentId?: number;
+  name?: string;
+}

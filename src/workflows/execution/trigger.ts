@@ -8,6 +8,7 @@ import { formatAgentLog } from '../../shared/logging/index.js';
 import { processPromptString } from '../../shared/prompts/index.js';
 import type { WorkflowUIManager } from '../../ui/index.js';
 import { parseTelemetryChunk } from '../../ui/index.js';
+import { AgentMonitorService, AgentLoggerService } from '../../agents/monitoring/index.js';
 
 export interface TriggerExecutionOptions {
   triggerAgentId: string;
@@ -18,6 +19,8 @@ export interface TriggerExecutionOptions {
   sourceAgentId: string; // The agent that triggered this execution
   ui?: WorkflowUIManager;
   abortSignal?: AbortSignal;
+  /** Disable monitoring (for special cases) */
+  disableMonitoring?: boolean;
 }
 
 /**
@@ -25,13 +28,35 @@ export interface TriggerExecutionOptions {
  * This bypasses the workflow and allows triggering any agent, even outside the workflow
  */
 export async function executeTriggerAgent(options: TriggerExecutionOptions): Promise<void> {
-  const { triggerAgentId, cwd, engineType, logger, stderrLogger, sourceAgentId, ui, abortSignal } = options;
+  const { triggerAgentId, cwd, engineType, logger, stderrLogger, sourceAgentId, ui, abortSignal, disableMonitoring } = options;
+
+  // Initialize monitoring (unless explicitly disabled) - declare outside try for catch block access
+  const monitor = !disableMonitoring ? AgentMonitorService.getInstance() : null;
+  const loggerService = !disableMonitoring ? AgentLoggerService.getInstance() : null;
+  let monitoringAgentId: number | undefined;
 
   try {
     // Load agent config and template from config/main.agents.js
     const triggeredAgentConfig = await loadAgentConfig(triggerAgentId, cwd);
     const rawTemplate = await loadAgentTemplate(triggerAgentId, cwd);
     const triggeredAgentTemplate = await processPromptString(rawTemplate, cwd);
+
+    // Find parent agent in monitoring system by sourceAgentId
+    let parentMonitoringId: number | undefined;
+    if (monitor) {
+      const parentAgents = monitor.queryAgents({ name: sourceAgentId });
+      if (parentAgents.length > 0) {
+        // Get the most recent one (highest ID)
+        parentMonitoringId = parentAgents.sort((a, b) => b.id - a.id)[0].id;
+      }
+
+      // Register triggered agent with parent relationship
+      monitoringAgentId = monitor.register({
+        name: triggerAgentId,
+        prompt: `Triggered by ${sourceAgentId}`,
+        parentId: parentMonitoringId
+      });
+    }
 
     // Add triggered agent to UI
     if (ui) {
@@ -76,13 +101,29 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
       modelReasoningEffort: triggeredReasoning,
       onData: (chunk) => {
         totalTriggeredStdout += chunk;
+
+        // Dual-stream: write to log file AND original logger
+        if (loggerService && monitoringAgentId !== undefined) {
+          loggerService.write(monitoringAgentId, chunk);
+        }
+
         logger(chunk);
       },
       onErrorData: (chunk) => {
+        // Also log stderr to file
+        if (loggerService && monitoringAgentId !== undefined) {
+          loggerService.write(monitoringAgentId, `[STDERR] ${chunk}`);
+        }
+
         stderrLogger(chunk);
       },
       onTelemetry: (telemetry) => {
         ui?.updateAgentTelemetry(triggerAgentId, telemetry);
+
+        // Update telemetry in monitoring
+        if (monitor && monitoringAgentId !== undefined) {
+          monitor.updateTelemetry(monitoringAgentId, telemetry);
+        }
       },
       abortSignal,
     });
@@ -114,7 +155,23 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
       ui.logMessage(triggerAgentId, `${triggeredAgentConfig.name ?? triggerAgentId} (triggered) has completed their work.`);
       ui.logMessage(triggerAgentId, '═'.repeat(80));
     }
+
+    // Mark agent as completed in monitoring
+    if (monitor && monitoringAgentId !== undefined) {
+      monitor.complete(monitoringAgentId);
+      if (loggerService) {
+        loggerService.closeStream(monitoringAgentId);
+      }
+    }
   } catch (triggerError) {
+    // Mark agent as failed in monitoring
+    if (monitor && monitoringAgentId !== undefined) {
+      monitor.fail(monitoringAgentId, triggerError as Error);
+      if (loggerService) {
+        loggerService.closeStream(monitoringAgentId);
+      }
+    }
+
     // Don't update status to failed - let it stay as running/retrying
     console.error(
       formatAgentLog(

@@ -3,3 +3,5 @@ export { registerTemplatesCommand, runTemplatesCommand, getAvailableTemplates, s
 export { registerAuthCommands } from './auth.command.js';
 export { registerAgentCommand } from './agent.command.js';
 export { registerStepCommand } from './step.command.js';
+export { registerAgentsCommand } from './agents/register.js';
+export { registerOrchestrateCommand } from './orchestrate.command.js';

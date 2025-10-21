@@ -1,5 +1,3 @@
-import type { Stdout } from 'ink';
-
 /**
  * UI Component Heights (in terminal lines)
  */
@@ -16,7 +14,7 @@ export const UI_COMPONENT_HEIGHTS = {
  * Calculate available height for main content area
  * Accounts for all fixed UI elements
  */
-export function calculateMainContentHeight(stdout: Stdout | null): number {
+export function calculateMainContentHeight(stdout: NodeJS.WriteStream | null): number {
   const terminalHeight = stdout?.rows || 40;
 
   const fixedElementsHeight =
@@ -32,7 +30,7 @@ export function calculateMainContentHeight(stdout: Stdout | null): number {
  * Calculate available height for OutputWindow component
  * Accounts for OutputWindow's internal header and borders
  */
-export function calculateOutputWindowHeight(stdout: Stdout | null): number {
+export function calculateOutputWindowHeight(stdout: NodeJS.WriteStream | null): number {
   const mainContentHeight = calculateMainContentHeight(stdout);
 
   const outputWindowOverhead =
@@ -47,7 +45,7 @@ export function calculateOutputWindowHeight(stdout: Stdout | null): number {
  * Calculate available height for AgentTimeline component
  * AgentTimeline shares the same row as OutputWindow, so it uses the same main content height
  */
-export function calculateAgentTimelineHeight(stdout: Stdout | null): number {
+export function calculateAgentTimelineHeight(stdout: NodeJS.WriteStream | null): number {
   const mainContentHeight = calculateMainContentHeight(stdout);
 
   const timelineOverhead = UI_COMPONENT_HEIGHTS.BORDERS_AND_PADDING;
@@ -59,7 +57,7 @@ export function calculateAgentTimelineHeight(stdout: Stdout | null): number {
 /**
  * Check if terminal is too small for proper UI display
  */
-export function isTerminalTooSmall(stdout: Stdout | null): boolean {
+export function isTerminalTooSmall(stdout: NodeJS.WriteStream | null): boolean {
   const terminalHeight = stdout?.rows || 40;
   return terminalHeight < 15; // Minimum recommended height
 }
@@ -67,7 +65,7 @@ export function isTerminalTooSmall(stdout: Stdout | null): boolean {
 /**
  * Get terminal size information for debugging
  */
-export function getTerminalInfo(stdout: Stdout | null) {
+export function getTerminalInfo(stdout: NodeJS.WriteStream | null) {
   return {
     rows: stdout?.rows || 40,
     columns: stdout?.columns || 80,

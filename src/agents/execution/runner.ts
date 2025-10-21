@@ -6,6 +6,7 @@ import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
 import { MemoryStore } from '../index.js';
 import { loadAgentConfig, loadAgentTemplate } from './config.js';
 import { processPromptString } from '../../shared/prompts/index.js';
+import { AgentMonitorService, AgentLoggerService } from '../monitoring/index.js';
 
 export interface ExecuteAgentOptions {
   /**
@@ -48,6 +49,16 @@ export interface ExecuteAgentOptions {
    * Timeout in milliseconds
    */
   timeout?: number;
+
+  /**
+   * Parent agent ID (for tracking parent-child relationships)
+   */
+  parentId?: number;
+
+  /**
+   * Disable monitoring (for special cases where monitoring is not desired)
+   */
+  disableMonitoring?: boolean;
 }
 
 /**
@@ -93,7 +104,20 @@ export async function executeAgent(
   prompt: string,
   options: ExecuteAgentOptions,
 ): Promise<string> {
-  const { workingDir, projectRoot, engine: engineOverride, model: modelOverride, logger, stderrLogger, abortSignal, timeout } = options;
+  const { workingDir, projectRoot, engine: engineOverride, model: modelOverride, logger, stderrLogger, abortSignal, timeout, parentId, disableMonitoring } = options;
+
+  // Initialize monitoring (unless explicitly disabled)
+  const monitor = !disableMonitoring ? AgentMonitorService.getInstance() : null;
+  const loggerService = !disableMonitoring ? AgentLoggerService.getInstance() : null;
+  let monitoringAgentId: number | undefined;
+
+  if (monitor && loggerService) {
+    monitoringAgentId = monitor.register({
+      name: agentId,
+      prompt,
+      parentId
+    });
+  }
 
   // Load agent config to determine engine and model
   const agentConfig = await loadAgentConfig(agentId, projectRoot ?? workingDir);
@@ -159,46 +183,83 @@ export async function executeAgent(
   const engine = getEngine(engineType);
 
   let totalStdout = '';
-  const result = await engine.run({
-    prompt: compositePrompt,
-    workingDir,
-    model,
-    modelReasoningEffort,
-    onData: (chunk) => {
-      totalStdout += chunk;
-      if (logger) {
-        logger(chunk);
-      } else {
-        try {
-          process.stdout.write(chunk);
-        } catch {
-          // ignore streaming failures
-        }
-      }
-    },
-    onErrorData: (chunk) => {
-      if (stderrLogger) {
-        stderrLogger(chunk);
-      } else {
-        try {
-          process.stderr.write(chunk);
-        } catch {
-          // ignore streaming failures
-        }
-      }
-    },
-    abortSignal,
-    timeout,
-  });
 
-  // Store output in memory
-  const stdout = result.stdout || totalStdout;
-  const slice = stdout.slice(-2000);
-  await store.append({
-    agentId,
-    content: slice,
-    timestamp: new Date().toISOString(),
-  });
+  try {
+    const result = await engine.run({
+      prompt: compositePrompt,
+      workingDir,
+      model,
+      modelReasoningEffort,
+      onData: (chunk) => {
+        totalStdout += chunk;
 
-  return stdout;
+        // Dual-stream: write to log file AND original logger
+        if (loggerService && monitoringAgentId !== undefined) {
+          loggerService.write(monitoringAgentId, chunk);
+        }
+
+        if (logger) {
+          logger(chunk);
+        } else {
+          try {
+            process.stdout.write(chunk);
+          } catch {
+            // ignore streaming failures
+          }
+        }
+      },
+      onErrorData: (chunk) => {
+        // Also log stderr to file
+        if (loggerService && monitoringAgentId !== undefined) {
+          loggerService.write(monitoringAgentId, `[STDERR] ${chunk}`);
+        }
+
+        if (stderrLogger) {
+          stderrLogger(chunk);
+        } else {
+          try {
+            process.stderr.write(chunk);
+          } catch {
+            // ignore streaming failures
+          }
+        }
+      },
+      onTelemetry: (telemetry) => {
+        // Update telemetry in monitoring
+        if (monitor && monitoringAgentId !== undefined) {
+          monitor.updateTelemetry(monitoringAgentId, telemetry);
+        }
+      },
+      abortSignal,
+      timeout,
+    });
+
+    // Store output in memory
+    const stdout = result.stdout || totalStdout;
+    const slice = stdout.slice(-2000);
+    await store.append({
+      agentId,
+      content: slice,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Mark agent as completed
+    if (monitor && monitoringAgentId !== undefined) {
+      monitor.complete(monitoringAgentId);
+      if (loggerService) {
+        loggerService.closeStream(monitoringAgentId);
+      }
+    }
+
+    return stdout;
+  } catch (error) {
+    // Mark agent as failed
+    if (monitor && monitoringAgentId !== undefined) {
+      monitor.fail(monitoringAgentId, error as Error);
+      if (loggerService) {
+        loggerService.closeStream(monitoringAgentId);
+      }
+    }
+    throw error;
+  }
 }
