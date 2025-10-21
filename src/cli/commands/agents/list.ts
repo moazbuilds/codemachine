@@ -10,22 +10,10 @@ export function listAgents(): void {
   const activeAgents = monitor.getActiveAgents();
   const offlineAgents = monitor.getOfflineAgents();
   const fullTree = monitor.buildAgentTree();
-  let activeTrees = filterAgentTrees(fullTree, agent => agent.status === 'running');
-  let offlineTrees = filterAgentTrees(fullTree, agent => agent.status !== 'running');
 
-  if (activeAgents.length > 0 && activeTrees.length === 0) {
-    activeTrees = activeAgents.map<AgentTreeNode>(agent => ({
-      agent,
-      children: [] as AgentTreeNode[]
-    }));
-  }
-
-  if (offlineAgents.length > 0 && offlineTrees.length === 0) {
-    offlineTrees = offlineAgents.map<AgentTreeNode>(agent => ({
-      agent,
-      children: [] as AgentTreeNode[]
-    }));
-  }
+  // Separate trees by root status (preserves full hierarchy including mixed-status children)
+  const activeTrees = fullTree.filter(tree => tree.agent.status === 'running');
+  const offlineTrees = fullTree.filter(tree => tree.agent.status !== 'running');
 
   console.log('');
 
@@ -58,34 +46,9 @@ export function listAgents(): void {
   console.log('');
 }
 
-function filterAgentTrees(
-  tree: AgentTreeNode[],
-  predicate: (agent: AgentRecord) => boolean
-): AgentTreeNode[] {
-  return tree.flatMap(node => filterAgentTree(node, predicate));
-}
-
-function filterAgentTree(
-  node: AgentTreeNode,
-  predicate: (agent: AgentRecord) => boolean
-): AgentTreeNode[] {
-  const matchingChildren = node.children.flatMap(child => filterAgentTree(child, predicate));
-  const matchesSelf = predicate(node.agent);
-
-  if (!matchesSelf) {
-    return matchingChildren;
-  }
-
-  return [
-    {
-      agent: node.agent,
-      children: matchingChildren
-    }
-  ];
-}
-
 /**
  * Print a tree node with proper indentation and connectors
+ * Handles mixed-status hierarchies (e.g., active parent with completed children)
  */
 function printTreeNode(
   node: AgentTreeNode,
@@ -98,8 +61,9 @@ function printTreeNode(
   const tag = agent.parentId ? chalk.cyan('[SUB]') : chalk.magenta('[MAIN]');
 
   const statusText = formatStatus(agent);
+  const statusIcon = getStatusIcon(agent.status);
 
-  console.log(`${prefix}${connector} ${tag} ${chalk.bold(agent.name)}`);
+  console.log(`${prefix}${connector} ${tag} ${chalk.bold(agent.name)} ${statusIcon}`);
   const idLine = buildIdLine(agent, statusText, mode);
   console.log(`${prefix}${isLast ? ' ' : '│'}   ${idLine}`);
 
@@ -109,7 +73,8 @@ function printTreeNode(
     console.log(`${prefix}${isLast ? ' ' : '│'}   ${chalk.dim('Prompt:')} ${agent.prompt}`);
   }
 
-  if (mode === 'offline') {
+  // Show run range for offline agents OR completed/failed children in active trees
+  if (mode === 'offline' || agent.status !== 'running') {
     console.log(
       `${prefix}${isLast ? ' ' : '│'}   ${chalk.dim('Ran:')} ${formatRunRange(agent)}`
     );
@@ -119,7 +84,7 @@ function printTreeNode(
     }
   }
 
-  // Print children
+  // Print children (preserving full hierarchy regardless of individual status)
   if (node.children.length > 0) {
     const childPrefix = prefix + (isLast ? '    ' : '│   ');
     node.children.forEach((child, index) => {
@@ -155,6 +120,19 @@ function formatStatus(agent: AgentRecord): string {
       return chalk.red('Failed');
     default:
       return chalk.gray(agent.status);
+  }
+}
+
+function getStatusIcon(status: string): string {
+  switch (status) {
+    case 'running':
+      return chalk.green('⟳');
+    case 'completed':
+      return chalk.green('✓');
+    case 'failed':
+      return chalk.red('✗');
+    default:
+      return chalk.gray('○');
   }
 }
 
