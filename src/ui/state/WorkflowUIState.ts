@@ -27,8 +27,6 @@ export class WorkflowUIState {
       expandedNodes: new Set(),
       outputBuffers: new Map(),
       outputBuffer: [],
-      scrollPosition: 0,
-      autoScroll: true,
       showTelemetryView: false,
       selectedAgentId: null,
       selectedSubAgentId: null,
@@ -77,7 +75,6 @@ export class WorkflowUIState {
         selectedAgentId: agentId,
         outputBuffers: newOutputBuffers,
         outputBuffer: [], // Clear current display buffer
-        scrollPosition: 0,
       };
     }
 
@@ -100,9 +97,6 @@ export class WorkflowUIState {
       ...this.state,
       outputBuffers: newOutputBuffers,
       outputBuffer: currentOutputBuffer,
-      scrollPosition: this.state.autoScroll && this.state.selectedAgentId === agentId
-        ? updatedAgentBuffer.length - 1
-        : this.state.scrollPosition,
     };
 
     this.notifyListeners();
@@ -126,7 +120,6 @@ export class WorkflowUIState {
       selectedAgentId: agentId,
       selectedSubAgentId: null, // Clear sub-agent selection
       outputBuffer: agentBuffer, // Switch display to this agent's buffer
-      scrollPosition: this.state.autoScroll ? agentBuffer.length - 1 : this.state.scrollPosition,
     };
 
     this.notifyListeners();
@@ -157,15 +150,7 @@ export class WorkflowUIState {
     this.notifyListeners();
   }
 
-  toggleAutoScroll(): void {
-    this.state = {
-      ...this.state,
-      autoScroll: !this.state.autoScroll,
-    };
-
-    this.notifyListeners();
-  }
-
+  
   incrementToolCount(agentId: string): void {
     this.state = {
       ...this.state,

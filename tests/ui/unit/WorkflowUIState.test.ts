@@ -15,7 +15,6 @@ describe('WorkflowUIState', () => {
       expect(currentState.workflowName).toBe('Test Workflow');
       expect(currentState.totalSteps).toBe(5);
       expect(currentState.agents).toEqual([]);
-      expect(currentState.autoScroll).toBe(true);
       expect(currentState.showTelemetryView).toBe(false);
     });
   });
@@ -138,16 +137,6 @@ describe('WorkflowUIState', () => {
       expect(updatedState.outputBuffer.length).toBe(1000);
       expect(updatedState.outputBuffer[0]).toBe('Line 500');
       expect(updatedState.outputBuffer[999]).toBe('Line 1499');
-    });
-
-    it('should auto-scroll when autoScroll is true', () => {
-      const currentState = state.getState();
-      const agentId = currentState.agents[0].id;
-      state.appendOutput(agentId, 'Line 1');
-      state.appendOutput(agentId, 'Line 2');
-
-      const updatedState = state.getState();
-      expect(updatedState.scrollPosition).toBe(1);
     });
   });
 

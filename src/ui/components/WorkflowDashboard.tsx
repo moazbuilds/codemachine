@@ -20,7 +20,6 @@ export type UIAction =
   | { type: 'QUIT' }
   | { type: 'TOGGLE_EXPAND'; agentId: string }
   | { type: 'TOGGLE_TELEMETRY' }
-  | { type: 'TOGGLE_AUTO_SCROLL' }
   | { type: 'SELECT_AGENT'; agentId: string }
   | { type: 'SELECT_SUB_AGENT'; subAgentId: string };
 
@@ -53,9 +52,6 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
     } else if (input === 't') {
       setShowTelemetry(!showTelemetry);
       onAction({ type: 'TOGGLE_TELEMETRY' });
-    } else if (input === ' ') {
-      // Space key toggles auto-scroll
-      onAction({ type: 'TOGGLE_AUTO_SCROLL' });
     } else if (key.return && state.selectedAgentId) {
       // Enter key toggles expansion of selected agent's sub-agents
       onAction({ type: 'TOGGLE_EXPAND', agentId: state.selectedAgentId });
