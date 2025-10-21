@@ -2,7 +2,7 @@ import type { Command } from 'commander';
 import * as path from 'node:path';
 
 import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
-import { MemoryStore } from '../../agents/memory/memory-store.js';
+import { MemoryStore } from '../../agents/index.js';
 import { loadAgentTemplate, loadAgentConfig } from '../../agents/execution/index.js';
 import { getEngine } from '../../infra/engines/index.js';
 import type { EngineType } from '../../infra/engines/index.js';

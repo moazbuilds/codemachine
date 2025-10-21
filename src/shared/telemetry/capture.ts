@@ -1,6 +1,5 @@
 import { logTelemetry } from './logger.js';
-import type { EngineType } from '../../infra/engines/core/types.js';
-import { isValidEngineType } from '../../infra/engines/core/types.js';
+import type { EngineType } from '../../infra/engines/index.js';
 
 interface CapturedTelemetry {
   duration?: number;

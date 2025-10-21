@@ -16,7 +16,6 @@ import {
   getResumeStartIndex,
 } from '../../shared/workflows/index.js';
 import { registry } from '../../infra/engines/index.js';
-import { isValidEngineType } from '../../infra/engines/core/types.js';
 import { shouldSkipStep, logSkipDebug, type ActiveLoop } from '../behaviors/skip.js';
 import { handleLoopLogic, createActiveLoop } from '../behaviors/loop/controller.js';
 import { handleTriggerLogic } from '../behaviors/trigger/controller.js';

@@ -91,8 +91,6 @@ describe('E2E: Full Workflow Execution', () => {
 
     // Verify all agents
     expect(state.agents).toHaveLength(3);
-    expect(state.uniqueCompleted).toBe(3);
-    expect(state.totalExecuted).toBe(3);
 
     // Verify each agent captured telemetry
     state.agents.forEach((agent) => {

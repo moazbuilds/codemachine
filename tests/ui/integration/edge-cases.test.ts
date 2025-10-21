@@ -186,7 +186,6 @@ describe('Edge Cases and Error Handling', () => {
       expect(state.agents[0].status).toBe('completed');
       expect(state.agents[1].status).toBe('retrying');
       expect(state.agents[2].status).toBe('completed');
-      expect(state.uniqueCompleted).toBe(2); // Only 2 completed successfully
     });
 
     it('should handle concurrent output chunks', async () => {
@@ -229,7 +228,6 @@ describe('Edge Cases and Error Handling', () => {
       const state = manager.getState();
       expect(state.agents).toHaveLength(1);
       expect(state.agents[0].id).toBe(agentId);
-      expect(state.totalExecuted).toBe(1);
     });
 
     it('should handle rapid start/stop cycles', () => {
@@ -251,7 +249,6 @@ describe('Edge Cases and Error Handling', () => {
 
       const state = emptyManager.getState();
       expect(state.totalSteps).toBe(0);
-      expect(state.currentStep).toBe(0);
 
       emptyManager.stop();
     });

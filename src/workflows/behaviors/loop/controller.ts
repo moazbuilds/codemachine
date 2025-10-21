@@ -45,7 +45,7 @@ export async function handleLoopLogic(
     const stepsBack = Math.max(1, loopDecision.stepsBack);
     const rewindIndex = Math.max(-1, index - stepsBack - 1);
 
-    const skipList = step.module?.behavior?.skip ?? [];
+    const skipList = step.module?.behavior?.type === 'loop' ? step.module.behavior.skip ?? [] : [];
     const skipInfo = skipList.length > 0 ? ` (skipping: ${skipList.join(', ')})` : '';
 
     const maxIter = step.module?.behavior?.type === 'loop' ? step.module.behavior.maxIterations : undefined;

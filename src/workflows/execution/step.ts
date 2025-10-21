@@ -5,7 +5,7 @@ import type { EngineType } from '../../infra/engines/index.js';
 import { getEngine } from '../../infra/engines/index.js';
 import { processPromptString } from '../../shared/prompts/index.js';
 import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
-import { MemoryStore } from '../../agents/memory/memory-store.js';
+import { MemoryStore } from '../../agents/index.js';
 import type { WorkflowUIManager } from '../../ui/index.js';
 import { parseTelemetryChunk } from '../../ui/index.js';
 

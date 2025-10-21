@@ -20,7 +20,6 @@ describe('WorkflowUIManager Integration Tests', () => {
 
       expect(state.workflowName).toBe('Test Workflow');
       expect(state.totalSteps).toBe(3);
-      expect(state.currentStep).toBe(0);
       expect(state.agents).toEqual([]);
     });
 
@@ -33,8 +32,6 @@ describe('WorkflowUIManager Integration Tests', () => {
       expect(state.agents).toHaveLength(2);
       expect(state.agents[0].name).toBe('test-agent-1');
       expect(state.agents[1].name).toBe('test-agent-2');
-      expect(state.currentStep).toBe(2);
-      expect(state.totalExecuted).toBe(2);
     });
 
     it('should update agent status', () => {
@@ -45,10 +42,9 @@ describe('WorkflowUIManager Integration Tests', () => {
 
       manager.updateAgentStatus(agentId, 'completed');
       expect(manager.getState().agents[0].status).toBe('completed');
-      expect(manager.getState().uniqueCompleted).toBe(1);
     });
 
-    it('should handle output chunks', () => {
+    it('should handle output chunks', async () => {
       const agentId = manager.addMainAgent('test-agent', 'claude', 0);
 
       manager.handleOutputChunk(agentId, '💬 TEXT: Starting task...');
@@ -56,22 +52,22 @@ describe('WorkflowUIManager Integration Tests', () => {
       manager.handleOutputChunk(agentId, '⏱️  Tokens: 500in/200out');
 
       // Wait for batch processing
-      setTimeout(() => {
-        const state = manager.getState();
-        expect(state.outputBuffer.length).toBeGreaterThan(0);
-        expect(state.agents[0].toolCount).toBeGreaterThan(0);
-      }, 100);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const state = manager.getState();
+      expect(state.outputBuffer.length).toBeGreaterThan(0);
+      expect(state.agents[0].toolCount).toBeGreaterThan(0);
     });
 
-    it('should track telemetry from output', () => {
+    it('should track telemetry from output', async () => {
       const agentId = manager.addMainAgent('test-agent', 'claude', 0);
 
       manager.handleOutputChunk(agentId, 'Tokens: 1000in/500out');
 
-      setTimeout(() => {
-        const state = manager.getState();
-        expect(state.agents[0].telemetry.tokensIn).toBeGreaterThan(0);
-      }, 100);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const state = manager.getState();
+      expect(state.agents[0].telemetry.tokensIn).toBeGreaterThan(0);
     });
   });
 
@@ -89,13 +85,13 @@ describe('WorkflowUIManager Integration Tests', () => {
       expect(manager.getState().selectedAgentId).toBe(agentId);
     });
 
-    it('should track total executions', () => {
+    it('should track agent additions', () => {
       manager.addMainAgent('agent-1', 'claude', 0);
       manager.addMainAgent('agent-2', 'codex', 1);
       manager.addMainAgent('agent-3', 'cursor', 2);
 
       const state = manager.getState();
-      expect(state.totalExecuted).toBe(3);
+      expect(state.agents).toHaveLength(3);
     });
   });
 

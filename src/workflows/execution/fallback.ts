@@ -1,11 +1,8 @@
 import type { WorkflowStep } from '../templates/index.js';
-import {
-  formatAgentLog,
-} from '../../shared/logging/index.js';
+import { formatAgentLog } from '../../shared/logging/index.js';
 import { executeStep } from './step.js';
 import { mainAgents } from '../utils/config.js';
 import type { WorkflowUIManager } from '../../ui/index.js';
-import { isValidEngineType } from '../../infra/engines/core/types.js';
 
 export interface FallbackExecutionOptions {
   logger: (message: string) => void;

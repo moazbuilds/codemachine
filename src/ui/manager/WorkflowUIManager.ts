@@ -5,7 +5,7 @@ import { WorkflowUIState } from '../state/WorkflowUIState';
 import { processOutputChunk } from '../utils/outputProcessor';
 import { CircularBuffer, BatchUpdater } from '../utils/performance';
 import type { AgentStatus, LoopState, SubAgentState, TriggeredAgentState } from '../state/types';
-import type { ParsedTelemetry, EngineType } from '../../infra/engines/core/types';
+import type { ParsedTelemetry, EngineType } from '../../infra/engines/index.js';
 import { formatAgentLog } from '../../shared/logging/agent-loggers.js';
 
 /**
@@ -25,8 +25,8 @@ export class WorkflowUIManager {
   private originalConsoleError?: typeof console.error;
   private consoleHijacked = false;
 
-  constructor(workflowName: string) {
-    this.state = new WorkflowUIState(workflowName);
+  constructor(workflowName: string, totalSteps: number = 0) {
+    this.state = new WorkflowUIState(workflowName, totalSteps);
     this.outputBuffer = new CircularBuffer(1000);
     this.batchUpdater = new BatchUpdater(50); // 50ms batching
   }

@@ -1,5 +1,5 @@
 import type { WorkflowState, AgentStatus, AgentTelemetry, LoopState } from './types';
-import type { EngineType } from '../../infra/engines/core/types.js';
+import type { EngineType } from '../../infra/engines/index.js';
 import {
   createNewAgent,
   updateAgentStatusInList,
@@ -13,9 +13,8 @@ import {
 export class WorkflowUIState {
   private state: WorkflowState;
   private listeners: Set<() => void> = new Set();
-  private completedAgents: Set<string> = new Set();
 
-  constructor(workflowName: string) {
+  constructor(workflowName: string, totalSteps: number = 0) {
     this.state = {
       workflowName,
       version: '0.3.1',
@@ -33,22 +32,20 @@ export class WorkflowUIState {
       showTelemetryView: false,
       selectedAgentId: null,
       selectedSubAgentId: null,
+      // Workflow progress tracking
+      totalSteps,
     };
   }
 
   addMainAgent(name: string, engine: EngineType, index: number, initialStatus?: AgentStatus, customAgentId?: string): string {
-    const { id, agent } = createNewAgent(name, engine, customAgentId);
+    const { id, agent } = createNewAgent(name, engine, customAgentId, index);
 
     // If initial status is provided, override the default 'pending' status
     if (initialStatus) {
       agent.status = initialStatus;
     }
 
-    // If initializing as completed, mark it in completedAgents
-    if (initialStatus === 'completed') {
-      this.completedAgents.add(id);
-    }
-
+    
     // Initialize buffer for this agent
     const newOutputBuffers = new Map(this.state.outputBuffers);
     newOutputBuffers.set(id, []);
@@ -82,11 +79,6 @@ export class WorkflowUIState {
         outputBuffer: [], // Clear current display buffer
         scrollPosition: 0,
       };
-    }
-
-    // Track completed agents
-    if (status === 'completed') {
-      this.completedAgents.add(agentId);
     }
 
     this.notifyListeners();
