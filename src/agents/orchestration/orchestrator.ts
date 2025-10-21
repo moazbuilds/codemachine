@@ -81,23 +81,18 @@ export class OrchestrationService {
       }
     }
 
-    // Register orchestration - either as child of caller or as root session
-    const sessionId = monitor.register({
-      name: contextParentId !== undefined ? 'orchestration' : 'orchestration-session',
-      prompt: script,
-      parentId: contextParentId
-    });
-
+    // Don't register orchestration session - it's just a coordinator
+    // Spawned agents will be registered directly under the parent workflow agent
     if (contextParentId !== undefined) {
       console.log(chalk.dim(`Orchestration under parent agent ID: ${contextParentId}\n`));
     } else {
-      console.log(chalk.dim(`Orchestration session ID: ${sessionId}\n`));
+      console.log(chalk.dim(`Orchestration running as standalone session\n`));
     }
 
-    // Create executor
+    // Create executor - pass parent ID directly (no orchestration session wrapper)
     const executor = new OrchestrationExecutor({
       workingDir: options.workingDir,
-      parentId: sessionId,
+      parentId: contextParentId, // Agents register directly under workflow agent
       logger: options.logger
     });
 
@@ -106,17 +101,15 @@ export class OrchestrationService {
     try {
       result = await executor.execute(plan);
 
-      // Mark orchestration as complete
-      monitor.complete(sessionId);
+      // No monitoring needed - child agents track themselves
+      // Orchestration success = all children succeeded
 
       // Print summary
       this.printSummary(result);
 
       return result;
     } catch (error) {
-      // Mark orchestration as failed
-      monitor.fail(sessionId, error as Error);
-
+      // Error is already tracked by the failing child agent
       console.error(chalk.red(`\n✗ Orchestration failed: ${error}\n`));
       throw error;
     }
