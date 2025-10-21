@@ -79,27 +79,35 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
   // Pre-populate timeline with all workflow steps BEFORE starting UI
   // This prevents duplicate renders at startup
   // Set initial status based on completion tracking
+  const addedAgents = new Set<string>();
   template.steps.forEach((step, stepIndex) => {
     if (step.type === 'module') {
       const defaultEngine = registry.getDefault();
       const engineType = step.engine ?? defaultEngine?.metadata.id ?? 'unknown';
       const engineName = engineType; // preserve original engine type, even if unknown
 
-      // Determine initial status based on completion tracking
-      let initialStatus: 'pending' | 'completed' = 'pending';
-      if (completedSteps.includes(stepIndex)) {
-        initialStatus = 'completed';
+      // Use agentId as the unique identifier to prevent duplicates
+      const uniqueAgentId = step.agentId;
+
+      // Only add agent if we haven't seen it before
+      if (!addedAgents.has(uniqueAgentId)) {
+        // Determine initial status based on completion tracking
+        let initialStatus: 'pending' | 'completed' = 'pending';
+        if (completedSteps.includes(stepIndex)) {
+          initialStatus = 'completed';
+        }
+
+        const agentId = ui.addMainAgent(step.agentName ?? step.agentId, engineName, stepIndex, initialStatus, uniqueAgentId);
+        addedAgents.add(uniqueAgentId);
+
+        // Update agent with step information
+        const state = ui.getState();
+        const agent = state.agents.find(a => a.id === agentId);
+        if (agent) {
+          agent.stepIndex = stepIndex;
+          agent.totalSteps = template.steps.filter(s => s.type === 'module').length;
+        }
       }
-
-      const agentId = ui.addMainAgent(step.agentName ?? step.agentId, engineName, stepIndex, initialStatus, step.agentId);
-
-    // Update agent with step information
-    const state = ui.getState();
-    const agent = state.agents.find(a => a.id === agentId);
-    if (agent) {
-      agent.stepIndex = stepIndex;
-      agent.totalSteps = template.steps.filter(s => s.type === 'module').length;
-    }
     }
   });
 
