@@ -34,6 +34,8 @@ export interface AgentState {
   toolCount: number;
   thinkingCount: number;
   loopRound?: number;  // Current loop iteration number (e.g., 1, 2, 3...)
+  stepIndex?: number;  // Current step index (0-based)
+  totalSteps?: number; // Total number of steps in workflow
 }
 
 /**
