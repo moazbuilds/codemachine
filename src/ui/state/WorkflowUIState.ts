@@ -1,4 +1,4 @@
-import type { WorkflowState, AgentStatus, AgentTelemetry, LoopState } from './types';
+import type { WorkflowState, AgentStatus, AgentTelemetry, LoopState, SubAgentState } from './types';
 import type { EngineType } from '../../infra/engines/index.js';
 import {
   createNewAgent,
@@ -209,6 +209,76 @@ export class WorkflowUIState {
     };
 
     this.notifyListeners();
+  }
+
+  /**
+   * Add a sub-agent to the specified parent
+   */
+  addSubAgent(parentId: string, subAgent: SubAgentState): void {
+    const newSubAgents = new Map(this.state.subAgents);
+    const parentSubAgents = newSubAgents.get(parentId) || [];
+
+    // Check if sub-agent already exists (by ID)
+    const existingIndex = parentSubAgents.findIndex(sa => sa.id === subAgent.id);
+
+    if (existingIndex >= 0) {
+      // Update existing sub-agent
+      parentSubAgents[existingIndex] = subAgent;
+    } else {
+      // Add new sub-agent
+      parentSubAgents.push(subAgent);
+    }
+
+    newSubAgents.set(parentId, parentSubAgents);
+
+    this.state = {
+      ...this.state,
+      subAgents: newSubAgents,
+    };
+
+    this.notifyListeners();
+  }
+
+  /**
+   * Update status of a sub-agent
+   */
+  updateSubAgentStatus(subAgentId: string, status: AgentStatus): void {
+    const newSubAgents = new Map(this.state.subAgents);
+    let updated = false;
+
+    // Find and update the sub-agent across all parents
+    for (const [parentId, subAgents] of newSubAgents.entries()) {
+      const index = subAgents.findIndex(sa => sa.id === subAgentId);
+      if (index >= 0) {
+        const updatedSubAgents = [...subAgents];
+        updatedSubAgents[index] = { ...updatedSubAgents[index], status };
+
+        // Set endTime if status is completed or failed equivalent
+        if (status === 'completed') {
+          updatedSubAgents[index].endTime = Date.now();
+        }
+
+        newSubAgents.set(parentId, updatedSubAgents);
+        updated = true;
+        break;
+      }
+    }
+
+    if (updated) {
+      this.state = {
+        ...this.state,
+        subAgents: newSubAgents,
+      };
+
+      this.notifyListeners();
+    }
+  }
+
+  /**
+   * Get all sub-agents for a parent
+   */
+  getSubAgentsForParent(parentId: string): SubAgentState[] {
+    return this.state.subAgents.get(parentId) || [];
   }
 
   getState(): Readonly<WorkflowState> {

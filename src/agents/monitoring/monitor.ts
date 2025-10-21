@@ -48,6 +48,10 @@ export class AgentMonitorService {
 
     // If this agent has a parent, add this agent to parent's children list
     if (input.parentId) {
+      // Reload registry to get latest parent state from disk (multi-process safety)
+      // Critical: subprocess may have updated parent's children array
+      this.registry.reload();
+
       const parent = this.registry.get(input.parentId);
       if (parent) {
         parent.children.push(id);
@@ -123,16 +127,22 @@ export class AgentMonitorService {
 
   /**
    * Get agent by ID
+   * Reloads from disk to ensure fresh data
    */
   getAgent(id: number): AgentRecord | undefined {
+    // Reload to get latest state (may have been updated by subprocess)
+    this.registry.reload();
     const agent = this.registry.get(id);
     return agent ? this.validateAndCleanupAgent(agent) : undefined;
   }
 
   /**
    * Get all agents
+   * Reloads from disk to ensure fresh data across processes
    */
   getAllAgents(): AgentRecord[] {
+    // Reload to get latest state from disk (multi-process safety)
+    this.registry.reload();
     return this.registry.getAll().map(agent => this.validateAndCleanupAgent(agent));
   }
 
@@ -174,24 +184,67 @@ export class AgentMonitorService {
 
   /**
    * Get root agents (agents without parents)
+   * Reloads from disk to ensure fresh data
    */
   getRootAgents(): AgentRecord[] {
+    // Reload already happens in getAllAgents()
     return this.getAllAgents().filter(agent => !agent.parentId);
   }
 
   /**
    * Get children of a specific agent
+   * Reloads from disk to ensure fresh data
    */
   getChildren(parentId: number): AgentRecord[] {
+    // Reload to get latest children array (may be updated by subprocess)
+    this.registry.reload();
     return this.registry.getChildren(parentId).map(agent => this.validateAndCleanupAgent(agent));
   }
 
   /**
    * Build hierarchical tree structure for display
+   * Reloads from disk to ensure fresh hierarchy
    */
   buildAgentTree(): AgentTreeNode[] {
+    // Reload to ensure we have latest data including children arrays
+    this.registry.reload();
     const roots = this.getRootAgents();
     return roots.map(root => this.buildTreeNode(root));
+  }
+
+  /**
+   * Get full subtree for an agent (agent + all descendants recursively)
+   */
+  getFullSubtree(agentId: number): AgentRecord[] {
+    const agent = this.getAgent(agentId);
+    if (!agent) {
+      return [];
+    }
+
+    const result: AgentRecord[] = [agent];
+    const children = this.getChildren(agentId);
+
+    for (const child of children) {
+      result.push(...this.getFullSubtree(child.id));
+    }
+
+    return result;
+  }
+
+  /**
+   * Group all agents by their root parent (top-level parent)
+   * Returns a map of root agent ID -> array of all descendants
+   */
+  getAgentsByRoot(): Map<number, AgentRecord[]> {
+    const grouped = new Map<number, AgentRecord[]>();
+    const roots = this.getRootAgents();
+
+    for (const root of roots) {
+      const subtree = this.getFullSubtree(root.id);
+      grouped.set(root.id, subtree);
+    }
+
+    return grouped;
   }
 
   /**

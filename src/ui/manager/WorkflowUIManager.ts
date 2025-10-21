@@ -250,9 +250,21 @@ export class WorkflowUIManager {
    * Add a sub-agent
    */
   addSubAgent(parentId: string, subAgent: SubAgentState): void {
-    // Sub-agent support will be added in WorkflowUIState
+    this.state.addSubAgent(parentId, subAgent);
+
     if (this.fallbackMode) {
       console.log(`  Sub-agent: ${subAgent.name} (${subAgent.engine})`);
+    }
+  }
+
+  /**
+   * Update sub-agent status
+   */
+  updateSubAgentStatus(subAgentId: string, status: AgentStatus): void {
+    this.state.updateSubAgentStatus(subAgentId, status);
+
+    if (this.fallbackMode) {
+      console.log(`Sub-agent ${subAgentId} status: ${status}`);
     }
   }
 

@@ -17,6 +17,13 @@ export class AgentRegistry {
   }
 
   /**
+   * Reload data from disk (for multi-process safety)
+   */
+  reload(): void {
+    this.data = this.load();
+  }
+
+  /**
    * Load registry from disk, or create new if doesn't exist
    */
   private load(): AgentRegistryData {
@@ -89,8 +96,13 @@ export class AgentRegistry {
 
   /**
    * Update specific fields of an agent
+   * Reloads from disk first to prevent multi-process conflicts
    */
   update(id: number, updates: Partial<AgentRecord>): void {
+    // Reload from disk to get latest state (critical for multi-process safety)
+    // This prevents subprocess changes (e.g., children array updates) from being lost
+    this.data = this.load();
+
     const agent = this.data.agents[id];
     if (agent) {
       this.data.agents[id] = { ...agent, ...updates };
