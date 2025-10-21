@@ -41,10 +41,19 @@ export interface Engine {
 
 /**
  * Validate if a string is a valid engine type
- * Must be imported after registry is initialized
+ * Basic validation - registry-specific validation should be done at runtime
  */
 export function isValidEngineType(type: string): boolean {
-  // Lazy import to avoid circular dependency
-  // Will be validated by registry at runtime
   return typeof type === 'string' && type.length > 0;
+}
+
+/**
+ * Normalize engine type - returns valid engine ID or throws
+ * Note: This basic validation can be enhanced when registry access is needed
+ */
+export function normalizeEngineType(type: string): string {
+  if (isValidEngineType(type)) {
+    return type;
+  }
+  throw new Error(`Invalid engine type "${type}". Engine type must be a non-empty string.`);
 }

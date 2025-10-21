@@ -1,6 +1,6 @@
 import { logTelemetry } from './logger.js';
-
-type EngineType = 'codex' | 'cursor' | 'claude';
+import type { EngineType } from '../../infra/engines/core/types.js';
+import { isValidEngineType } from '../../infra/engines/core/types.js';
 
 interface CapturedTelemetry {
   duration?: number;
@@ -45,30 +45,26 @@ export function createTelemetryCapture(
       try {
         const json = JSON.parse(line);
 
-        // Codex format: look for turn.completed with usage
-        if (engine === 'codex') {
-          if (json.type === 'turn.completed' && json.usage) {
-            captured = {
-              tokens: {
-                input: json.usage.input_tokens,
-                output: json.usage.output_tokens,
-                cached: json.usage.cached_input_tokens,
-              },
-            };
-          }
+        // Try parsing turn.completed format (used by some engines)
+        if (json.type === 'turn.completed' && json.usage) {
+          captured = {
+            tokens: {
+              input: json.usage.input_tokens,
+              output: json.usage.output_tokens,
+              cached: json.usage.cached_input_tokens,
+            },
+          };
         }
-        // Cursor and Claude format: look for result type with full telemetry
-        else if (engine === 'cursor' || engine === 'claude') {
-          if (json.type === 'result' && json.usage) {
-            captured = {
-              duration: json.duration_ms,
-              cost: json.total_cost_usd,
-              tokens: {
-                input: json.usage.input_tokens,
-                output: json.usage.output_tokens,
-              },
-            };
-          }
+        // Try parsing result format with full telemetry (used by other engines)
+        else if (json.type === 'result' && json.usage) {
+          captured = {
+            duration: json.duration_ms,
+            cost: json.total_cost_usd,
+            tokens: {
+              input: json.usage.input_tokens,
+              output: json.usage.output_tokens,
+            },
+          };
         }
       } catch {
         // Ignore JSON parse errors - not all lines will be valid JSON
@@ -91,7 +87,7 @@ export function createTelemetryCapture(
 
       logTelemetry({
         engine,
-        model: model || (engine === 'cursor' ? 'auto' : 'default'),
+        model: model || 'default',
         cost: captured.cost,
         duration: captured.duration,
         tokens: {

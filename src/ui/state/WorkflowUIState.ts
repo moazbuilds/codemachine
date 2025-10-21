@@ -1,4 +1,5 @@
 import type { WorkflowState, AgentStatus, AgentTelemetry, LoopState } from './types';
+import type { EngineType } from '../../infra/engines/core/types.js';
 import {
   createNewAgent,
   updateAgentStatusInList,
@@ -35,7 +36,7 @@ export class WorkflowUIState {
     };
   }
 
-  addMainAgent(name: string, engine: 'claude' | 'codex' | 'cursor', index: number, initialStatus?: AgentStatus, customAgentId?: string): string {
+  addMainAgent(name: string, engine: EngineType, index: number, initialStatus?: AgentStatus, customAgentId?: string): string {
     const { id, agent } = createNewAgent(name, engine, customAgentId);
 
     // If initial status is provided, override the default 'pending' status
