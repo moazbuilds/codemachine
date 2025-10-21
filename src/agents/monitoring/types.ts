@@ -21,6 +21,9 @@ export interface AgentRecord {
   /** Parent agent ID (for sub-agents spawned via workflow triggers or orchestration) */
   parentId?: number;
 
+  /** Process ID for real-time validation */
+  pid?: number;
+
   /** ISO timestamp when agent started */
   startTime: string;
 
@@ -53,6 +56,7 @@ export interface RegisterAgentInput {
   name: string;
   prompt: string;
   parentId?: number;
+  pid?: number;
 }
 
 /**
