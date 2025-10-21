@@ -22,27 +22,27 @@ export class MonitoringCleanup {
     this.isSetup = true;
 
     // Handle Ctrl+C (SIGINT)
-    process.on('SIGINT', () => {
-      this.handleSignal('SIGINT', 'User interrupted (Ctrl+C)');
+    process.on('SIGINT', async () => {
+      await this.handleSignal('SIGINT', 'User interrupted (Ctrl+C)');
     });
 
     // Handle termination signal (SIGTERM)
-    process.on('SIGTERM', () => {
-      this.handleSignal('SIGTERM', 'Process terminated');
+    process.on('SIGTERM', async () => {
+      await this.handleSignal('SIGTERM', 'Process terminated');
     });
 
     // Handle uncaught exceptions
-    process.on('uncaughtException', (error: Error) => {
+    process.on('uncaughtException', async (error: Error) => {
       logger.error('Uncaught exception:', error);
-      this.cleanup('failed', error);
+      await this.cleanup('failed', error);
       process.exit(1);
     });
 
     // Handle unhandled promise rejections
-    process.on('unhandledRejection', (reason: unknown) => {
+    process.on('unhandledRejection', async (reason: unknown) => {
       const error = reason instanceof Error ? reason : new Error(String(reason));
       logger.error('Unhandled rejection:', error);
-      this.cleanup('failed', error);
+      await this.cleanup('failed', error);
       process.exit(1);
     });
 
@@ -52,16 +52,16 @@ export class MonitoringCleanup {
   /**
    * Handle process signal
    */
-  private static handleSignal(signal: string, message: string): void {
+  private static async handleSignal(signal: string, message: string): Promise<void> {
     console.log(`\n\nReceived ${signal}: ${message}`);
-    this.cleanup('aborted', new Error(message));
+    await this.cleanup('aborted', new Error(message));
     process.exit(130); // Standard exit code for Ctrl+C
   }
 
   /**
    * Clean up all running agents
    */
-  private static cleanup(reason: 'failed' | 'aborted', error?: Error): void {
+  private static async cleanup(reason: 'failed' | 'aborted', error?: Error): Promise<void> {
     if (this.isCleaningUp) {
       return; // Already cleaning up, avoid recursion
     }
@@ -77,20 +77,23 @@ export class MonitoringCleanup {
       if (runningAgents.length > 0) {
         console.log(`\nCleaning up ${runningAgents.length} running agent(s)...`);
 
-        runningAgents.forEach((agent) => {
+        for (const agent of runningAgents) {
           try {
             // Mark agent as failed with appropriate error
             const errorMsg = error || new Error(`Agent ${reason}: ${agent.name}`);
             monitor.fail(agent.id, errorMsg);
 
-            // Close log stream
-            loggerService.closeStream(agent.id);
+            // Close log stream (now async)
+            await loggerService.closeStream(agent.id);
 
             logger.debug(`Marked agent ${agent.id} (${agent.name}) as ${reason}`);
           } catch (cleanupError) {
             logger.error(`Failed to cleanup agent ${agent.id}:`, cleanupError);
           }
-        });
+        }
+
+        // Release any remaining locks
+        await loggerService.releaseAllLocks();
 
         console.log('Cleanup complete.\n');
       }
@@ -104,7 +107,7 @@ export class MonitoringCleanup {
   /**
    * Manually trigger cleanup (for testing or explicit cleanup)
    */
-  static forceCleanup(): void {
-    this.cleanup('failed', new Error('Manual cleanup'));
+  static async forceCleanup(): Promise<void> {
+    await this.cleanup('failed', new Error('Manual cleanup'));
   }
 }

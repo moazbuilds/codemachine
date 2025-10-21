@@ -3,6 +3,7 @@ import { dirname } from 'path';
 import type { WriteStream } from 'fs';
 import * as logger from '../../shared/logging/logger.js';
 import { AgentMonitorService } from './monitor.js';
+import { LogLockService } from './logLock.js';
 
 /**
  * Manages log file I/O for agents
@@ -11,6 +12,7 @@ import { AgentMonitorService } from './monitor.js';
 export class AgentLoggerService {
   private static instance: AgentLoggerService;
   private activeStreams: Map<number, WriteStream> = new Map();
+  private lockService: LogLockService = new LogLockService();
 
   private constructor() {
     logger.debug('AgentLoggerService initialized');
@@ -28,7 +30,8 @@ export class AgentLoggerService {
 
   /**
    * Create a write stream for an agent's log file
-   * Returns a stream that can be written to
+   * Returns a stream that can be written to immediately
+   * Acquires file lock asynchronously in background
    */
   createStream(agentId: number): WriteStream {
     const monitor = AgentMonitorService.getInstance();
@@ -44,7 +47,7 @@ export class AgentLoggerService {
       mkdirSync(logDir, { recursive: true });
     }
 
-    // Create write stream
+    // Create write stream immediately
     const stream = createWriteStream(agent.logPath, { flags: 'a', encoding: 'utf-8' });
     this.activeStreams.set(agentId, stream);
 
@@ -53,6 +56,11 @@ export class AgentLoggerService {
     stream.write(`Started: ${agent.startTime}\n`);
     stream.write(`Prompt: ${agent.prompt}\n`);
     stream.write(`${'='.repeat(60)}\n\n`);
+
+    // Acquire lock asynchronously in background (after file is created)
+    this.lockService.acquireLock(agent.logPath).catch(error => {
+      logger.warn(`Failed to acquire lock for ${agent.logPath}:`, error);
+    });
 
     logger.debug(`Created log stream for agent ${agentId} at ${agent.logPath}`);
     return stream;
@@ -73,11 +81,20 @@ export class AgentLoggerService {
   }
 
   /**
-   * Close an agent's log stream
+   * Close an agent's log stream and release file lock
    */
-  closeStream(agentId: number): void {
+  async closeStream(agentId: number): Promise<void> {
     const stream = this.activeStreams.get(agentId);
     if (stream) {
+      const monitor = AgentMonitorService.getInstance();
+      const agent = monitor.getAgent(agentId);
+
+      // Release lock FIRST
+      if (agent) {
+        await this.lockService.releaseLock(agent.logPath);
+      }
+
+      // Then close stream
       stream.end();
       this.activeStreams.delete(agentId);
       logger.debug(`Closed log stream for agent ${agentId}`);
@@ -192,5 +209,23 @@ export class AgentLoggerService {
     return (data: string) => {
       this.write(agentId, data);
     };
+  }
+
+  /**
+   * Release all file locks
+   * Used during cleanup/shutdown
+   */
+  async releaseAllLocks(): Promise<void> {
+    await this.lockService.releaseAllLocks();
+  }
+
+  /**
+   * Get log file path for an agent
+   * Used by LogViewer to access log files
+   */
+  getLogPath(agentId: number): string | null {
+    const monitor = AgentMonitorService.getInstance();
+    const agent = monitor.getAgent(agentId);
+    return agent?.logPath || null;
   }
 }

@@ -6,6 +6,11 @@ import {
   updateAgentTelemetryInList,
   maintainCircularBuffer,
 } from './stateMutations';
+import {
+  getNextNavigableItem,
+  getPreviousNavigableItem,
+  getCurrentSelection,
+} from '../utils/navigation';
 
 /**
  * Workflow UI State Manager with immutable updates and observer pattern
@@ -30,6 +35,7 @@ export class WorkflowUIState {
       showTelemetryView: false,
       selectedAgentId: null,
       selectedSubAgentId: null,
+      selectedItemType: null,
       // Workflow progress tracking
       totalSteps,
     };
@@ -292,5 +298,68 @@ export class WorkflowUIState {
 
   private notifyListeners(): void {
     this.listeners.forEach(listener => listener());
+  }
+
+  /**
+   * Navigate to the next item in the list
+   */
+  navigateDown(): void {
+    const current = getCurrentSelection(this.state);
+    const next = getNextNavigableItem(current, this.state);
+
+    if (next) {
+      this.selectItem(next.id, next.type);
+    }
+  }
+
+  /**
+   * Navigate to the previous item in the list
+   */
+  navigateUp(): void {
+    const current = getCurrentSelection(this.state);
+    const prev = getPreviousNavigableItem(current, this.state);
+
+    if (prev) {
+      this.selectItem(prev.id, prev.type);
+    }
+  }
+
+  /**
+   * Select a specific item and update output buffer accordingly
+   */
+  selectItem(itemId: string, itemType: 'main' | 'summary' | 'sub'): void {
+    if (itemType === 'main') {
+      // Select main agent
+      const agentBuffer = this.state.outputBuffers.get(itemId) || [];
+      this.state = {
+        ...this.state,
+        selectedAgentId: itemId,
+        selectedSubAgentId: null,
+        selectedItemType: 'main',
+        outputBuffer: agentBuffer,
+      };
+    } else if (itemType === 'summary') {
+      // Select summary - show parent agent's output
+      const parentId = itemId; // summary ID is parent agent ID
+      const agentBuffer = this.state.outputBuffers.get(parentId) || [];
+      this.state = {
+        ...this.state,
+        selectedAgentId: parentId,
+        selectedSubAgentId: null,
+        selectedItemType: 'summary',
+        outputBuffer: agentBuffer,
+      };
+    } else if (itemType === 'sub') {
+      // Select sub-agent - show sub-agent's output
+      const subAgentBuffer = this.state.outputBuffers.get(itemId) || [];
+      this.state = {
+        ...this.state,
+        selectedSubAgentId: itemId,
+        selectedItemType: 'sub',
+        outputBuffer: subAgentBuffer,
+      };
+    }
+
+    this.notifyListeners();
   }
 }

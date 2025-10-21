@@ -89,6 +89,7 @@ export interface WorkflowState {
   showTelemetryView: boolean;
   selectedAgentId: string | null;
   selectedSubAgentId: string | null;
+  selectedItemType: 'main' | 'summary' | 'sub' | null;  // Track what type of item is selected
 
   // Workflow progress tracking
   totalSteps: number;

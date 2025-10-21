@@ -16,6 +16,7 @@ export interface AgentTimelineProps {
   selectedAgentId: string | null;
   expandedNodes: Set<string>;
   selectedSubAgentId: string | null;
+  selectedItemType: 'main' | 'summary' | 'sub' | null;
   onSelectAgent: (agentId: string) => void;
   onToggleExpand: (agentId: string) => void;
   onSelectSubAgent: (subAgentId: string) => void;
@@ -32,6 +33,7 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
   selectedAgentId,
   expandedNodes,
   selectedSubAgentId,
+  selectedItemType,
   onSelectAgent,
   onToggleExpand,
   onSelectSubAgent,
@@ -67,6 +69,7 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
               <SubAgentSummary
                 subAgents={agentSubAgents}
                 isExpanded={isExpanded}
+                isSelected={selectedItemType === 'summary' && selectedAgentId === agent.id}
                 onToggle={() => onToggleExpand(agent.id)}
               />
 
@@ -97,6 +100,7 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
     selectedAgentId,
     expandedNodes,
     selectedSubAgentId,
+    selectedItemType,
     onSelectAgent,
     onToggleExpand,
     onSelectSubAgent,

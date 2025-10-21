@@ -6,6 +6,7 @@ import { formatTokens } from '../utils/formatters';
 export interface SubAgentSummaryProps {
   subAgents: SubAgentState[];
   isExpanded: boolean;
+  isSelected: boolean;
   onToggle: () => void;
 }
 
@@ -15,12 +16,14 @@ export interface SubAgentSummaryProps {
 export const SubAgentSummary: React.FC<SubAgentSummaryProps> = ({
   subAgents,
   isExpanded,
+  isSelected,
 }) => {
   if (subAgents.length === 0) {
     return null;
   }
 
   const arrow = isExpanded ? '▼' : '▶';
+  const prefix = isSelected ? '> ' : '  ';
 
   // Count by status
   const counts = {
@@ -51,7 +54,7 @@ export const SubAgentSummary: React.FC<SubAgentSummaryProps> = ({
   return (
     <Box paddingX={2}>
       <Text dimColor>
-        {arrow} Sub-agents: {statusStr}{tokenStr && ` • ${tokenStr}`}
+        {prefix}{arrow} Sub-agents: {statusStr}{tokenStr && ` • ${tokenStr}`}
       </Text>
     </Box>
   );
