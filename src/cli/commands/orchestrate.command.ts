@@ -1,5 +1,6 @@
 import type { Command } from 'commander';
 import { OrchestrationService } from '../../agents/orchestration/index.js';
+import { MonitoringCleanup } from '../../agents/monitoring/index.js';
 import chalk from 'chalk';
 
 /**
@@ -11,6 +12,9 @@ export function registerOrchestrateCommand(program: Command): void {
     .description('Orchestrate multiple agents with parallel (&) and sequential (&&) execution')
     .option('-d, --dir <directory>', 'Working directory', process.cwd())
     .action(async (script: string, options: { dir: string }) => {
+      // Set up cleanup handlers for graceful shutdown
+      MonitoringCleanup.setup();
+
       try {
         const orchestrator = OrchestrationService.getInstance();
 

@@ -190,6 +190,13 @@ export async function executeAgent(
       workingDir,
       model,
       modelReasoningEffort,
+      env: {
+        ...process.env,
+        // Pass parent agent ID to child processes (for orchestration context)
+        ...(monitoringAgentId !== undefined && {
+          CODEMACHINE_PARENT_AGENT_ID: monitoringAgentId.toString()
+        })
+      },
       onData: (chunk) => {
         totalStdout += chunk;
 

@@ -54,19 +54,50 @@ export class OrchestrationService {
       throw error;
     }
 
-    // Register orchestration session as a parent agent
+    // Detect parent context for proper hierarchy tracking
     const monitor = AgentMonitorService.getInstance();
-    const parentId = monitor.register({
-      name: 'orchestration-session',
-      prompt: script
+    let contextParentId: number | undefined;
+
+    // 1. Check environment variable (workflow/agent context propagation)
+    const parentIdEnv = process.env.CODEMACHINE_PARENT_AGENT_ID;
+    if (parentIdEnv) {
+      const parsed = parseInt(parentIdEnv, 10);
+      if (!isNaN(parsed)) {
+        contextParentId = parsed;
+        logger.debug(`Found parent agent ID from environment: ${contextParentId}`);
+      }
+    }
+
+    // 2. If no env var, check for most recent active agent in monitoring
+    if (contextParentId === undefined) {
+      const activeAgents = monitor.getActiveAgents();
+      if (activeAgents.length > 0) {
+        // Get most recently started agent (likely the caller)
+        const mostRecent = activeAgents.sort((a, b) =>
+          new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+        )[0];
+        contextParentId = mostRecent.id;
+        logger.debug(`Inferred parent agent from active agents: ${contextParentId} (${mostRecent.name})`);
+      }
+    }
+
+    // Register orchestration - either as child of caller or as root session
+    const sessionId = monitor.register({
+      name: contextParentId !== undefined ? 'orchestration' : 'orchestration-session',
+      prompt: script,
+      parentId: contextParentId
     });
 
-    console.log(chalk.dim(`Orchestration session ID: ${parentId}\n`));
+    if (contextParentId !== undefined) {
+      console.log(chalk.dim(`Orchestration under parent agent ID: ${contextParentId}\n`));
+    } else {
+      console.log(chalk.dim(`Orchestration session ID: ${sessionId}\n`));
+    }
 
     // Create executor
     const executor = new OrchestrationExecutor({
       workingDir: options.workingDir,
-      parentId,
+      parentId: sessionId,
       logger: options.logger
     });
 
@@ -76,7 +107,7 @@ export class OrchestrationService {
       result = await executor.execute(plan);
 
       // Mark orchestration as complete
-      monitor.complete(parentId);
+      monitor.complete(sessionId);
 
       // Print summary
       this.printSummary(result);
@@ -84,7 +115,7 @@ export class OrchestrationService {
       return result;
     } catch (error) {
       // Mark orchestration as failed
-      monitor.fail(parentId, error as Error);
+      monitor.fail(sessionId, error as Error);
 
       console.error(chalk.red(`\n✗ Orchestration failed: ${error}\n`));
       throw error;
