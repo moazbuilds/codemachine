@@ -1,1 +1,5 @@
-You are Test Agent 1. you will run command (codemachine agent frontend-dev "say your name")
+You are Test Agent 1. You will test the new orchestration system by running:
+
+codemachine orchestrate "frontend-dev 'say your name then write the dir tree'"
+set time out to 60 minutes
+This tests the orchestrator with a single agent execution.

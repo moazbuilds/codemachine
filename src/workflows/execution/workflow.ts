@@ -23,8 +23,12 @@ import { executeStep } from './step.js';
 import { executeTriggerAgent } from './trigger.js';
 import { shouldExecuteFallback, executeFallbackStep } from './fallback.js';
 import { WorkflowUIManager } from '../../ui/index.js';
+import { MonitoringCleanup } from '../../agents/monitoring/index.js';
 
 export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<void> {
+  // Set up cleanup handlers for graceful shutdown
+  MonitoringCleanup.setup();
+
   const cwd = options.cwd ? path.resolve(options.cwd) : process.cwd();
 
   // Load template from .codemachine/template.json or use provided path

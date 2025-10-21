@@ -1,6 +1,7 @@
 import type { Command } from 'commander';
 
 import { executeAgent } from '../../agents/execution/index.js';
+import { MonitoringCleanup } from '../../agents/monitoring/index.js';
 
 type AgentCommandOptions = {
   model?: string;
@@ -22,6 +23,9 @@ async function registerMainAgentCommand(program: Command): Promise<void> {
     .argument('<prompt...>', 'User request to send to the agent')
     .option('--model <model>', 'Model to use (overrides agent config)')
     .action(async (id: string, promptParts: string[], options: AgentCommandOptions) => {
+      // Set up cleanup handlers for graceful shutdown
+      MonitoringCleanup.setup();
+
       const prompt = promptParts.join(' ').trim();
       if (!prompt) {
         throw new Error('Prompt is required');
@@ -53,6 +57,9 @@ function registerEngineAgentCommands(program: Command): void {
         .argument('<prompt...>', 'User request to send to the agent')
         .option('--model <model>', 'Model to use (overrides agent config)')
         .action(async (id: string, promptParts: string[], options: AgentCommandOptions) => {
+          // Set up cleanup handlers for graceful shutdown
+          MonitoringCleanup.setup();
+
           const prompt = promptParts.join(' ').trim();
           if (!prompt) {
             throw new Error('Prompt is required');

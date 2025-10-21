@@ -135,9 +135,22 @@ export class OrchestrationExecutor {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.log(chalk.red(`\n✗ Agent ${command.name} failed: ${errorMessage}`));
 
+      // Try to get the agent ID even on failure (for better error reporting)
+      const monitor = AgentMonitorService.getInstance();
+      const agents = monitor.queryAgents({
+        name: command.name,
+        parentId: this.options.parentId
+      });
+
+      // Get the most recent one (likely the failed agent)
+      const agent = agents.sort((a, b) => b.id - a.id)[0];
+
+      // Note: Agent status is already marked as failed in runner.ts
+      // This is just for returning the proper agent ID in the result
+
       return {
         name: command.name,
-        agentId: 0,
+        agentId: agent?.id || 0,
         success: false,
         error: errorMessage
       };

@@ -6,11 +6,13 @@
  * - Parent-child relationship tracking
  * - Log file management
  * - Query interface for active/offline agents
+ * - Graceful cleanup on process termination
  */
 
 export { AgentMonitorService, type AgentTreeNode } from './monitor';
 export { AgentLoggerService } from './logger';
 export { AgentRegistry } from './registry';
+export { MonitoringCleanup } from './cleanup';
 export type {
   AgentRecord,
   AgentStatus,
