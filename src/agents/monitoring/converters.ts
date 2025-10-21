@@ -1,6 +1,6 @@
 import type { AgentRecord } from './types.js';
 import type { SubAgentState, AgentStatus as UIAgentStatus } from '../../ui/state/types.js';
-import type { EngineType } from '../../infra/engines/index.js';
+import type { EngineType } from '../../infra/engines/core/types.js';
 
 /**
  * Convert monitoring AgentRecord to UI SubAgentState
@@ -8,7 +8,8 @@ import type { EngineType } from '../../infra/engines/index.js';
  */
 export function agentRecordToSubAgentState(
   agent: AgentRecord,
-  engine: EngineType = 'anthropic'
+  engine: EngineType, // Dynamic engine type from parent/caller - NO HARDCODED DEFAULT
+  uiParentId?: string
 ): SubAgentState | null {
   // Root agents (no parentId) cannot be converted to SubAgentState
   if (!agent.parentId) {
@@ -20,7 +21,9 @@ export function agentRecordToSubAgentState(
 
   return {
     id: agent.id.toString(),
-    parentId: agent.parentId.toString(),
+    // Use override UI parent ID if provided (for flattening nested hierarchies)
+    // Otherwise use the monitoring parentId
+    parentId: uiParentId ?? agent.parentId.toString(),
     name: agent.name,
     engine,
     status: uiStatus,
@@ -41,13 +44,19 @@ export function agentRecordToSubAgentState(
 
 /**
  * Convert all children of a parent agent to SubAgentState array
+ *
+ * @param children - Array of child agents to convert
+ * @param engine - Engine type from parent agent (dynamically determined, NO DEFAULT)
+ * @param uiParentId - Optional UI parent ID to override agent's monitoring parentId
+ *                     Use this to flatten nested hierarchies under a single UI parent
  */
 export function convertChildrenToSubAgents(
   children: AgentRecord[],
-  engine: EngineType = 'anthropic'
+  engine: EngineType, // Dynamic from caller - NO HARDCODED DEFAULT
+  uiParentId?: string
 ): SubAgentState[] {
   return children
-    .map(child => agentRecordToSubAgentState(child, engine))
+    .map(child => agentRecordToSubAgentState(child, engine, uiParentId))
     .filter((state): state is SubAgentState => state !== null);
 }
 
