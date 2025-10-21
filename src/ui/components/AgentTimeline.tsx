@@ -6,6 +6,8 @@ import { SubAgentSummary } from './SubAgentSummary';
 import { SubAgentList } from './SubAgentList';
 import { TriggeredAgentList } from './TriggeredAgentList';
 import { isAgentSelected } from '../utils/agentSelection';
+import { calculateAgentTimelineHeight } from '../utils/heightCalculations';
+import { useTerminalResize } from '../hooks/useTerminalResize';
 
 export interface AgentTimelineProps {
   mainAgents: AgentState[];
@@ -35,10 +37,11 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
   onSelectSubAgent,
 }) => {
   const { stdout } = useStdout();
+  const terminalSize = useTerminalResize();
 
-  // Calculate available height dynamically
-  const terminalHeight = stdout?.rows || 40;
-  const availableHeight = Math.max(terminalHeight - 12, 10);
+  // Calculate available height dynamically using centralized utility
+  // Recalculates when terminal size changes
+  const availableHeight = calculateAgentTimelineHeight(stdout);
 
   // Build agent nodes
   const agentNodes = useMemo(() => {

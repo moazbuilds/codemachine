@@ -8,6 +8,7 @@ package-lock.json
 
 # Ignore specific dotfiles/folders
 .codemachine
+.codemachine/memory
 .env
 .env.example
 .npmrc

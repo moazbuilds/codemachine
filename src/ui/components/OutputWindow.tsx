@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import { Box, Text, useStdout } from 'ink';
 import type { AgentState, SubAgentState } from '../state/types';
+import { calculateOutputWindowHeight } from '../utils/heightCalculations';
+import { useTerminalResize } from '../hooks/useTerminalResize';
 
 export interface OutputWindowProps {
   currentAgent: AgentState | SubAgentState | null;
@@ -18,13 +20,12 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
   maxLines,
 }) => {
   const { stdout } = useStdout();
+  const terminalSize = useTerminalResize();
 
-  // Calculate available height dynamically
-  // Header: 3, Progress: 2, Telemetry: 2, Footer: 2 = 9 lines
-  // Window header: 2, footer: 1 = 3 lines
-  const terminalHeight = stdout?.rows || 40;
-  const availableHeight = Math.max(terminalHeight - 12, 10);
-  const effectiveMaxLines = maxLines || availableHeight;
+  // Calculate available height dynamically using centralized utility
+  // Recalculates when terminal size changes
+  const calculatedHeight = calculateOutputWindowHeight(stdout);
+  const effectiveMaxLines = maxLines || calculatedHeight;
 
   if (!currentAgent) {
     return (
