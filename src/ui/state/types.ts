@@ -85,8 +85,6 @@ export interface WorkflowState {
 
   outputBuffers: Map<string, string[]>;     // Agent ID -> buffer mapping (last 1000 lines per agent)
   outputBuffer: string[];     // Current selected agent's output buffer (for backward compatibility)
-  scrollPosition: number;
-  autoScroll: boolean;
 
   showTelemetryView: boolean;
   selectedAgentId: string | null;

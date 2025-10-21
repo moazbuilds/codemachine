@@ -303,10 +303,7 @@ export class WorkflowUIManager {
         // Telemetry view is handled internally by WorkflowDashboard
         break;
 
-      case 'TOGGLE_AUTO_SCROLL':
-        this.state.toggleAutoScroll();
-        break;
-
+      
       case 'SELECT_AGENT':
         this.state.selectAgent(action.agentId);
         break;

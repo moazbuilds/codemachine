@@ -145,8 +145,6 @@ describe('UI Type Definitions', () => {
         loopState: null,
         expandedNodes: new Set(),
         outputBuffer: [],
-        scrollPosition: 0,
-        autoScroll: true,
         showTelemetryView: false,
         selectedAgentId: null,
         selectedSubAgentId: null,
@@ -154,7 +152,6 @@ describe('UI Type Definitions', () => {
 
       expect(state.workflowName).toBe('Test Workflow');
       expect(state.totalSteps).toBe(5);
-      expect(state.autoScroll).toBe(true);
     });
   });
 });
