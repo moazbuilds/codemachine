@@ -16,6 +16,7 @@ import {
   getResumeStartIndex,
 } from '../../shared/workflows/index.js';
 import { registry } from '../../infra/engines/index.js';
+import { isValidEngineType } from '../../infra/engines/core/types.js';
 import { shouldSkipStep, logSkipDebug, type ActiveLoop } from '../behaviors/skip.js';
 import { handleLoopLogic, createActiveLoop } from '../behaviors/loop/controller.js';
 import { handleTriggerLogic } from '../behaviors/trigger/controller.js';
@@ -83,9 +84,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     if (step.type === 'module') {
       const defaultEngine = registry.getDefault();
       const engineType = step.engine ?? defaultEngine?.metadata.id ?? 'unknown';
-      const engineName = (engineType === 'claude' || engineType === 'codex' || engineType === 'cursor')
-        ? engineType
-        : 'claude'; // fallback to claude for unknown engines
+      const engineName = engineType; // preserve original engine type, even if unknown
 
       // Determine initial status based on completion tracking
       let initialStatus: 'pending' | 'completed' = 'pending';

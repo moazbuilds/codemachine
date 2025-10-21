@@ -5,7 +5,7 @@ import { WorkflowUIState } from '../state/WorkflowUIState';
 import { processOutputChunk } from '../utils/outputProcessor';
 import { CircularBuffer, BatchUpdater } from '../utils/performance';
 import type { AgentStatus, LoopState, SubAgentState, TriggeredAgentState } from '../state/types';
-import type { ParsedTelemetry } from '../../infra/engines/core/types';
+import type { ParsedTelemetry, EngineType } from '../../infra/engines/core/types';
 import { formatAgentLog } from '../../shared/logging/agent-loggers.js';
 
 /**
@@ -141,7 +141,7 @@ export class WorkflowUIManager {
   /**
    * Add a main workflow agent
    */
-  addMainAgent(name: string, engine: 'claude' | 'codex' | 'cursor', index: number, initialStatus?: AgentStatus, customAgentId?: string): string {
+  addMainAgent(name: string, engine: EngineType, index: number, initialStatus?: AgentStatus, customAgentId?: string): string {
     const agentId = this.state.addMainAgent(name, engine, index, initialStatus, customAgentId);
 
     // Auto-select first non-completed agent (or first agent if all are completed)

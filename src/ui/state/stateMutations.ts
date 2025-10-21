@@ -3,6 +3,7 @@ import type {
   AgentStatus,
   AgentTelemetry,
 } from './types';
+import type { EngineType } from '../../infra/engines/core/types.js';
 
 /**
  * Immutable state mutation helpers
@@ -10,7 +11,7 @@ import type {
 
 export function createNewAgent(
   name: string,
-  engine: 'claude' | 'codex' | 'cursor',
+  engine: EngineType,
   customAgentId?: string
 ): { id: string; agent: AgentState } {
   const id = customAgentId ?? `agent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

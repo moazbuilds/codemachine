@@ -5,6 +5,7 @@ import {
 import { executeStep } from './step.js';
 import { mainAgents } from '../utils/config.js';
 import type { WorkflowUIManager } from '../../ui/index.js';
+import { isValidEngineType } from '../../infra/engines/core/types.js';
 
 export interface FallbackExecutionOptions {
   logger: (message: string) => void;
@@ -65,9 +66,7 @@ export async function executeFallbackStep(
 
   // Add fallback agent to UI as sub-agent
   if (ui) {
-    const engineName = (engineType === 'claude' || engineType === 'codex' || engineType === 'cursor')
-      ? engineType
-      : 'claude'; // fallback to claude for unknown engines
+    const engineName = engineType; // preserve original engine type, even if unknown
     ui.addSubAgent(step.agentId, {
       id: fallbackAgentId,
       name: fallbackAgent.name || fallbackAgentId,

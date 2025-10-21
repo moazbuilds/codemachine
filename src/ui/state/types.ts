@@ -1,3 +1,5 @@
+import type { EngineType } from '../../infra/engines/core/types.js';
+
 /**
  * Agent execution status types
  */
@@ -25,7 +27,7 @@ export interface AgentTelemetry {
 export interface AgentState {
   id: string;
   name: string;
-  engine: 'claude' | 'codex' | 'cursor';
+  engine: EngineType;
   status: AgentStatus;
   telemetry: AgentTelemetry;
   startTime: number;

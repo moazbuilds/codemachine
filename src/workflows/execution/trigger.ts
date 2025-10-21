@@ -1,5 +1,5 @@
 import * as path from 'node:path';
-import type { EngineType } from '../../infra/engines/index.js';
+import type { EngineType } from '../../infra/engines/core/types.js';
 import { getEngine, registry } from '../../infra/engines/index.js';
 import { loadAgentConfig, loadAgentTemplate } from '../../agents/execution/index.js';
 import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
@@ -8,6 +8,7 @@ import { formatAgentLog } from '../../shared/logging/index.js';
 import { processPromptString } from '../../shared/prompts/index.js';
 import type { WorkflowUIManager } from '../../ui/index.js';
 import { parseTelemetryChunk } from '../../ui/index.js';
+import { isValidEngineType } from '../../infra/engines/core/types.js';
 
 export interface TriggerExecutionOptions {
   triggerAgentId: string;
@@ -35,9 +36,7 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
 
     // Add triggered agent to UI
     if (ui) {
-      const engineName = (engineType === 'claude' || engineType === 'codex' || engineType === 'cursor')
-        ? engineType
-        : 'claude'; // fallback to claude for unknown engines
+      const engineName = engineType; // preserve original engine type, even if unknown
       ui.addTriggeredAgent(sourceAgentId, {
         id: triggerAgentId,
         name: triggeredAgentConfig.name ?? triggerAgentId,
