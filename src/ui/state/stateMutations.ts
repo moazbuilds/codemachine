@@ -3,7 +3,7 @@ import type {
   AgentStatus,
   AgentTelemetry,
 } from './types';
-import type { EngineType } from '../../infra/engines/core/types.js';
+import type { EngineType } from '../../infra/engines/index.js';
 
 /**
  * Immutable state mutation helpers
@@ -12,7 +12,8 @@ import type { EngineType } from '../../infra/engines/core/types.js';
 export function createNewAgent(
   name: string,
   engine: EngineType,
-  customAgentId?: string
+  customAgentId?: string,
+  stepIndex?: number
 ): { id: string; agent: AgentState } {
   const id = customAgentId ?? `agent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   const agent: AgentState = {
@@ -24,6 +25,7 @@ export function createNewAgent(
     startTime: Date.now(),
     toolCount: 0,
     thinkingCount: 0,
+    stepIndex,
   };
   return { id, agent };
 }

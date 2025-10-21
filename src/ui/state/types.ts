@@ -1,4 +1,4 @@
-import type { EngineType } from '../../infra/engines/core/types.js';
+import type { EngineType } from '../../infra/engines/index.js';
 
 /**
  * Agent execution status types
@@ -91,4 +91,7 @@ export interface WorkflowState {
   showTelemetryView: boolean;
   selectedAgentId: string | null;
   selectedSubAgentId: string | null;
+
+  // Workflow progress tracking
+  totalSteps: number;
 }

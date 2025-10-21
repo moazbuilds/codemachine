@@ -138,10 +138,7 @@ describe('UI Type Definitions', () => {
         version: '0.3.1',
         packageName: 'codemachine',
         startTime: Date.now(),
-        currentStep: 1,
         totalSteps: 5,
-        uniqueCompleted: 0,
-        totalExecuted: 1,
         agents: [],
         subAgents: new Map(),
         triggeredAgents: [],
@@ -151,6 +148,8 @@ describe('UI Type Definitions', () => {
         scrollPosition: 0,
         autoScroll: true,
         showTelemetryView: false,
+        selectedAgentId: null,
+        selectedSubAgentId: null,
       };
 
       expect(state.workflowName).toBe('Test Workflow');

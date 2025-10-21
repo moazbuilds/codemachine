@@ -61,9 +61,6 @@ export const MainAgentNode: React.FC<MainAgentNodeProps> = ({
           )}
           {' '}
           <Text bold>{agent.name}</Text>
-          {agent.stepIndex !== undefined && agent.totalSteps && (
-            <Text dimColor> (Step {agent.stepIndex + 1}/{agent.totalSteps})</Text>
-          )}
           {' '}
           <Text dimColor>({agent.engine})</Text>
           {duration && <Text> • {duration}</Text>}

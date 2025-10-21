@@ -14,9 +14,6 @@ describe('WorkflowUIState', () => {
 
       expect(currentState.workflowName).toBe('Test Workflow');
       expect(currentState.totalSteps).toBe(5);
-      expect(currentState.currentStep).toBe(0);
-      expect(currentState.uniqueCompleted).toBe(0);
-      expect(currentState.totalExecuted).toBe(0);
       expect(currentState.agents).toEqual([]);
       expect(currentState.autoScroll).toBe(true);
       expect(currentState.showTelemetryView).toBe(false);
@@ -24,15 +21,15 @@ describe('WorkflowUIState', () => {
   });
 
   describe('addMainAgent', () => {
-    it('should add agent and increment total executed', () => {
+    it('should add agent with correct properties', () => {
       const agentId = state.addMainAgent('test-agent', 'claude', 0);
 
       const currentState = state.getState();
       expect(currentState.agents).toHaveLength(1);
-      expect(currentState.totalExecuted).toBe(1);
       expect(currentState.agents[0].id).toBe(agentId);
       expect(currentState.agents[0].name).toBe('test-agent');
       expect(currentState.agents[0].engine).toBe('claude');
+      expect(currentState.agents[0].stepIndex).toBe(0);
     });
 
     it('should generate unique IDs for agents', () => {
@@ -47,16 +44,16 @@ describe('WorkflowUIState', () => {
 
       const currentState = state.getState();
       expect(currentState.agents[0].status).toBe('completed');
-      expect(currentState.uniqueCompleted).toBe(1);
     });
 
-    it('should not increment totalExecuted when initializing as completed', () => {
+    it('should handle multiple agents with different initial statuses', () => {
       state.addMainAgent('test-agent-1', 'claude', 0, 'completed');
       state.addMainAgent('test-agent-2', 'codex', 1, 'pending');
 
       const currentState = state.getState();
-      expect(currentState.totalExecuted).toBe(1); // Only pending agent counts
-      expect(currentState.uniqueCompleted).toBe(1);
+      expect(currentState.agents).toHaveLength(2);
+      expect(currentState.agents[0].status).toBe('completed');
+      expect(currentState.agents[1].status).toBe('pending');
     });
 
     it('should default to pending status when no initial status provided', () => {
@@ -71,7 +68,6 @@ describe('WorkflowUIState', () => {
 
       const currentState = state.getState();
       expect(currentState.agents[0].status).toBe('skipped');
-      expect(currentState.totalExecuted).toBe(1);
     });
   });
 
@@ -95,49 +91,63 @@ describe('WorkflowUIState', () => {
       expect(state.getState().agents[0].endTime).toBeGreaterThan(0);
     });
 
-    it('should increment uniqueCompleted on completion', () => {
+    it('should update agent status to completed', () => {
       const agentId = state.addMainAgent('test-agent', 'claude', 0);
 
       state.updateAgentStatus(agentId, 'completed');
 
-      expect(state.getState().uniqueCompleted).toBe(1);
+      expect(state.getState().agents[0].status).toBe('completed');
     });
 
-    it('should not increment uniqueCompleted multiple times for same agent', () => {
+    it('should handle multiple status updates for same agent', () => {
       const agentId = state.addMainAgent('test-agent', 'claude', 0);
 
       state.updateAgentStatus(agentId, 'completed');
+      state.updateAgentStatus(agentId, 'running');
       state.updateAgentStatus(agentId, 'completed');
 
-      expect(state.getState().uniqueCompleted).toBe(1);
+      expect(state.getState().agents[0].status).toBe('completed');
     });
   });
 
   describe('appendOutput', () => {
-    it('should add output line to buffer', () => {
-      state.appendOutput('agent-1', 'Test output line');
+    beforeEach(() => {
+      // Add an agent and select it for output buffer tests
+      const agentId = state.addMainAgent('test-agent', 'claude', 0);
+      state.selectAgent(agentId);
+    });
 
+    it('should add output line to buffer', () => {
       const currentState = state.getState();
-      expect(currentState.outputBuffer).toContain('Test output line');
+      const agentId = currentState.agents[0].id;
+      state.appendOutput(agentId, 'Test output line');
+
+      const updatedState = state.getState();
+      expect(updatedState.outputBuffers.get(agentId)).toContain('Test output line');
+      expect(updatedState.outputBuffer).toContain('Test output line');
     });
 
     it('should limit buffer to 1000 lines', () => {
+      const currentState = state.getState();
+      const agentId = currentState.agents[0].id;
       for (let i = 0; i < 1500; i++) {
-        state.appendOutput('agent-1', `Line ${i}`);
+        state.appendOutput(agentId, `Line ${i}`);
       }
 
-      const currentState = state.getState();
-      expect(currentState.outputBuffer.length).toBe(1000);
-      expect(currentState.outputBuffer[0]).toBe('Line 500');
-      expect(currentState.outputBuffer[999]).toBe('Line 1499');
+      const updatedState = state.getState();
+      expect(updatedState.outputBuffer.length).toBe(1000);
+      expect(updatedState.outputBuffer[0]).toBe('Line 500');
+      expect(updatedState.outputBuffer[999]).toBe('Line 1499');
     });
 
     it('should auto-scroll when autoScroll is true', () => {
-      state.appendOutput('agent-1', 'Line 1');
-      state.appendOutput('agent-1', 'Line 2');
-
       const currentState = state.getState();
-      expect(currentState.scrollPosition).toBe(1);
+      const agentId = currentState.agents[0].id;
+      state.appendOutput(agentId, 'Line 1');
+      state.appendOutput(agentId, 'Line 2');
+
+      const updatedState = state.getState();
+      expect(updatedState.scrollPosition).toBe(1);
     });
   });
 

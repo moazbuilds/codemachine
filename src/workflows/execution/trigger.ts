@@ -1,14 +1,13 @@
 import * as path from 'node:path';
-import type { EngineType } from '../../infra/engines/core/types.js';
+import type { EngineType } from '../../infra/engines/index.js';
 import { getEngine, registry } from '../../infra/engines/index.js';
 import { loadAgentConfig, loadAgentTemplate } from '../../agents/execution/index.js';
 import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
-import { MemoryStore } from '../../agents/memory/memory-store.js';
+import { MemoryStore } from '../../agents/index.js';
 import { formatAgentLog } from '../../shared/logging/index.js';
 import { processPromptString } from '../../shared/prompts/index.js';
 import type { WorkflowUIManager } from '../../ui/index.js';
 import { parseTelemetryChunk } from '../../ui/index.js';
-import { isValidEngineType } from '../../infra/engines/core/types.js';
 
 export interface TriggerExecutionOptions {
   triggerAgentId: string;
