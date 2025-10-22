@@ -32,12 +32,14 @@ export async function executeFallbackStep(
   workflowStartTime: number,
   engineType: string,
   ui?: WorkflowUIManager,
+  uniqueParentAgentId?: string,
 ): Promise<void> {
   if (!step.notCompletedFallback) {
     throw new Error('No fallback agent defined for this step');
   }
 
   const fallbackAgentId = step.notCompletedFallback;
+  const parentAgentId = uniqueParentAgentId ?? step.agentId;
 
   if (ui) {
     ui.logMessage(fallbackAgentId, `Fallback agent for ${step.agentName} started to work.`);
@@ -64,12 +66,12 @@ export async function executeFallbackStep(
   // Add fallback agent to UI as sub-agent
   if (ui) {
     const engineName = engineType; // preserve original engine type, even if unknown
-    ui.addSubAgent(step.agentId, {
+    ui.addSubAgent(parentAgentId, {
       id: fallbackAgentId,
       name: fallbackAgent.name || fallbackAgentId,
       engine: engineName,
       status: 'running',
-      parentId: step.agentId,
+      parentId: parentAgentId,
       startTime: Date.now(),
       telemetry: { tokensIn: 0, tokensOut: 0 },
       toolCount: 0,
