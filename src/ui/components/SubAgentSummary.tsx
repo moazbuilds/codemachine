@@ -23,7 +23,7 @@ export const SubAgentSummary: React.FC<SubAgentSummaryProps> = ({
   }
 
   const arrow = isExpanded ? '▼' : '▶';
-  const prefix = isSelected ? '> ' : '  ';
+  const showArrow = isSelected;
 
   // Count by status
   const counts = {
@@ -53,8 +53,10 @@ export const SubAgentSummary: React.FC<SubAgentSummaryProps> = ({
 
   return (
     <Box paddingX={2}>
-      <Text dimColor>
-        {prefix}{arrow} Sub-agents: {statusStr}{tokenStr && ` • ${tokenStr}`}
+      <Text>
+        {showArrow && <Text color="white">&gt; </Text>}
+        {!showArrow && '  '}
+        <Text dimColor>{arrow} Sub-agents: {statusStr}{tokenStr && ` • ${tokenStr}`}</Text>
       </Text>
     </Box>
   );

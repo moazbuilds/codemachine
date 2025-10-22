@@ -61,7 +61,6 @@ export const SubAgentList: React.FC<SubAgentListProps> = ({
       {visibleItems.map((agent) => {
         const color = getStatusColor(agent.status);
         const isSelected = agent.id === selectedSubAgentId;
-        const prefix = isSelected ? '> ' : '  ';
 
         const duration = calculateDuration({
           startTime: agent.startTime,
@@ -76,9 +75,10 @@ export const SubAgentList: React.FC<SubAgentListProps> = ({
         return (
           <Box key={agent.id}>
             <Text>
-              {prefix}
+              {isSelected && <Text color="white">&gt; </Text>}
+              {!isSelected && '  '}
               {agent.status === 'running' ? (
-                <Text color={color}>
+                <Text color="white">
                   <Spinner type="dots" />
                 </Text>
               ) : (

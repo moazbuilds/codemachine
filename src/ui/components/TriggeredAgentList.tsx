@@ -45,7 +45,7 @@ export const TriggeredAgentList: React.FC<TriggeredAgentListProps> = ({
           <Box key={agent.id} paddingLeft={2}>
             <Text>
               {agent.status === 'running' ? (
-                <Text color={color}>
+                <Text color="white">
                   <Spinner type="dots" />
                 </Text>
               ) : (

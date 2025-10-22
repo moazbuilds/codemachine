@@ -16,7 +16,6 @@ export interface MainAgentNodeProps {
  */
 export const MainAgentNode: React.FC<MainAgentNodeProps> = ({ agent, isSelected }) => {
   const color = getStatusColor(agent.status);
-  const prefix = isSelected ? '> ' : '  ';
 
   const duration = calculateDuration({
     startTime: agent.startTime,
@@ -42,9 +41,10 @@ export const MainAgentNode: React.FC<MainAgentNodeProps> = ({ agent, isSelected 
     <Box flexDirection="column">
       <Box paddingX={1}>
         <Text>
-          {prefix}
+          {isSelected && <Text color="white">&gt; </Text>}
+          {!isSelected && '  '}
           {agent.status === 'running' ? (
-            <Text color={color}>
+            <Text color="white">
               <Spinner type="dots" />
             </Text>
           ) : (
