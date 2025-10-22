@@ -26,8 +26,10 @@ export type UIAction =
   | { type: 'TOGGLE_TELEMETRY' }
   | { type: 'SELECT_AGENT'; agentId: string }
   | { type: 'SELECT_SUB_AGENT'; subAgentId: string }
-  | { type: 'NAVIGATE_UP' }
-  | { type: 'NAVIGATE_DOWN' }
+  | { type: 'NAVIGATE_UP'; visibleItemCount?: number }
+  | { type: 'NAVIGATE_DOWN'; visibleItemCount?: number }
+  | { type: 'SET_VISIBLE_COUNT'; count: number }
+  | { type: 'SET_SCROLL_OFFSET'; offset: number; visibleItemCount?: number }
   | { type: 'SELECT_ITEM'; itemId: string; itemType: 'main' | 'summary' | 'sub' };
 
 /**
@@ -63,9 +65,9 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
       setShowTelemetry(!showTelemetry);
       onAction({ type: 'TOGGLE_TELEMETRY' });
     } else if (key.upArrow) {
-      onAction({ type: 'NAVIGATE_UP' });
+      onAction({ type: 'NAVIGATE_UP', visibleItemCount: state.visibleItemCount });
     } else if (key.downArrow) {
-      onAction({ type: 'NAVIGATE_DOWN' });
+      onAction({ type: 'NAVIGATE_DOWN', visibleItemCount: state.visibleItemCount });
     } else if (key.return && state.selectedItemType === 'summary' && state.selectedAgentId) {
       // Enter key toggles expansion only when summary is selected
       onAction({ type: 'TOGGLE_EXPAND', agentId: state.selectedAgentId });
@@ -151,7 +153,12 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
             expandedNodes={state.expandedNodes}
             selectedSubAgentId={state.selectedSubAgentId}
             selectedItemType={state.selectedItemType}
+            scrollOffset={state.scrollOffset}
             onToggleExpand={(agentId) => onAction({ type: 'TOGGLE_EXPAND', agentId })}
+            onVisibleCountChange={(count) => onAction({ type: 'SET_VISIBLE_COUNT', count })}
+            onScrollOffsetChange={(offset, count) =>
+              onAction({ type: 'SET_SCROLL_OFFSET', offset, visibleItemCount: count })
+            }
           />
           <Text color="cyan">{'─'.repeat(leftPanelWidth)}</Text>
         </Box>

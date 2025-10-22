@@ -93,6 +93,12 @@ export interface WorkflowState {
   selectedSubAgentId: string | null;
   selectedItemType: 'main' | 'summary' | 'sub' | null;  // Track what type of item is selected
 
+  // Viewport information for the agent timeline
+  visibleItemCount: number;  // Number of terminal rows available for the timeline viewport
+
+  // Scrolling state for agent timeline
+  scrollOffset: number;  // Index of the first visible item in the flat navigable list
+
   // Workflow progress tracking
   totalSteps: number;
   workflowStatus: WorkflowStatus;  // Current execution status
