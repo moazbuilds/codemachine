@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { Box, Text, useInput, useStdout } from 'ink';
 import { useRegistrySync } from '../hooks/useRegistrySync';
 import type { AgentTreeNode } from '../../agents/monitoring/index.js';
 import type { AgentRecord } from '../../agents/monitoring/types.js';
@@ -9,6 +9,10 @@ import { formatTokens, formatNumber } from '../utils/formatters';
 export interface HistoryViewProps {
   onClose: () => void;
   onOpenLogViewer: (monitoringId: number) => void;
+  // Scroll position restoration
+  savedScrollOffset?: number;
+  savedSelectedIndex?: number;
+  onScrollStateChange?: (scrollOffset: number, selectedIndex: number) => void;
 }
 
 /**
@@ -16,11 +20,20 @@ export interface HistoryViewProps {
  * Displays nested tree structure with box-drawing characters
  * Press Enter to open LogViewer for selected agent
  */
-export const HistoryView: React.FC<HistoryViewProps> = ({ onClose, onOpenLogViewer }) => {
+export const HistoryView: React.FC<HistoryViewProps> = ({
+  onClose,
+  onOpenLogViewer,
+  savedScrollOffset,
+  savedSelectedIndex,
+  onScrollStateChange,
+}) => {
   const { tree: liveTree, isLoading } = useRegistrySync();
+  const { stdout } = useStdout();
 
   // Track selection by index (simpler and more stable)
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  // Restore from saved position if available
+  const [selectedIndex, setSelectedIndex] = useState(savedSelectedIndex ?? 0);
+  const [scrollOffset, setScrollOffset] = useState(savedScrollOffset ?? 0);
   const [pauseUpdates, setPauseUpdates] = useState(false);
   const lastInteractionTime = useRef<number>(Date.now());
 
@@ -32,6 +45,10 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ onClose, onOpenLogView
 
   // Flatten tree for navigation - memoized to prevent recalculation on every render
   const flattenedAgents = useMemo(() => flattenTree(displayTree), [displayTree]);
+
+  // Calculate visible lines (terminal height - header - column headers - footer - scroll indicator)
+  const terminalHeight = stdout?.rows || 40;
+  const visibleLines = Math.max(5, terminalHeight - 8); // Reserve space for UI elements
 
   // Update frozen tree when live tree changes and we're not paused
   useEffect(() => {
@@ -47,6 +64,18 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ onClose, onOpenLogView
     }
   }, [flattenedAgents.length, selectedIndex]);
 
+  // Auto-scroll to keep selected item visible in viewport
+  useEffect(() => {
+    // If selected item is above viewport, scroll up
+    if (selectedIndex < scrollOffset) {
+      setScrollOffset(selectedIndex);
+    }
+    // If selected item is below viewport, scroll down
+    else if (selectedIndex >= scrollOffset + visibleLines) {
+      setScrollOffset(selectedIndex - visibleLines + 1);
+    }
+  }, [selectedIndex, scrollOffset, visibleLines]);
+
   // Auto-resume updates after 2 seconds of no interaction
   useEffect(() => {
     if (pauseUpdates) {
@@ -57,11 +86,16 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ onClose, onOpenLogView
     }
   }, [pauseUpdates, lastInteractionTime.current]);
 
+  // Get visible agents based on viewport
+  const visibleAgents = useMemo(() => {
+    return flattenedAgents.slice(scrollOffset, scrollOffset + visibleLines);
+  }, [flattenedAgents, scrollOffset, visibleLines]);
+
   useCtrlCHandler();
 
   // Keyboard handling
   useInput((input, key) => {
-    if (input === 'h' || input === 'q' || key.escape) {
+    if (input === 'h' || key.escape) {
       onClose();
     } else if (key.upArrow) {
       lastInteractionTime.current = Date.now();
@@ -83,7 +117,50 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ onClose, onOpenLogView
       }
 
       setSelectedIndex((prev) => Math.min(flattenedAgents.length - 1, prev + 1));
+    } else if (key.pageUp) {
+      lastInteractionTime.current = Date.now();
+
+      if (!pauseUpdates) {
+        setFrozenTree(liveTree);
+        setPauseUpdates(true);
+      }
+
+      setSelectedIndex((prev) => Math.max(0, prev - visibleLines));
+    } else if (key.pageDown) {
+      lastInteractionTime.current = Date.now();
+
+      if (!pauseUpdates) {
+        setFrozenTree(liveTree);
+        setPauseUpdates(true);
+      }
+
+      setSelectedIndex((prev) => Math.min(flattenedAgents.length - 1, prev + visibleLines));
+    } else if (input === 'g') {
+      // Go to top (vim-style)
+      lastInteractionTime.current = Date.now();
+
+      if (!pauseUpdates) {
+        setFrozenTree(liveTree);
+        setPauseUpdates(true);
+      }
+
+      setSelectedIndex(0);
+    } else if (input === 'G') {
+      // Go to bottom (vim-style)
+      lastInteractionTime.current = Date.now();
+
+      if (!pauseUpdates) {
+        setFrozenTree(liveTree);
+        setPauseUpdates(true);
+      }
+
+      setSelectedIndex(flattenedAgents.length - 1);
     } else if (key.return) {
+      // Save scroll state before opening log viewer
+      if (onScrollStateChange) {
+        onScrollStateChange(scrollOffset, selectedIndex);
+      }
+
       // Open LogViewer for selected agent
       const selected = flattenedAgents[selectedIndex];
       if (selected) {
@@ -95,9 +172,6 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ onClose, onOpenLogView
   if (isLoading) {
     return (
       <Box flexDirection="column" paddingX={1}>
-        <Box paddingY={1} borderStyle="single" borderColor="cyan">
-          <Text bold>🤖 CodeMachine • Execution History</Text>
-        </Box>
         <Box justifyContent="center" alignItems="center" paddingY={2}>
           <Text>Loading history...</Text>
         </Box>
@@ -108,14 +182,11 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ onClose, onOpenLogView
   if (flattenedAgents.length === 0) {
     return (
       <Box flexDirection="column" paddingX={1}>
-        <Box paddingY={1} borderStyle="single" borderColor="cyan">
-          <Text bold>🤖 CodeMachine • Execution History</Text>
-        </Box>
         <Box justifyContent="center" alignItems="center" paddingY={2}>
           <Text dimColor>No execution history found</Text>
         </Box>
         <Box paddingY={1}>
-          <Text dimColor>Press [H] to return to workflow view • [Q] to quit</Text>
+          <Text dimColor>[H/Esc] Close</Text>
         </Box>
       </Box>
     );
@@ -123,47 +194,54 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ onClose, onOpenLogView
 
   return (
     <Box flexDirection="column" paddingX={1}>
-      <Box paddingY={1} borderStyle="single" borderColor="cyan">
-        <Text bold>🤖 CodeMachine • Execution History ({flattenedAgents.length} agents)</Text>
-        {pauseUpdates && (
-          <Text color="yellow" dimColor> • Updates paused</Text>
-        )}
+      {/* Column Headers */}
+      <Box paddingTop={1}>
+        <Box width={6}>
+          <Text bold>ID</Text>
+        </Box>
+        <Box width={30}>
+          <Text bold>Agent</Text>
+        </Box>
+        <Box width={28}>
+          <Text bold>Engine/Model</Text>
+        </Box>
+        <Box width={12}>
+          <Text bold>Status</Text>
+        </Box>
+        <Box width={12}>
+          <Text bold>Duration</Text>
+        </Box>
+        <Box width={22}>
+          <Text bold>Tokens (in/out)</Text>
+        </Box>
       </Box>
 
-      <Box flexDirection="column" paddingY={1}>
-        <Text bold underline>All Agent Executions (Nested)</Text>
-
-        <Box paddingTop={1}>
-          <Box width={40}>
-            <Text bold>Agent</Text>
-          </Box>
-          <Box width={20}>
-            <Text bold>Engine/Model</Text>
-          </Box>
-          <Box width={12}>
-            <Text bold>Status</Text>
-          </Box>
-          <Box width={15}>
-            <Text bold>Duration</Text>
-          </Box>
-          <Box width={25}>
-            <Text bold>Tokens (in/out)</Text>
-          </Box>
-        </Box>
-
-        {flattenedAgents.map((item, index) => (
+      {/* Agent Rows */}
+      {visibleAgents.map((item, index) => {
+        const absoluteIndex = scrollOffset + index;
+        return (
           <AgentRow
             key={item.agent.id}
             item={item}
-            isSelected={index === selectedIndex}
+            isSelected={absoluteIndex === selectedIndex}
           />
-        ))}
-      </Box>
+        );
+      })}
+
+      {/* Footer */}
+      {flattenedAgents.length > 0 && (
+        <Box paddingY={1}>
+          <Text dimColor>
+            Showing {scrollOffset + 1}-{Math.min(scrollOffset + visibleLines, flattenedAgents.length)} of {flattenedAgents.length}
+            {!pauseUpdates && <Text color="green"> • Live</Text>}
+            {pauseUpdates && <Text color="yellow"> • Paused</Text>}
+          </Text>
+        </Box>
+      )}
 
       <Box paddingY={1}>
         <Text dimColor>
-          [H/Esc/Q] Close • [↑↓] Navigate • [Enter] Open logs
-          {!pauseUpdates && <Text color="green"> • Live updates</Text>}
+          [H/Esc] Close • [↑↓] Navigate • [g/G] Top/Bottom • [Enter] Open logs
         </Text>
       </Box>
     </Box>
@@ -229,7 +307,7 @@ const AgentRow: React.FC<{
   }
 
   // Status indicator
-  const statusChar = agent.status === 'completed' ? '●' : agent.status === 'failed' ? '✗' : '○';
+  const statusChar = agent.status === 'completed' ? '●' : agent.status === 'failed' ? '●' : '○';
   const statusColor = agent.status === 'completed' ? 'green' : agent.status === 'failed' ? 'red' : 'yellow';
 
   // Calculate duration
@@ -246,7 +324,7 @@ const AgentRow: React.FC<{
 
   // Truncate long names
   const displayName = prefix + agent.name;
-  const truncatedName = displayName.length > 38 ? displayName.slice(0, 35) + '...' : displayName;
+  const truncatedName = displayName.length > 28 ? displayName.slice(0, 25) + '...' : displayName;
 
   // Telemetry
   const tokens = agent.telemetry
@@ -255,19 +333,22 @@ const AgentRow: React.FC<{
 
   return (
     <Box backgroundColor={isSelected ? 'blue' : undefined}>
-      <Box width={40}>
+      <Box width={6}>
+        <Text color="cyan">{agent.id}</Text>
+      </Box>
+      <Box width={30}>
         <Text>{truncatedName}</Text>
       </Box>
-      <Box width={20}>
-        <Text dimColor>{engineModel.length > 18 ? engineModel.slice(0, 15) + '...' : engineModel}</Text>
+      <Box width={28}>
+        <Text dimColor>{engineModel.length > 26 ? engineModel.slice(0, 23) + '...' : engineModel}</Text>
       </Box>
       <Box width={12}>
         <Text color={statusColor}>{statusChar} {agent.status}</Text>
       </Box>
-      <Box width={15}>
+      <Box width={12}>
         <Text>{duration}</Text>
       </Box>
-      <Box width={25}>
+      <Box width={22}>
         <Text dimColor>{tokens}</Text>
       </Box>
     </Box>
