@@ -71,24 +71,6 @@ export async function executeStep(
   const rawPrompt = await readFile(promptPath, 'utf8');
   const prompt = await processPromptString(rawPrompt, cwd);
 
-  // Initialize monitoring (unless explicitly disabled)
-  const monitor = !options.disableMonitoring ? AgentMonitorService.getInstance() : null;
-  const loggerService = !options.disableMonitoring ? AgentLoggerService.getInstance() : null;
-  let monitoringAgentId: number | undefined;
-
-  if (monitor && loggerService) {
-    monitoringAgentId = monitor.register({
-      name: step.agentId,
-      prompt: promptPath,
-      parentId: options.parentId
-    });
-
-    // Notify UI about the monitoring ID mapping
-    if (options.ui) {
-      options.ui.registerMonitoringId(step.agentId, monitoringAgentId);
-    }
-  }
-
   // Use environment variable or default to 30 minutes (1800000ms)
   const timeout =
     options.timeout ??
@@ -117,6 +99,26 @@ export async function executeStep(
   // Model resolution: step override > engine default
   const model = step.model ?? engineModule.metadata.defaultModel;
   const modelReasoningEffort = step.modelReasoningEffort ?? engineModule.metadata.defaultModelReasoningEffort;
+
+  // Initialize monitoring with engine/model info (unless explicitly disabled)
+  const monitor = !options.disableMonitoring ? AgentMonitorService.getInstance() : null;
+  const loggerService = !options.disableMonitoring ? AgentLoggerService.getInstance() : null;
+  let monitoringAgentId: number | undefined;
+
+  if (monitor && loggerService) {
+    monitoringAgentId = monitor.register({
+      name: step.agentId,
+      prompt: promptPath,
+      parentId: options.parentId,
+      engineProvider: engineType,
+      modelName: model,
+    });
+
+    // Notify UI about the monitoring ID mapping
+    if (options.ui) {
+      options.ui.registerMonitoringId(step.agentId, monitoringAgentId);
+    }
+  }
 
   // Track stdout for memory storage
   let totalStdout = '';

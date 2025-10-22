@@ -5,7 +5,7 @@ import { BrandingHeader } from './BrandingHeader';
 import { AgentTimeline } from './AgentTimeline';
 import { OutputWindow } from './OutputWindow';
 import { TelemetryBar } from './TelemetryBar';
-import { TelemetryDetailView } from './TelemetryDetailView';
+import { HistoryView } from './HistoryView';
 import { StatusFooter } from './StatusFooter';
 import { LogViewer } from './LogViewer';
 import { formatRuntime } from '../utils/formatters';
@@ -42,9 +42,10 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
   getMonitoringId,
 }) => {
   const { stdout } = useStdout();
-  const [showTelemetry, setShowTelemetry] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [runtime, setRuntime] = useState('00:00:00');
   const [logViewerAgentId, setLogViewerAgentId] = useState<string | null>(null);
+  const [historyLogViewerMonitoringId, setHistoryLogViewerMonitoringId] = useState<number | null>(null);
 
   useCtrlCHandler();
 
@@ -61,8 +62,8 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
   useInput((input, key) => {
     if (input === 's') {
       onAction({ type: 'SKIP' });
-    } else if (input === 't') {
-      setShowTelemetry(!showTelemetry);
+    } else if (input === 'h') {
+      setShowHistory(!showHistory);
       onAction({ type: 'TOGGLE_TELEMETRY' });
     } else if (key.upArrow) {
       onAction({ type: 'NAVIGATE_UP', visibleItemCount: state.visibleItemCount });
@@ -83,27 +84,34 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
   // Get current agent for output window using centralized logic
   const currentAgent = getOutputAgent(state);
 
-  // Calculate cumulative telemetry from main agents
-  let totalTokensIn = state.agents.reduce((sum, a) => sum + a.telemetry.tokensIn, 0);
-  let totalTokensOut = state.agents.reduce((sum, a) => sum + a.telemetry.tokensOut, 0);
-  let totalCached = state.agents.reduce((sum, a) => sum + (a.telemetry.cached || 0), 0);
-  let totalCost = state.agents.reduce((sum, a) => sum + (a.telemetry.cost || 0), 0);
+  // Calculate cumulative telemetry from execution history
+  // This persists across loop resets and includes all cycles
+  const totalTokensIn = state.executionHistory.reduce((sum, record) => sum + record.telemetry.tokensIn, 0);
+  const totalTokensOut = state.executionHistory.reduce((sum, record) => sum + record.telemetry.tokensOut, 0);
+  const totalCached = state.executionHistory.reduce((sum, record) => sum + (record.telemetry.cached || 0), 0);
+  const totalCost = state.executionHistory.reduce((sum, record) => sum + (record.telemetry.cost || 0), 0);
 
-  // Include subagent telemetry in totals
+  // Also include current running agents (not yet in history)
+  let runningTokensIn = state.agents.reduce((sum, a) => sum + a.telemetry.tokensIn, 0);
+  let runningTokensOut = state.agents.reduce((sum, a) => sum + a.telemetry.tokensOut, 0);
+  let runningCached = state.agents.reduce((sum, a) => sum + (a.telemetry.cached || 0), 0);
+  let runningCost = state.agents.reduce((sum, a) => sum + (a.telemetry.cost || 0), 0);
+
+  // Include current subagents (not yet in history)
   for (const subAgents of state.subAgents.values()) {
     for (const subAgent of subAgents) {
-      totalTokensIn += subAgent.telemetry.tokensIn;
-      totalTokensOut += subAgent.telemetry.tokensOut;
-      totalCached += subAgent.telemetry.cached || 0;
-      totalCost += subAgent.telemetry.cost || 0;
+      runningTokensIn += subAgent.telemetry.tokensIn;
+      runningTokensOut += subAgent.telemetry.tokensOut;
+      runningCached += subAgent.telemetry.cached || 0;
+      runningCost += subAgent.telemetry.cost || 0;
     }
   }
 
   const cumulativeStats = {
-    totalTokensIn,
-    totalTokensOut,
-    totalCached,
-    totalCost,
+    totalTokensIn: totalTokensIn + runningTokensIn,
+    totalTokensOut: totalTokensOut + runningTokensOut,
+    totalCached: totalCached + runningCached,
+    totalCost: totalCost + runningCost,
     loopIterations: state.loopState?.iteration,
   };
 
@@ -119,7 +127,18 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
   leftPanelWidth = Math.min(Math.max(30, leftPanelWidth), terminalWidth - 40);
   const rightPanelWidth = terminalWidth - leftPanelWidth;
 
-  // Log viewer (highest priority)
+  // Log viewer from history view (highest priority)
+  if (historyLogViewerMonitoringId !== null) {
+    return (
+      <LogViewer
+        uiAgentId={historyLogViewerMonitoringId.toString()}
+        onClose={() => setHistoryLogViewerMonitoringId(null)}
+        getMonitoringId={() => historyLogViewerMonitoringId}
+      />
+    );
+  }
+
+  // Log viewer from workflow view
   if (logViewerAgentId) {
     return (
       <LogViewer
@@ -130,15 +149,12 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
     );
   }
 
-  // Telemetry detail view
-  if (showTelemetry) {
+  // History view (execution history from registry)
+  if (showHistory) {
     return (
-      <TelemetryDetailView
-        allAgents={state.agents}
-        subAgents={state.subAgents}
-        triggeredAgents={state.triggeredAgents}
-        cumulativeStats={cumulativeStats}
-        onClose={() => setShowTelemetry(false)}
+      <HistoryView
+        onClose={() => setShowHistory(false)}
+        onOpenLogViewer={(monitoringId) => setHistoryLogViewerMonitoringId(monitoringId)}
       />
     );
   }

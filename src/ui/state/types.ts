@@ -73,6 +73,26 @@ export interface LoopState {
 export type WorkflowStatus = 'running' | 'stopping' | 'completed' | 'stopped';
 
 /**
+ * Record of a single agent execution (including loop cycles)
+ * Used to track complete execution history for telemetry
+ */
+export interface ExecutionRecord {
+  id: string;                    // Unique ID for this execution
+  agentName: string;             // Agent name
+  agentId: string;               // Original agent ID
+  cycleNumber?: number;          // Cycle number if from loop
+  engine: EngineType;
+  status: AgentStatus;
+  startTime: number;
+  endTime?: number;
+  duration?: number;
+  telemetry: AgentTelemetry;
+  toolCount: number;
+  thinkingCount: number;
+  error?: string;
+}
+
+/**
  * Complete workflow UI state
  */
 export interface WorkflowState {
@@ -85,6 +105,7 @@ export interface WorkflowState {
   agents: AgentState[];
   subAgents: Map<string, SubAgentState[]>;
   triggeredAgents: TriggeredAgentState[];
+  executionHistory: ExecutionRecord[];  // Complete execution history for telemetry
 
   loopState: LoopState | null;
   expandedNodes: Set<string>;

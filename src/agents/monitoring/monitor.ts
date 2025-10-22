@@ -43,7 +43,9 @@ export class AgentMonitorService {
       startTime,
       prompt: input.prompt,
       logPath: logPath || this.getDefaultLogPath(id, input.name, startTime),
-      children: []
+      children: [],
+      engineProvider: input.engineProvider,
+      modelName: input.modelName,
     };
 
     // If this agent has a parent, add this agent to parent's children list

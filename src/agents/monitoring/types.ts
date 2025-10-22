@@ -47,6 +47,12 @@ export interface AgentRecord {
 
   /** Error message if status is 'failed' */
   error?: string;
+
+  /** Engine provider (e.g., 'anthropic', 'openai', 'cursor') */
+  engineProvider?: string;
+
+  /** Model name (e.g., 'claude-sonnet-4', 'gpt-4-turbo') */
+  modelName?: string;
 }
 
 /**
@@ -57,6 +63,8 @@ export interface RegisterAgentInput {
   prompt: string;
   parentId?: number;
   pid?: number;
+  engineProvider?: string;
+  modelName?: string;
 }
 
 /**

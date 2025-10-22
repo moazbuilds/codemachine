@@ -467,14 +467,20 @@ export class WorkflowUIManager {
 
   /**
    * Reset an agent for a new loop iteration
-   * Clears UI data (telemetry, tool counts, subagents) and monitoring registry data
+   * Saves current state to history, then clears UI data and monitoring registry data
    */
-  resetAgentForLoop(agentId: string): void {
-    // Reset UI state
+  resetAgentForLoop(agentId: string, cycleNumber?: number): void {
+    // 1. Save current agent state to execution history
+    this.state.saveAgentToHistory(agentId, cycleNumber);
+
+    // 2. Save current subagents to execution history
+    this.state.saveSubAgentsToHistory(agentId);
+
+    // 3. Reset UI state
     this.state.resetAgentForLoop(agentId);
     this.state.clearSubAgentsForParent(agentId);
 
-    // Clear monitoring registry descendants
+    // 4. Clear monitoring registry descendants
     const monitoringId = this.agentIdMap.get(agentId);
     if (monitoringId !== undefined) {
       const monitor = AgentMonitorService.getInstance();
@@ -496,7 +502,7 @@ export class WorkflowUIManager {
     }
 
     if (this.fallbackMode) {
-      console.log(`Reset agent ${agentId} for new loop iteration`);
+      console.log(`Reset agent ${agentId} for new loop iteration ${cycleNumber || ''}`);
     }
   }
 }

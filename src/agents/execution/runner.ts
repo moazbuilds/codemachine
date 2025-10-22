@@ -106,19 +106,6 @@ export async function executeAgent(
 ): Promise<string> {
   const { workingDir, projectRoot, engine: engineOverride, model: modelOverride, logger, stderrLogger, abortSignal, timeout, parentId, disableMonitoring } = options;
 
-  // Initialize monitoring (unless explicitly disabled)
-  const monitor = !disableMonitoring ? AgentMonitorService.getInstance() : null;
-  const loggerService = !disableMonitoring ? AgentLoggerService.getInstance() : null;
-  let monitoringAgentId: number | undefined;
-
-  if (monitor && loggerService) {
-    monitoringAgentId = monitor.register({
-      name: agentId,
-      prompt,
-      parentId
-    });
-  }
-
   // Load agent config to determine engine and model
   const agentConfig = await loadAgentConfig(agentId, projectRoot ?? workingDir);
 
@@ -168,6 +155,21 @@ export async function executeAgent(
   // Model resolution: CLI override > agent config (legacy) > engine default
   const model = modelOverride ?? (agentConfig.model as string | undefined) ?? engineModule.metadata.defaultModel;
   const modelReasoningEffort = (agentConfig.modelReasoningEffort as 'low' | 'medium' | 'high' | undefined) ?? engineModule.metadata.defaultModelReasoningEffort;
+
+  // Initialize monitoring with engine/model info (unless explicitly disabled)
+  const monitor = !disableMonitoring ? AgentMonitorService.getInstance() : null;
+  const loggerService = !disableMonitoring ? AgentLoggerService.getInstance() : null;
+  let monitoringAgentId: number | undefined;
+
+  if (monitor && loggerService) {
+    monitoringAgentId = monitor.register({
+      name: agentId,
+      prompt,
+      parentId,
+      engineProvider: engineType,
+      modelName: model,
+    });
+  }
 
   // Set up memory
   const memoryDir = path.resolve(workingDir, '.codemachine', 'memory');
