@@ -52,6 +52,16 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
 
   // Keyboard event handling
   useInput((input, key) => {
+    // Handle Ctrl+C manually since we disabled exitOnCtrlC
+    // In raw mode, Ctrl+C can be represented as:
+    // - key.ctrl && input === 'c'
+    // - input === '\x03' (ETX character, ASCII code 3)
+    if ((key.ctrl && input === 'c') || input === '\x03') {
+      // Use process.kill to send actual SIGINT signal
+      process.kill(process.pid, 'SIGINT');
+      return;
+    }
+
     if (input === 's') {
       onAction({ type: 'SKIP' });
     } else if (input === 't') {
@@ -149,6 +159,7 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
         workflowName={state.workflowName}
         runtime={runtime}
         status={state.workflowStatus}
+        waitingForExit={state.waitingForExit}
         total={{
           tokensIn: cumulativeStats.totalTokensIn,
           tokensOut: cumulativeStats.totalTokensOut,

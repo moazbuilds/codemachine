@@ -17,7 +17,7 @@ export class LogLockService {
     try {
       // Ensure file exists before locking
       if (!existsSync(filePath)) {
-        logger.warn(`Cannot lock non-existent file: ${filePath}`);
+        logger.debug(`Cannot lock non-existent file: ${filePath}`);
         // Return no-op release function for graceful degradation
         return async () => {};
       }
@@ -38,7 +38,7 @@ export class LogLockService {
 
       return release;
     } catch (error) {
-      logger.warn(`Failed to acquire lock for ${filePath}: ${error}`);
+      logger.debug(`Failed to acquire lock for ${filePath}: ${error}`);
       // Return no-op release function for graceful degradation
       // This allows the system to continue even if locking fails
       return async () => {};
@@ -56,7 +56,7 @@ export class LogLockService {
         this.activeLocks.delete(filePath);
         logger.debug(`Released lock for ${filePath}`);
       } catch (error) {
-        logger.warn(`Failed to release lock for ${filePath}: ${error}`);
+        logger.debug(`Failed to release lock for ${filePath}: ${error}`);
         // Still remove from map even if release failed
         this.activeLocks.delete(filePath);
       }
@@ -75,7 +75,7 @@ export class LogLockService {
         await release();
         logger.debug(`Released lock for ${path}`);
       } catch (error) {
-        logger.warn(`Failed to release lock for ${path}: ${error}`);
+        logger.debug(`Failed to release lock for ${path}: ${error}`);
       }
     }
 

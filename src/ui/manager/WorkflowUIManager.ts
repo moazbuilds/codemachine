@@ -7,7 +7,7 @@ import { CircularBuffer, BatchUpdater } from '../utils/performance';
 import type { AgentStatus, LoopState, SubAgentState, TriggeredAgentState, WorkflowStatus } from '../state/types';
 import type { ParsedTelemetry, EngineType } from '../../infra/engines/index.js';
 import { formatAgentLog } from '../../shared/logging/agent-loggers.js';
-import { AgentMonitorService, convertChildrenToSubAgents } from '../../agents/monitoring/index.js';
+import { AgentMonitorService, convertChildrenToSubAgents, MonitoringCleanup } from '../../agents/monitoring/index.js';
 
 /**
  * Orchestrates Ink lifecycle, manages state, and handles UI events
@@ -53,7 +53,10 @@ export class WorkflowUIManager {
           state: this.state.getState(),
           onAction: this.handleAction.bind(this),
           getMonitoringId: this.getMonitoringAgentId.bind(this),
-        })
+        }),
+        {
+          exitOnCtrlC: false, // Let MonitoringCleanup handle Ctrl+C instead of Ink
+        }
       );
 
       // Subscribe to state changes to trigger re-renders
@@ -74,6 +77,25 @@ export class WorkflowUIManager {
 
       // Start syncing sub-agents from registry
       this.startSubAgentSync();
+
+      // Register callback for first Ctrl+C
+      MonitoringCleanup.onWorkflowStop = () => {
+        // Abort the currently running agent
+        (process as NodeJS.EventEmitter).emit('workflow:skip');
+
+        // Stop the entire workflow from continuing to next agents
+        (process as NodeJS.EventEmitter).emit('workflow:stop');
+
+        // Update UI to show workflow is stopped and waiting for second Ctrl+C
+        this.state.setWorkflowStatus('stopped');
+        this.state.setWaitingForExit(true);
+      };
+
+      // Register callback for second Ctrl+C
+      MonitoringCleanup.onWorkflowExit = () => {
+        // Clear waitingForExit flag to show "Stopped by user" message
+        this.state.setWaitingForExit(false);
+      };
     } catch (error) {
       this.fallbackMode = true;
       console.error('Failed to initialize Ink UI, using fallback mode:', error);

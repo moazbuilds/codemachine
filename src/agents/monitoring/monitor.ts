@@ -108,7 +108,12 @@ export class AgentMonitorService {
       error: errorMessage
     });
 
-    logger.error(`Agent ${id} (${agent.name}) failed after ${duration}ms: ${errorMessage}`);
+    // Suppress error logs for user interruptions (Ctrl+C) - use debug instead
+    if (errorMessage.includes('User interrupted')) {
+      logger.debug(`Agent ${id} (${agent.name}) aborted by user after ${duration}ms`);
+    } else {
+      logger.error(`Agent ${id} (${agent.name}) failed after ${duration}ms: ${errorMessage}`);
+    }
   }
 
   /**

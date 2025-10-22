@@ -39,6 +39,7 @@ export class WorkflowUIState {
       // Workflow progress tracking
       totalSteps,
       workflowStatus: 'running', // Initialize as running
+      waitingForExit: false, // Initialize as false
     };
   }
 
@@ -371,6 +372,18 @@ export class WorkflowUIState {
     this.state = {
       ...this.state,
       workflowStatus: status,
+    };
+
+    this.notifyListeners();
+  }
+
+  /**
+   * Set waiting for exit flag (used for two-stage Ctrl+C)
+   */
+  setWaitingForExit(waiting: boolean): void {
+    this.state = {
+      ...this.state,
+      waitingForExit: waiting,
     };
 
     this.notifyListeners();
