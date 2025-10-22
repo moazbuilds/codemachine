@@ -15,6 +15,7 @@ export interface LogStreamResult {
 
 /**
  * Hook to stream log file contents with real-time updates for running agents
+ * Uses 500ms polling for reliability across all filesystems
  */
 export function useLogStream(monitoringAgentId: number | undefined): LogStreamResult {
   const [lines, setLines] = useState<string[]>([]);
@@ -25,43 +26,124 @@ export function useLogStream(monitoringAgentId: number | undefined): LogStreamRe
 
   useEffect(() => {
     if (monitoringAgentId === undefined) {
-      setError('Agent not found');
+      setError('Agent ID not provided');
       setIsLoading(false);
       return;
     }
 
-    const monitor = AgentMonitorService.getInstance();
-    const agentRecord = monitor.getAgent(monitoringAgentId);
+    let mounted = true;
+    let pollInterval: NodeJS.Timeout | undefined;
+    let fileWatcher: (() => void) | undefined;
 
-    if (!agentRecord) {
-      setError('Agent record not found in monitoring registry');
-      setIsLoading(false);
-      return;
+    /**
+     * Try to get agent from registry with retries
+     * Handles timing issues when agent is newly synced
+     */
+    async function getAgentWithRetry(attempts = 3, delay = 200): Promise<AgentRecord | null> {
+      const monitor = AgentMonitorService.getInstance();
+
+      for (let i = 0; i < attempts; i++) {
+        const agentRecord = monitor.getAgent(monitoringAgentId);
+        if (agentRecord) {
+          return agentRecord;
+        }
+
+        // Wait before retry (except on last attempt)
+        if (i < attempts - 1) {
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+
+      return null;
     }
 
-    setAgent(agentRecord);
+    /**
+     * Update log lines from file
+     */
+    async function updateLogs(logPath: string): Promise<void> {
+      if (!mounted) return;
 
-    // Read log file
-    readLogFile(agentRecord.logPath)
-      .then((fileLines) => {
-        setLines(fileLines);
-        setFileSize(getFileSize(agentRecord.logPath));
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setIsLoading(false);
-      });
-
-    // Watch for updates if agent is running
-    if (agentRecord.status === 'running') {
-      const unwatch = watchLogFile(agentRecord.logPath, (newLines) => {
-        setLines(newLines);
-        setFileSize(getFileSize(agentRecord.logPath));
-      });
-
-      return unwatch; // Cleanup function
+      try {
+        const fileLines = await readLogFile(logPath);
+        if (mounted) {
+          setLines(fileLines);
+          setFileSize(getFileSize(logPath));
+        }
+      } catch (err) {
+        if (mounted) {
+          setError(`Failed to read log: ${err}`);
+        }
+      }
     }
+
+    /**
+     * Initialize log streaming
+     */
+    async function initialize(): Promise<void> {
+      const agentRecord = await getAgentWithRetry();
+
+      if (!agentRecord) {
+        if (mounted) {
+          setError(`Agent ${monitoringAgentId} not found in monitoring registry. It may not be registered yet.`);
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      if (!mounted) return;
+
+      setAgent(agentRecord);
+      setError(null);
+
+      // Initial log read
+      try {
+        const fileLines = await readLogFile(agentRecord.logPath);
+        if (mounted) {
+          setLines(fileLines);
+          setFileSize(getFileSize(agentRecord.logPath));
+          setIsLoading(false);
+        }
+      } catch (err) {
+        if (mounted) {
+          setError(`Failed to read log: ${err}`);
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      // Set up real-time updates for running agents
+      if (agentRecord.status === 'running') {
+        // Primary: 500ms polling (reliable across all filesystems)
+        pollInterval = setInterval(() => {
+          updateLogs(agentRecord.logPath);
+        }, 500);
+
+        // Secondary: fs.watch for immediate updates (when available)
+        try {
+          fileWatcher = watchLogFile(agentRecord.logPath, (newLines) => {
+            if (mounted) {
+              setLines(newLines);
+              setFileSize(getFileSize(agentRecord.logPath));
+            }
+          });
+        } catch {
+          // Ignore fs.watch errors - polling will handle updates
+        }
+      }
+    }
+
+    initialize();
+
+    // Cleanup function
+    return () => {
+      mounted = false;
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+      if (fileWatcher) {
+        fileWatcher();
+      }
+    };
   }, [monitoringAgentId]);
 
   return {

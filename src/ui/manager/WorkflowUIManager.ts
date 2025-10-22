@@ -368,9 +368,41 @@ export class WorkflowUIManager {
   /**
    * Get monitoring agent ID from UI agent ID
    * Used by LogViewer to access log files
+   *
+   * Handles two cases:
+   * 1. Main agents: UUID → monitoring ID via agentIdMap
+   * 2. Sub-agents: ID is already the monitoring ID as a string (e.g., "3" → 3)
    */
   getMonitoringAgentId(uiAgentId: string): number | undefined {
-    return this.agentIdMap.get(uiAgentId);
+    // Validate input
+    if (!uiAgentId || typeof uiAgentId !== 'string') {
+      console.error('[WorkflowUIManager] Invalid UI agent ID:', uiAgentId);
+      return undefined;
+    }
+
+    // Try main agent mapping first
+    const mappedId = this.agentIdMap.get(uiAgentId);
+    if (mappedId !== undefined) {
+      // Validate mapped ID is a positive integer
+      if (typeof mappedId === 'number' && mappedId > 0 && Number.isInteger(mappedId)) {
+        return mappedId;
+      }
+      console.error('[WorkflowUIManager] Invalid mapped monitoring ID for', uiAgentId, ':', mappedId);
+      return undefined;
+    }
+
+    // Try parsing as sub-agent ID (monitoring ID as string)
+    const parsedId = parseInt(uiAgentId, 10);
+    if (!isNaN(parsedId) && parsedId > 0 && Number.isInteger(parsedId)) {
+      return parsedId;
+    }
+
+    // If parsing failed and it's not a UUID, log warning
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uiAgentId)) {
+      console.warn('[WorkflowUIManager] Could not resolve monitoring ID for UI agent:', uiAgentId);
+    }
+
+    return undefined;
   }
 
   /**
