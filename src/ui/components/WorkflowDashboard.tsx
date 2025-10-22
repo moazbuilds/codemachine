@@ -47,6 +47,10 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
   const [logViewerAgentId, setLogViewerAgentId] = useState<string | null>(null);
   const [historyLogViewerMonitoringId, setHistoryLogViewerMonitoringId] = useState<number | null>(null);
 
+  // Saved scroll position for history view (to restore when returning from log viewer)
+  const [savedHistoryScrollOffset, setSavedHistoryScrollOffset] = useState<number | undefined>(undefined);
+  const [savedHistorySelectedIndex, setSavedHistorySelectedIndex] = useState<number | undefined>(undefined);
+
   useCtrlCHandler();
 
   // Update runtime every second (or freeze if endTime is set)
@@ -60,7 +64,7 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
 
   // Keyboard event handling
   useInput((input, key) => {
-    if (input === 's') {
+    if (key.ctrl && input === 's') {
       onAction({ type: 'SKIP' });
     } else if (input === 'h') {
       setShowHistory(!showHistory);
@@ -69,14 +73,19 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
       onAction({ type: 'NAVIGATE_UP', visibleItemCount: state.visibleItemCount });
     } else if (key.downArrow) {
       onAction({ type: 'NAVIGATE_DOWN', visibleItemCount: state.visibleItemCount });
-    } else if (key.return && state.selectedItemType === 'summary' && state.selectedAgentId) {
-      // Enter key toggles expansion only when summary is selected
-      onAction({ type: 'TOGGLE_EXPAND', agentId: state.selectedAgentId });
-    } else if (key.ctrl && input === 'l') {
-      // Ctrl+L opens log viewer for selected agent
-      const agentId = state.selectedSubAgentId || state.selectedAgentId;
-      if (agentId) {
-        setLogViewerAgentId(agentId);
+    } else if (key.return) {
+      // Enter key has dual functionality:
+      // 1. If summary row selected → toggle expand/collapse
+      // 2. If main agent or subagent selected → open log viewer
+      if (state.selectedItemType === 'summary' && state.selectedAgentId) {
+        // Toggle expand/collapse for summary
+        onAction({ type: 'TOGGLE_EXPAND', agentId: state.selectedAgentId });
+      } else {
+        // Open log viewer for main agent or subagent
+        const agentId = state.selectedSubAgentId || state.selectedAgentId;
+        if (agentId) {
+          setLogViewerAgentId(agentId);
+        }
       }
     }
   });
@@ -132,7 +141,11 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
     return (
       <LogViewer
         uiAgentId={historyLogViewerMonitoringId.toString()}
-        onClose={() => setHistoryLogViewerMonitoringId(null)}
+        onClose={() => {
+          setHistoryLogViewerMonitoringId(null);
+          // Return to history view (scroll position will be restored)
+          setShowHistory(true);
+        }}
         getMonitoringId={() => historyLogViewerMonitoringId}
       />
     );
@@ -153,8 +166,23 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
   if (showHistory) {
     return (
       <HistoryView
-        onClose={() => setShowHistory(false)}
-        onOpenLogViewer={(monitoringId) => setHistoryLogViewerMonitoringId(monitoringId)}
+        onClose={() => {
+          setShowHistory(false);
+          // Clear saved position when closing history view
+          setSavedHistoryScrollOffset(undefined);
+          setSavedHistorySelectedIndex(undefined);
+        }}
+        onOpenLogViewer={(monitoringId) => {
+          setHistoryLogViewerMonitoringId(monitoringId);
+          // History view will be hidden when log viewer opens
+          setShowHistory(false);
+        }}
+        savedScrollOffset={savedHistoryScrollOffset}
+        savedSelectedIndex={savedHistorySelectedIndex}
+        onScrollStateChange={(scrollOffset, selectedIndex) => {
+          setSavedHistoryScrollOffset(scrollOffset);
+          setSavedHistorySelectedIndex(selectedIndex);
+        }}
       />
     );
   }
