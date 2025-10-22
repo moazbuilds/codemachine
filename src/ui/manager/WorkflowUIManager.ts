@@ -7,6 +7,7 @@ import { CircularBuffer, BatchUpdater } from '../utils/performance';
 import type { AgentStatus, LoopState, SubAgentState, TriggeredAgentState, WorkflowStatus } from '../state/types';
 import type { ParsedTelemetry, EngineType } from '../../infra/engines/index.js';
 import { formatAgentLog } from '../../shared/logging/agent-loggers.js';
+import { debug } from '../../shared/logging/logger.js';
 import { AgentMonitorService, convertChildrenToSubAgents, MonitoringCleanup } from '../../agents/monitoring/index.js';
 
 /**
@@ -427,9 +428,9 @@ export class WorkflowUIManager {
       return parsedId;
     }
 
-    // If parsing failed and it's not a UUID, log warning
+    // If parsing failed and it's not a UUID, log debug
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uiAgentId)) {
-      console.warn('[WorkflowUIManager] Could not resolve monitoring ID for UI agent:', uiAgentId);
+      debug('[WorkflowUIManager] Could not resolve monitoring ID for UI agent:', uiAgentId);
     }
 
     return undefined;

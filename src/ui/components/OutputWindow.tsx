@@ -75,7 +75,7 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
   return (
     <Box flexDirection="column" width="100%" height="100%">
       {/* Header - Fixed height */}
-      <Box paddingX={1} paddingBottom={1} justifyContent="space-between">
+      <Box paddingX={1} paddingBottom={0} justifyContent="space-between">
         <Text bold underline>
           Output: {currentAgent.name}
         </Text>

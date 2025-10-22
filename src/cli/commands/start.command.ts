@@ -2,6 +2,7 @@ import * as path from 'node:path';
 import type { Command } from 'commander';
 
 import { runWorkflowQueue } from '../../workflows/index.js';
+import { debug } from '../../shared/logging/logger.js';
 
 const DEFAULT_SPEC_PATH = '.codemachine/inputs/specifications.md';
 
@@ -22,7 +23,7 @@ export function registerStartCommand(program: Command): void {
       const specPath = options.spec ?? globalOpts.spec ?? DEFAULT_SPEC_PATH;
       const specificationPath = path.resolve(cwd, specPath);
 
-      console.log(`Starting workflow (spec: ${specificationPath})`);
+      debug(`Starting workflow (spec: ${specificationPath})`);
 
       try {
         await runWorkflowQueue({ cwd, specificationPath });
