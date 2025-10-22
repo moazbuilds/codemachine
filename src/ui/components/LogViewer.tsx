@@ -43,7 +43,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
 
   // Keyboard handling
   useInput((input, key) => {
-    if ((key.ctrl && input === 'l') || input === 'q' || key.escape) {
+    if (key.escape) {
       onClose();
     } else if (key.upArrow) {
       setScrollOffset((prev) => Math.max(0, prev - 1));
@@ -124,7 +124,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
       {/* Footer */}
       <Box paddingX={1} paddingY={0}>
         <Text dimColor>
-          [Ctrl+L/Esc/Q] Close  [↑↓] Scroll  [PgUp/PgDn] Page
+          [Esc] Close  [↑↓] Scroll  [PgUp/PgDn] Page
         </Text>
       </Box>
     </Box>
