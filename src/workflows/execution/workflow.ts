@@ -125,8 +125,21 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     console.log(`Resuming workflow from step ${startIndex}...`);
   }
 
+  // Workflow stop flag for Ctrl+C handling
+  let workflowShouldStop = false;
+  const stopListener = () => {
+    workflowShouldStop = true;
+  };
+  process.on('workflow:stop', stopListener);
+
   try {
     for (let index = startIndex; index < template.steps.length; index += 1) {
+    // Check if workflow should stop (Ctrl+C pressed)
+    if (workflowShouldStop) {
+      console.log(formatAgentLog('workflow', 'Workflow stopped by user.'));
+      break;
+    }
+
     const step = template.steps[index];
     if (step.type !== 'module') {
       continue;
@@ -363,12 +376,30 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     }
   }
 
-  // Workflow completed successfully - set status and keep UI alive
+  // Check if workflow was stopped by user (Ctrl+C)
+  if (workflowShouldStop) {
+    // Workflow was stopped - status already set to 'stopped' by onWorkflowStop callback
+    // Keep UI alive to show "Press Ctrl+C again to exit" message
+    // The second Ctrl+C will be handled by MonitoringCleanup's SIGINT handler
+    // Wait indefinitely - the SIGINT handler will call process.exit()
+    await new Promise(() => {
+      // Never resolves - keeps event loop alive until second Ctrl+C exits process
+    });
+  }
+
+  // Workflow completed successfully
+  // Clear the workflow stop callback so Ctrl+C uses normal two-stage behavior
+  MonitoringCleanup.onWorkflowStop = undefined;
+
+  // Set status to completed and keep UI alive
   ui.setWorkflowStatus('completed');
-  // UI will stay running - user presses Ctrl+C to exit
+  // UI will stay running - user presses Ctrl+C to exit with two-stage behavior
   } catch (error) {
-    // On workflow error, set status to stopped
+    // On workflow error, set status and exit
     ui.setWorkflowStatus('stopped');
     throw error;
+  } finally {
+    // Clean up workflow stop listener
+    process.removeListener('workflow:stop', stopListener);
   }
 }

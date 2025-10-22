@@ -8,6 +8,7 @@ export interface TelemetryBarProps {
   workflowName: string;
   runtime: string;
   status: WorkflowStatus;
+  waitingForExit: boolean;
   total: {
     tokensIn: number;
     tokensOut: number;
@@ -18,7 +19,7 @@ export interface TelemetryBarProps {
 /**
  * Show workflow info, status, and total telemetry in footer
  */
-export const TelemetryBar: React.FC<TelemetryBarProps> = ({ workflowName, runtime, status, total }) => {
+export const TelemetryBar: React.FC<TelemetryBarProps> = ({ workflowName, runtime, status, waitingForExit, total }) => {
   const totalText = `${formatTokens(total.tokensIn, total.tokensOut)}${
     total.cached ? ` (${formatNumber(total.cached)} cached)` : ''
   }`;
@@ -31,7 +32,9 @@ export const TelemetryBar: React.FC<TelemetryBarProps> = ({ workflowName, runtim
       case 'completed':
         return <Text color="green">✓ Completed</Text>;
       case 'stopped':
-        return <Text color="red">⏹ Stopped by user</Text>;
+        return waitingForExit
+          ? <Text color="yellow">⚠ Press Ctrl+C again to exit</Text>
+          : <Text color="red">⏹ Stopped by user</Text>;
       default:
         return null;
     }

@@ -9,6 +9,21 @@ import * as logger from '../../shared/logging/logger.js';
 export class MonitoringCleanup {
   private static isSetup = false;
   private static isCleaningUp = false;
+  private static firstCtrlCPressed = false;
+  private static firstCtrlCTime = 0;
+  private static readonly CTRL_C_DEBOUNCE_MS = 500; // Require 500ms between Ctrl+C presses
+
+  /**
+   * Callback invoked on first Ctrl+C to gracefully stop workflow
+   * Should set UI status to 'stopped' and show "Press Ctrl+C again to exit" message
+   */
+  static onWorkflowStop?: () => void;
+
+  /**
+   * Callback invoked on second Ctrl+C before cleanup and exit
+   * Should clear waitingForExit flag to show "Stopped by user" message
+   */
+  static onWorkflowExit?: () => void;
 
   /**
    * Set up signal handlers for graceful cleanup
@@ -21,8 +36,38 @@ export class MonitoringCleanup {
 
     this.isSetup = true;
 
-    // Handle Ctrl+C (SIGINT)
+    // Handle Ctrl+C (SIGINT) with two-stage behavior
     process.on('SIGINT', async () => {
+      if (!this.firstCtrlCPressed) {
+        // First Ctrl+C: Gracefully stop workflow without cleanup
+        this.firstCtrlCPressed = true;
+        this.firstCtrlCTime = Date.now();
+        logger.debug('First Ctrl+C detected - stopping workflow gracefully');
+
+        // Call UI callback to update status
+        if (this.onWorkflowStop) {
+          this.onWorkflowStop();
+        }
+
+        // Don't exit - wait for second Ctrl+C
+        return;
+      }
+
+      // Check if enough time has passed since first Ctrl+C
+      const timeSinceFirst = Date.now() - this.firstCtrlCTime;
+      if (timeSinceFirst < this.CTRL_C_DEBOUNCE_MS) {
+        logger.debug(`Ignoring Ctrl+C - too soon (${timeSinceFirst}ms < ${this.CTRL_C_DEBOUNCE_MS}ms). Press Ctrl+C again to exit.`);
+        return;
+      }
+
+      // Second Ctrl+C (after debounce): Run cleanup and exit
+      logger.debug(`Second Ctrl+C detected after ${timeSinceFirst}ms - cleaning up and exiting`);
+
+      // Call UI callback to update status before exit
+      if (this.onWorkflowExit) {
+        this.onWorkflowExit();
+      }
+
       await this.handleSignal('SIGINT', 'User interrupted (Ctrl+C)');
     });
 
@@ -53,7 +98,7 @@ export class MonitoringCleanup {
    * Handle process signal
    */
   private static async handleSignal(signal: string, message: string): Promise<void> {
-    console.log(`\n\nReceived ${signal}: ${message}`);
+    logger.debug(`Received ${signal}: ${message}`);
     await this.cleanup('aborted', new Error(message));
     process.exit(130); // Standard exit code for Ctrl+C
   }
@@ -75,7 +120,7 @@ export class MonitoringCleanup {
       const runningAgents = monitor.getActiveAgents();
 
       if (runningAgents.length > 0) {
-        console.log(`\nCleaning up ${runningAgents.length} running agent(s)...`);
+        logger.debug(`Cleaning up ${runningAgents.length} running agent(s)...`);
 
         for (const agent of runningAgents) {
           try {
@@ -95,7 +140,7 @@ export class MonitoringCleanup {
         // Release any remaining locks
         await loggerService.releaseAllLocks();
 
-        console.log('Cleanup complete.\n');
+        logger.debug('Cleanup complete');
       }
     } catch (error) {
       logger.error('Error during cleanup:', error);

@@ -99,4 +99,5 @@ export interface WorkflowState {
   // Workflow progress tracking
   totalSteps: number;
   workflowStatus: WorkflowStatus;  // Current execution status
+  waitingForExit: boolean;  // True when first Ctrl+C pressed, waiting for second to exit
 }

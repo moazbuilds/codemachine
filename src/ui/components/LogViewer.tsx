@@ -39,6 +39,16 @@ export const LogViewer: React.FC<LogViewerProps> = ({
 
   // Keyboard handling
   useInput((input, key) => {
+    // Handle Ctrl+C manually since we disabled exitOnCtrlC
+    // In raw mode, Ctrl+C can be represented as:
+    // - key.ctrl && input === 'c'
+    // - input === '\x03' (ETX character, ASCII code 3)
+    if ((key.ctrl && input === 'c') || input === '\x03') {
+      // Use process.kill to send actual SIGINT signal
+      process.kill(process.pid, 'SIGINT');
+      return;
+    }
+
     if ((key.ctrl && input === 'l') || input === 'q' || key.escape) {
       onClose();
     } else if (key.upArrow) {

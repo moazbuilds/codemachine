@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Text } from 'ink';
+import { Box, Text, useInput } from 'ink';
 import type { AgentState, SubAgentState, TriggeredAgentState } from '../state/types';
 import { formatDuration, formatTokens, formatNumber } from '../utils/formatters';
 
@@ -27,7 +27,25 @@ export const TelemetryDetailView: React.FC<TelemetryDetailViewProps> = ({
   subAgents,
   triggeredAgents,
   cumulativeStats,
+  onClose,
 }) => {
+  // Keyboard handling
+  useInput((input, key) => {
+    // Handle Ctrl+C manually since we disabled exitOnCtrlC
+    // In raw mode, Ctrl+C can be represented as:
+    // - key.ctrl && input === 'c'
+    // - input === '\x03' (ETX character, ASCII code 3)
+    if ((key.ctrl && input === 'c') || input === '\x03') {
+      // Use process.kill to send actual SIGINT signal
+      process.kill(process.pid, 'SIGINT');
+      return;
+    }
+
+    if (input === 't' || input === 'q' || key.escape) {
+      onClose();
+    }
+  });
+
   // Calculate aggregate metrics
   let totalSubAgents = 0;
   let subAgentTokensIn = 0;
