@@ -4,7 +4,6 @@ import {
   createNewAgent,
   updateAgentStatusInList,
   updateAgentTelemetryInList,
-  maintainCircularBuffer,
 } from './stateMutations';
 import {
   getNextNavigableItem,
@@ -30,8 +29,6 @@ export class WorkflowUIState {
       triggeredAgents: [],
       loopState: null,
       expandedNodes: new Set(),
-      outputBuffers: new Map(),
-      outputBuffer: [],
       showTelemetryView: false,
       selectedAgentId: null,
       selectedSubAgentId: null,
@@ -50,15 +47,9 @@ export class WorkflowUIState {
       agent.status = initialStatus;
     }
 
-    
-    // Initialize buffer for this agent
-    const newOutputBuffers = new Map(this.state.outputBuffers);
-    newOutputBuffers.set(id, []);
-
     this.state = {
       ...this.state,
       agents: [...this.state.agents, agent],
-      outputBuffers: newOutputBuffers,
     };
 
     this.notifyListeners();
@@ -73,41 +64,15 @@ export class WorkflowUIState {
 
     // Auto-select agent when it starts running
     if (status === 'running') {
-      // Clear this agent's buffer and select it
-      const newOutputBuffers = new Map(this.state.outputBuffers);
-      newOutputBuffers.set(agentId, []);
-
       this.state = {
         ...this.state,
         selectedAgentId: agentId,
-        outputBuffers: newOutputBuffers,
-        outputBuffer: [], // Clear current display buffer
       };
     }
 
     this.notifyListeners();
   }
 
-  appendOutput(agentId: string, line: string): void {
-    // Get or create buffer for this specific agent
-    const newOutputBuffers = new Map(this.state.outputBuffers);
-    const agentBuffer = newOutputBuffers.get(agentId) || [];
-    const updatedAgentBuffer = maintainCircularBuffer([...agentBuffer, line], 1000);
-    newOutputBuffers.set(agentId, updatedAgentBuffer);
-
-    // Update the current display buffer if this agent is selected
-    const currentOutputBuffer = this.state.selectedAgentId === agentId
-      ? updatedAgentBuffer
-      : this.state.outputBuffer;
-
-    this.state = {
-      ...this.state,
-      outputBuffers: newOutputBuffers,
-      outputBuffer: currentOutputBuffer,
-    };
-
-    this.notifyListeners();
-  }
 
   updateAgentTelemetry(agentId: string, telemetry: Partial<AgentTelemetry>): void {
     this.state = {
@@ -119,14 +84,10 @@ export class WorkflowUIState {
   }
 
   selectAgent(agentId: string): void {
-    // Get the selected agent's buffer
-    const agentBuffer = this.state.outputBuffers.get(agentId) || [];
-
     this.state = {
       ...this.state,
       selectedAgentId: agentId,
       selectedSubAgentId: null, // Clear sub-agent selection
-      outputBuffer: agentBuffer, // Switch display to this agent's buffer
     };
 
     this.notifyListeners();
@@ -326,38 +287,32 @@ export class WorkflowUIState {
   }
 
   /**
-   * Select a specific item and update output buffer accordingly
+   * Select a specific item (no buffer management needed - UI reads from log files)
    */
   selectItem(itemId: string, itemType: 'main' | 'summary' | 'sub'): void {
     if (itemType === 'main') {
       // Select main agent
-      const agentBuffer = this.state.outputBuffers.get(itemId) || [];
       this.state = {
         ...this.state,
         selectedAgentId: itemId,
         selectedSubAgentId: null,
         selectedItemType: 'main',
-        outputBuffer: agentBuffer,
       };
     } else if (itemType === 'summary') {
       // Select summary - show parent agent's output
       const parentId = itemId; // summary ID is parent agent ID
-      const agentBuffer = this.state.outputBuffers.get(parentId) || [];
       this.state = {
         ...this.state,
         selectedAgentId: parentId,
         selectedSubAgentId: null,
         selectedItemType: 'summary',
-        outputBuffer: agentBuffer,
       };
     } else if (itemType === 'sub') {
       // Select sub-agent - show sub-agent's output
-      const subAgentBuffer = this.state.outputBuffers.get(itemId) || [];
       this.state = {
         ...this.state,
         selectedSubAgentId: itemId,
         selectedItemType: 'sub',
-        outputBuffer: subAgentBuffer,
       };
     }
 

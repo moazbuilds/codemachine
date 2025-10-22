@@ -144,7 +144,6 @@ describe('UI Type Definitions', () => {
         triggeredAgents: [],
         loopState: null,
         expandedNodes: new Set(),
-        outputBuffer: [],
         showTelemetryView: false,
         selectedAgentId: null,
         selectedSubAgentId: null,

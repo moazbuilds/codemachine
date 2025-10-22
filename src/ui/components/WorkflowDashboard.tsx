@@ -149,7 +149,6 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
         <Box flexGrow={1} flexDirection="column" borderStyle="single" borderColor="cyan">
           <OutputWindow
             currentAgent={currentAgent}
-            outputLines={state.outputBuffer}
             getMonitoringId={getMonitoringId}
           />
         </Box>

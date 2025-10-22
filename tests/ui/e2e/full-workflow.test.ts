@@ -5,6 +5,15 @@ import { processOutputChunk } from '../../../src/ui/utils/outputProcessor';
 import fs from 'fs';
 import path from 'path';
 
+/**
+ * NOTE: Many tests in this file reference removed functionality:
+ * - handleOutputChunk() method has been removed
+ * - outputBuffer in-memory buffering has been removed
+ * - UI now reads directly from log files using useLogStream hook
+ *
+ * Tests that use these features should be updated or removed.
+ */
+
 describe('E2E: Full Workflow Execution', () => {
   const fixturesDir = path.join(__dirname, '../fixtures');
 

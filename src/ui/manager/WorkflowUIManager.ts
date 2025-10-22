@@ -2,25 +2,21 @@ import React from 'react';
 import { render, type Instance } from 'ink';
 import { WorkflowDashboard, type UIAction } from '../components/WorkflowDashboard';
 import { WorkflowUIState } from '../state/WorkflowUIState';
-import { processOutputChunk } from '../utils/outputProcessor';
-import { CircularBuffer, BatchUpdater } from '../utils/performance';
 import type { AgentStatus, LoopState, SubAgentState, TriggeredAgentState, WorkflowStatus } from '../state/types';
 import type { ParsedTelemetry, EngineType } from '../../infra/engines/index.js';
 import { formatAgentLog } from '../../shared/logging/agent-loggers.js';
 import { debug } from '../../shared/logging/logger.js';
-import { AgentMonitorService, convertChildrenToSubAgents, MonitoringCleanup } from '../../agents/monitoring/index.js';
+import { AgentMonitorService, AgentLoggerService, convertChildrenToSubAgents, MonitoringCleanup } from '../../agents/monitoring/index.js';
 
 /**
  * Orchestrates Ink lifecycle, manages state, and handles UI events
  * Provides graceful fallback to console.log when TTY is unavailable
- * Implements performance optimizations: buffering, batching, throttling
+ * UI reads agent output from log files via useLogStream hook
  */
 export class WorkflowUIManager {
   private state: WorkflowUIState;
   private inkInstance: Instance | null = null;
   private fallbackMode = false;
-  private outputBuffer: CircularBuffer<{ agentId: string; chunk: string }>;
-  private batchUpdater: BatchUpdater;
   private renderCount = 0;
   private lastRenderTime = 0;
   private originalConsoleLog?: typeof console.log;
@@ -31,8 +27,6 @@ export class WorkflowUIManager {
 
   constructor(workflowName: string, totalSteps: number = 0) {
     this.state = new WorkflowUIState(workflowName, totalSteps);
-    this.outputBuffer = new CircularBuffer(1000);
-    this.batchUpdater = new BatchUpdater(50); // 50ms batching
   }
 
   /**
@@ -156,10 +150,6 @@ export class WorkflowUIManager {
     // Restore console first
     this.restoreConsole();
 
-    // Flush any pending updates
-    this.batchUpdater.flush();
-    this.batchUpdater.clear();
-
     if (this.inkInstance) {
       this.inkInstance.unmount();
       this.inkInstance = null;
@@ -205,61 +195,6 @@ export class WorkflowUIManager {
     }
   }
 
-  /**
-   * Process output chunk from engine and update UI
-   * Uses batching to prevent excessive re-renders (max 20 renders/sec)
-   */
-  handleOutputChunk(agentId: string, chunk: string): void {
-    if (this.fallbackMode) {
-      console.log(chunk);
-      return;
-    }
-
-    try {
-      // Add to circular buffer (auto-manages memory)
-      this.outputBuffer.push({ agentId, chunk });
-
-      // Schedule batched update
-      this.batchUpdater.schedule(() => {
-        this.processBufferedOutput();
-      });
-    } catch (error) {
-      // Don't crash workflow if UI update fails
-      console.error('UI update error:', error);
-    }
-  }
-
-  /**
-   * Process all buffered output (called by batch updater)
-   */
-  private processBufferedOutput(): void {
-    const chunks = this.outputBuffer.getAll();
-    this.outputBuffer.clear();
-
-    for (const { agentId, chunk } of chunks) {
-      const processed = processOutputChunk(chunk);
-
-      // Update output buffer
-      this.state.appendOutput(agentId, chunk);
-
-      // Update counters
-      if (processed.type === 'tool') {
-        this.state.incrementToolCount(agentId);
-      }
-      if (processed.type === 'thinking') {
-        this.state.incrementThinkingCount(agentId);
-      }
-
-      // Update telemetry if found
-      if (processed.telemetry) {
-        this.state.updateAgentTelemetry(agentId, processed.telemetry);
-      }
-    }
-
-    // Track render performance
-    this.renderCount++;
-    this.lastRenderTime = Date.now();
-  }
 
   /**
    * Set loop state
@@ -316,7 +251,7 @@ export class WorkflowUIManager {
   }
 
   /**
-   * Log a workflow message (routes through UI in TTY mode, console.log in fallback)
+   * Log a workflow message to agent's log file
    * Use this instead of direct console.log to prevent breaking Ink UI
    */
   logMessage(agentId: string, message: string): void {
@@ -324,8 +259,12 @@ export class WorkflowUIManager {
       // In fallback mode, use the colored formatAgentLog
       console.log(formatAgentLog(agentId, message));
     } else {
-      // In UI mode, route through output buffer to display in UI
-      this.handleOutputChunk(agentId, message + '\n');
+      // In UI mode, write directly to log file
+      const monitoringId = this.agentIdMap.get(agentId);
+      if (monitoringId !== undefined) {
+        const loggerService = AgentLoggerService.getInstance();
+        loggerService.write(monitoringId, message + '\n');
+      }
     }
   }
 

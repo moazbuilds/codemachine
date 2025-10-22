@@ -273,8 +273,8 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
     try {
       const output = await executeStep(step, cwd, {
-        logger: (chunk) => ui.handleOutputChunk(step.agentId, chunk),
-        stderrLogger: (chunk) => ui.handleOutputChunk(step.agentId, chunk),
+        logger: () => {}, // No-op: UI reads from log files
+        stderrLogger: () => {}, // No-op: UI reads from log files
         ui,
         abortSignal: abortController.signal,
       });
@@ -288,8 +288,8 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
             triggerAgentId: triggeredAgentId,
             cwd,
             engineType,
-            logger: (chunk) => ui.handleOutputChunk(triggeredAgentId, chunk),
-            stderrLogger: (chunk) => ui.handleOutputChunk(triggeredAgentId, chunk),
+            logger: () => {}, // No-op: UI reads from log files
+            stderrLogger: () => {}, // No-op: UI reads from log files
             sourceAgentId: step.agentId,
             ui,
             abortSignal: abortController.signal,
