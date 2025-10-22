@@ -10,7 +10,7 @@ export function getStatusIcon(status: AgentStatus): string {
     case 'running':
       return '⠋';  // Spinner (will animate in Ink)
     case 'completed':
-      return '✓';  // Checkmark
+      return '●';  // Green filled circle
     case 'skipped':
       return '●';  // Filled circle
     case 'retrying':

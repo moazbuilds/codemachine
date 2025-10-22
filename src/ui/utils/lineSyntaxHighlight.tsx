@@ -28,7 +28,7 @@ export const LineSyntaxHighlight: React.FC<LineSyntaxHighlightProps> = ({
     if (text.includes('🧠 THINKING')) return 'magenta';
     if (text.includes('⏱️') || text.includes('Tokens:')) return 'yellow';
     if (text.includes('ERROR') || text.includes('✗') || text.includes('Error:')) return 'red';
-    if (text.includes('✅') || text.includes('✓')) return 'green';
+    if (text.includes('✅') || text.includes('●')) return 'green';
     return undefined;
   };
 

@@ -27,11 +27,11 @@ export const TelemetryBar: React.FC<TelemetryBarProps> = ({ workflowName, runtim
   const statusElement = (() => {
     switch (status) {
       case 'running':
-        return <ShimmerText text="Running..." />;
+        return <ShimmerText text="Running..." sweepSeconds={2.0} bandHalfWidth={2.5} />;
       case 'stopping':
         return <Text color="yellow">⚠ Press Ctrl+C again to exit</Text>;
       case 'completed':
-        return <Text color="green">✓ Completed</Text>;
+        return <Text color="green">● Completed</Text>;
       case 'stopped':
         return <Text color="red">⏹ Stopped by user</Text>;
       default:
