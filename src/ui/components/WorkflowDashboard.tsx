@@ -10,6 +10,7 @@ import { StatusFooter } from './StatusFooter';
 import { LogViewer } from './LogViewer';
 import { formatRuntime } from '../utils/formatters';
 import { getOutputAgent } from '../utils/agentSelection';
+import { useCtrlCHandler } from '../hooks/useCtrlCHandler';
 
 export interface WorkflowDashboardProps {
   state: WorkflowState;
@@ -41,6 +42,8 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
   const [runtime, setRuntime] = useState('00:00:00');
   const [logViewerAgentId, setLogViewerAgentId] = useState<string | null>(null);
 
+  useCtrlCHandler();
+
   // Update runtime every second
   useEffect(() => {
     const interval = setInterval(() => {
@@ -52,16 +55,6 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
 
   // Keyboard event handling
   useInput((input, key) => {
-    // Handle Ctrl+C manually since we disabled exitOnCtrlC
-    // In raw mode, Ctrl+C can be represented as:
-    // - key.ctrl && input === 'c'
-    // - input === '\x03' (ETX character, ASCII code 3)
-    if ((key.ctrl && input === 'c') || input === '\x03') {
-      // Use process.kill to send actual SIGINT signal
-      process.kill(process.pid, 'SIGINT');
-      return;
-    }
-
     if (input === 's') {
       onAction({ type: 'SKIP' });
     } else if (input === 't') {
@@ -139,9 +132,7 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
             expandedNodes={state.expandedNodes}
             selectedSubAgentId={state.selectedSubAgentId}
             selectedItemType={state.selectedItemType}
-            onSelectAgent={(agentId) => onAction({ type: 'SELECT_AGENT', agentId })}
             onToggleExpand={(agentId) => onAction({ type: 'TOGGLE_EXPAND', agentId })}
-            onSelectSubAgent={(subAgentId) => onAction({ type: 'SELECT_SUB_AGENT', subAgentId })}
           />
         </Box>
 
@@ -159,7 +150,6 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
         workflowName={state.workflowName}
         runtime={runtime}
         status={state.workflowStatus}
-        waitingForExit={state.waitingForExit}
         total={{
           tokensIn: cumulativeStats.totalTokensIn,
           tokensOut: cumulativeStats.totalTokensOut,
@@ -167,7 +157,7 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
         }}
       />
 
-      <StatusFooter currentView="workflow" />
+      <StatusFooter />
     </Box>
   );
 };

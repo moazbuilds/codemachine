@@ -78,24 +78,22 @@ export class WorkflowUIManager {
       // Start syncing sub-agents from registry
       this.startSubAgentSync();
 
-      // Register callback for first Ctrl+C
-      MonitoringCleanup.onWorkflowStop = () => {
-        // Abort the currently running agent
-        (process as NodeJS.EventEmitter).emit('workflow:skip');
+      MonitoringCleanup.registerWorkflowHandlers({
+        onStop: () => {
+          // Abort the currently running agent
+          (process as NodeJS.EventEmitter).emit('workflow:skip');
 
-        // Stop the entire workflow from continuing to next agents
-        (process as NodeJS.EventEmitter).emit('workflow:stop');
+          // Stop the entire workflow from continuing to next agents
+          (process as NodeJS.EventEmitter).emit('workflow:stop');
 
-        // Update UI to show workflow is stopped and waiting for second Ctrl+C
-        this.state.setWorkflowStatus('stopped');
-        this.state.setWaitingForExit(true);
-      };
-
-      // Register callback for second Ctrl+C
-      MonitoringCleanup.onWorkflowExit = () => {
-        // Clear waitingForExit flag to show "Stopped by user" message
-        this.state.setWaitingForExit(false);
-      };
+          // Update UI to show workflow is stopping and waiting for second Ctrl+C
+          this.setWorkflowStatus('stopping');
+        },
+        onExit: () => {
+          // Update UI to show workflow has fully stopped
+          this.setWorkflowStatus('stopped');
+        },
+      });
     } catch (error) {
       this.fallbackMode = true;
       console.error('Failed to initialize Ink UI, using fallback mode:', error);
@@ -146,6 +144,8 @@ export class WorkflowUIManager {
    * Stop and cleanup Ink UI
    */
   stop(): void {
+    MonitoringCleanup.clearWorkflowHandlers();
+
     // Stop sub-agent sync
     if (this.syncInterval) {
       clearInterval(this.syncInterval);

@@ -1,7 +1,9 @@
 import React from 'react';
 import { Box, Text, useInput } from 'ink';
 import type { AgentState, SubAgentState, TriggeredAgentState } from '../state/types';
-import { formatDuration, formatTokens, formatNumber } from '../utils/formatters';
+import { formatTokens, formatNumber } from '../utils/formatters';
+import { useCtrlCHandler } from '../hooks/useCtrlCHandler';
+import { calculateDuration } from '../utils/calculateDuration';
 
 export interface TelemetryDetailViewProps {
   allAgents: AgentState[];
@@ -30,17 +32,8 @@ export const TelemetryDetailView: React.FC<TelemetryDetailViewProps> = ({
   onClose,
 }) => {
   // Keyboard handling
+  useCtrlCHandler();
   useInput((input, key) => {
-    // Handle Ctrl+C manually since we disabled exitOnCtrlC
-    // In raw mode, Ctrl+C can be represented as:
-    // - key.ctrl && input === 'c'
-    // - input === '\x03' (ETX character, ASCII code 3)
-    if ((key.ctrl && input === 'c') || input === '\x03') {
-      // Use process.kill to send actual SIGINT signal
-      process.kill(process.pid, 'SIGINT');
-      return;
-    }
-
     if (input === 't' || input === 'q' || key.escape) {
       onClose();
     }
@@ -156,11 +149,14 @@ const AgentTelemetryRow: React.FC<{
   index: number;
   isTriggered?: boolean;
 }> = ({ agent, index, isTriggered }) => {
-  const duration = agent.endTime
-    ? formatDuration((agent.endTime - agent.startTime) / 1000)
-    : agent.status === 'running'
-    ? formatDuration((Date.now() - agent.startTime) / 1000)
-    : '-';
+  const duration = calculateDuration(
+    {
+      startTime: agent.startTime,
+      endTime: agent.endTime,
+      status: agent.status,
+    },
+    { fallback: '-' }
+  );
 
   const prefix = isTriggered ? '⚡ ' : index > 0 ? `${index.toString().padStart(2, '0')}. ` : '   ';
 

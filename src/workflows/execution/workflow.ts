@@ -366,8 +366,6 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
             `${step.agentName} failed: ${error instanceof Error ? error.message : String(error)}`,
           ),
         );
-        // Set workflow status to stopped on error
-        ui.setWorkflowStatus('stopped');
         throw error;
       }
     } finally {
@@ -378,7 +376,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
   // Check if workflow was stopped by user (Ctrl+C)
   if (workflowShouldStop) {
-    // Workflow was stopped - status already set to 'stopped' by onWorkflowStop callback
+    // Workflow was stopped - status already updated by MonitoringCleanup handler
     // Keep UI alive to show "Press Ctrl+C again to exit" message
     // The second Ctrl+C will be handled by MonitoringCleanup's SIGINT handler
     // Wait indefinitely - the SIGINT handler will call process.exit()
@@ -388,8 +386,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
   }
 
   // Workflow completed successfully
-  // Clear the workflow stop callback so Ctrl+C uses normal two-stage behavior
-  MonitoringCleanup.onWorkflowStop = undefined;
+  MonitoringCleanup.clearWorkflowHandlers();
 
   // Set status to completed and keep UI alive
   ui.setWorkflowStatus('completed');

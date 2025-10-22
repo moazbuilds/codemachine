@@ -31,6 +31,8 @@ export function useLogStream(monitoringAgentId: number | undefined): LogStreamRe
       return;
     }
 
+    const agentId = monitoringAgentId;
+
     let mounted = true;
     let pollInterval: NodeJS.Timeout | undefined;
     let fileWatcher: (() => void) | undefined;
@@ -43,7 +45,7 @@ export function useLogStream(monitoringAgentId: number | undefined): LogStreamRe
       const monitor = AgentMonitorService.getInstance();
 
       for (let i = 0; i < attempts; i++) {
-        const agentRecord = monitor.getAgent(monitoringAgentId);
+        const agentRecord = monitor.getAgent(agentId);
         if (agentRecord) {
           return agentRecord;
         }
@@ -84,7 +86,7 @@ export function useLogStream(monitoringAgentId: number | undefined): LogStreamRe
 
       if (!agentRecord) {
         if (mounted) {
-          setError(`Agent ${monitoringAgentId} not found in monitoring registry. It may not be registered yet.`);
+          setError(`Agent ${agentId} not found in monitoring registry. It may not be registered yet.`);
           setIsLoading(false);
         }
         return;
