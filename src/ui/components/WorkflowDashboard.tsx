@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, useInput, useStdout } from 'ink';
+import { Box, Text, useInput, useStdout } from 'ink';
 import type { WorkflowState } from '../state/types';
 import { BrandingHeader } from './BrandingHeader';
 import { AgentTimeline } from './AgentTimeline';
@@ -93,6 +93,15 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
   // Calculate constrained height for main content area
   const mainContentHeight = calculateMainContentHeight(stdout);
 
+  // Calculate dynamic panel widths based on terminal size
+  // Use 35% for agents panel, 65% for output panel
+  // Ensure total width never exceeds terminal width
+  const terminalWidth = stdout?.columns || 120;
+  let leftPanelWidth = Math.floor(terminalWidth * 0.35);
+  // Apply minimum but ensure we don't exceed terminal width
+  leftPanelWidth = Math.min(Math.max(30, leftPanelWidth), terminalWidth - 40);
+  const rightPanelWidth = terminalWidth - leftPanelWidth;
+
   // Log viewer (highest priority)
   if (logViewerAgentId) {
     return (
@@ -131,8 +140,9 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
         flexDirection="row"
         paddingTop={0}
       >
-        {/* Workflow Steps - Fixed width */}
-        <Box width={75} flexDirection="column" borderStyle="single" borderColor="cyan">
+        {/* Workflow Steps - Dynamic width */}
+        <Box width={leftPanelWidth} flexDirection="column">
+          <Text color="cyan">{'─'.repeat(leftPanelWidth)}</Text>
           <AgentTimeline
             mainAgents={state.agents}
             subAgents={state.subAgents}
@@ -143,14 +153,17 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
             selectedItemType={state.selectedItemType}
             onToggleExpand={(agentId) => onAction({ type: 'TOGGLE_EXPAND', agentId })}
           />
+          <Text color="cyan">{'─'.repeat(leftPanelWidth)}</Text>
         </Box>
 
         {/* Agent Output - Takes remaining space with constrained height */}
-        <Box flexGrow={1} flexDirection="column" borderStyle="single" borderColor="cyan">
+        <Box flexGrow={1} flexDirection="column">
+          <Text color="cyan">{'─'.repeat(rightPanelWidth)}</Text>
           <OutputWindow
             currentAgent={currentAgent}
             getMonitoringId={getMonitoringId}
           />
+          <Text color="cyan">{'─'.repeat(rightPanelWidth)}</Text>
         </Box>
       </Box>
 
