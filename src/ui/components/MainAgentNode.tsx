@@ -37,34 +37,33 @@ export const MainAgentNode: React.FC<MainAgentNodeProps> = ({ agent, isSelected 
   }
   const activityStr = activities.length > 0 ? ` • ${activities.join(', ')}` : '';
 
+  const loopInfo =
+    agent.loopRound && agent.loopRound > 0
+      ? ` • ⎿ Round ${agent.loopRound}`
+      : '';
+
   return (
-    <Box flexDirection="column">
-      <Box paddingX={1}>
-        <Text>
-          {isSelected && <Text color="white">&gt; </Text>}
-          {!isSelected && '  '}
-          {agent.status === 'running' ? (
-            <Text color="white">
-              <Spinner type="dots" />
-            </Text>
-          ) : (
-            <Text color={color}>{getStatusIcon(agent.status)}</Text>
-          )}
-          {' '}
-          <Text bold>{agent.name}</Text>
-          {' '}
-          <Text dimColor>({agent.engine})</Text>
-          {duration && <Text> • {duration}</Text>}
-          {tokenStr && <Text dimColor> • {tokenStr}</Text>}
-          {activityStr && <Text dimColor>{activityStr}</Text>}
-          {agent.error && <Text color="red"> • Error: {agent.error}</Text>}
-        </Text>
-      </Box>
-      {agent.loopRound && agent.loopRound > 0 && (
-        <Box paddingX={1}>
-          <Text dimColor>  ⎿  Round {agent.loopRound}</Text>
-        </Box>
-      )}
+    <Box paddingX={1}>
+      <Text>
+        {isSelected && <Text color="white">&gt; </Text>}
+        {!isSelected && '  '}
+        {agent.status === 'running' ? (
+          <Text color="white">
+            <Spinner type="dots" />
+          </Text>
+        ) : (
+          <Text color={color}>{getStatusIcon(agent.status)}</Text>
+        )}
+        {' '}
+        <Text bold>{agent.name}</Text>
+        {' '}
+        <Text dimColor>({agent.engine})</Text>
+        {duration && <Text> • {duration}</Text>}
+        {tokenStr && <Text dimColor> • {tokenStr}</Text>}
+        {activityStr && <Text dimColor>{activityStr}</Text>}
+        {loopInfo && <Text dimColor>{loopInfo}</Text>}
+        {agent.error && <Text color="red"> • Error: {agent.error}</Text>}
+      </Text>
     </Box>
   );
 };

@@ -52,7 +52,7 @@ export const SubAgentSummary: React.FC<SubAgentSummaryProps> = ({
   const tokenStr = totalIn > 0 || totalOut > 0 ? formatTokens(totalIn, totalOut) : '';
 
   return (
-    <Box paddingX={2}>
+    <Box paddingX={1}>
       <Text>
         {showArrow && <Text color="white">&gt; </Text>}
         {!showArrow && '  '}

@@ -392,6 +392,10 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
   // Set status to completed and keep UI alive
   ui.setWorkflowStatus('completed');
   // UI will stay running - user presses Ctrl+C to exit with two-stage behavior
+  // Wait indefinitely - the SIGINT handler will call process.exit()
+  await new Promise(() => {
+    // Never resolves - keeps event loop alive until Ctrl+C exits process
+  });
   } catch (error) {
     // On workflow error, set status and exit
     ui.setWorkflowStatus('stopped');

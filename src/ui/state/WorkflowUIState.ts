@@ -9,6 +9,8 @@ import {
   getNextNavigableItem,
   getPreviousNavigableItem,
   getCurrentSelection,
+  getTimelineLayout,
+  calculateScrollOffset,
 } from '../utils/navigation';
 
 /**
@@ -33,6 +35,8 @@ export class WorkflowUIState {
       selectedAgentId: null,
       selectedSubAgentId: null,
       selectedItemType: null,
+      visibleItemCount: 10,
+      scrollOffset: 0,
       // Workflow progress tracking
       totalSteps,
       workflowStatus: 'running', // Initialize as running
@@ -64,10 +68,8 @@ export class WorkflowUIState {
 
     // Auto-select agent when it starts running
     if (status === 'running') {
-      this.state = {
-        ...this.state,
-        selectedAgentId: agentId,
-      };
+      this.selectItem(agentId, 'main');
+      return;
     }
 
     this.notifyListeners();
@@ -84,22 +86,11 @@ export class WorkflowUIState {
   }
 
   selectAgent(agentId: string): void {
-    this.state = {
-      ...this.state,
-      selectedAgentId: agentId,
-      selectedSubAgentId: null, // Clear sub-agent selection
-    };
-
-    this.notifyListeners();
+    this.selectItem(agentId, 'main');
   }
 
   selectSubAgent(subAgentId: string): void {
-    this.state = {
-      ...this.state,
-      selectedSubAgentId: subAgentId,
-    };
-
-    this.notifyListeners();
+    this.selectItem(subAgentId, 'sub');
   }
 
   toggleExpand(agentId: string): void {
@@ -114,6 +105,8 @@ export class WorkflowUIState {
       ...this.state,
       expandedNodes: newExpanded,
     };
+
+    this.state = this.adjustScroll(this.state);
 
     this.notifyListeners();
   }
@@ -253,6 +246,44 @@ export class WorkflowUIState {
     return this.state;
   }
 
+  setVisibleItemCount(count: number): void {
+    const sanitized = Number.isFinite(count) ? Math.max(1, Math.floor(count)) : 1;
+
+    if (sanitized === this.state.visibleItemCount) {
+      const adjustedState = this.adjustScroll(this.state, { visibleCount: sanitized });
+      if (adjustedState !== this.state) {
+        this.state = adjustedState;
+        this.notifyListeners();
+      }
+      return;
+    }
+
+    const updatedState: WorkflowState = {
+      ...this.state,
+      visibleItemCount: sanitized,
+    };
+
+    const adjustedState = this.adjustScroll(updatedState, { visibleCount: sanitized });
+
+    if (adjustedState !== this.state) {
+      this.state = adjustedState;
+      this.notifyListeners();
+    }
+  }
+
+  setScrollOffset(offset: number, visibleItemCount?: number): void {
+    const sanitized = Number.isFinite(offset) ? Math.max(0, Math.floor(offset)) : 0;
+    const adjustedState = this.adjustScroll(this.state, {
+      visibleCount: visibleItemCount,
+      desiredScrollOffset: sanitized,
+    });
+
+    if (adjustedState !== this.state) {
+      this.state = adjustedState;
+      this.notifyListeners();
+    }
+  }
+
   subscribe(listener: () => void): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
@@ -264,34 +295,38 @@ export class WorkflowUIState {
 
   /**
    * Navigate to the next item in the list
+   * @param visibleItemCount - Number of items that can fit in the visible area (optional)
    */
-  navigateDown(): void {
+  navigateDown(visibleItemCount?: number): void {
     const current = getCurrentSelection(this.state);
     const next = getNextNavigableItem(current, this.state);
 
     if (next) {
-      this.selectItem(next.id, next.type);
+      const viewport = visibleItemCount ?? this.state.visibleItemCount;
+      this.selectItem(next.id, next.type, viewport);
     }
   }
 
   /**
    * Navigate to the previous item in the list
+   * @param visibleItemCount - Number of items that can fit in the visible area (optional)
    */
-  navigateUp(): void {
+  navigateUp(visibleItemCount?: number): void {
     const current = getCurrentSelection(this.state);
     const prev = getPreviousNavigableItem(current, this.state);
 
     if (prev) {
-      this.selectItem(prev.id, prev.type);
+      const viewport = visibleItemCount ?? this.state.visibleItemCount;
+      this.selectItem(prev.id, prev.type, viewport);
     }
   }
 
   /**
    * Select a specific item (no buffer management needed - UI reads from log files)
+   * @param visibleItemCount - Number of items that can fit in the visible area (optional)
    */
-  selectItem(itemId: string, itemType: 'main' | 'summary' | 'sub'): void {
+  selectItem(itemId: string, itemType: 'main' | 'summary' | 'sub', visibleItemCount?: number): void {
     if (itemType === 'main') {
-      // Select main agent
       this.state = {
         ...this.state,
         selectedAgentId: itemId,
@@ -299,16 +334,13 @@ export class WorkflowUIState {
         selectedItemType: 'main',
       };
     } else if (itemType === 'summary') {
-      // Select summary - show parent agent's output
-      const parentId = itemId; // summary ID is parent agent ID
       this.state = {
         ...this.state,
-        selectedAgentId: parentId,
+        selectedAgentId: itemId,
         selectedSubAgentId: null,
         selectedItemType: 'summary',
       };
-    } else if (itemType === 'sub') {
-      // Select sub-agent - show sub-agent's output
+    } else {
       this.state = {
         ...this.state,
         selectedSubAgentId: itemId,
@@ -316,7 +348,63 @@ export class WorkflowUIState {
       };
     }
 
+    const adjustedState = this.adjustScroll(this.state, { visibleCount: visibleItemCount });
+    if (adjustedState !== this.state) {
+      this.state = adjustedState;
+    }
+
     this.notifyListeners();
+  }
+
+  private adjustScroll(
+    state: WorkflowState,
+    options: { visibleCount?: number; ensureSelectedVisible?: boolean; desiredScrollOffset?: number } = {}
+  ): WorkflowState {
+    const resolvedVisible = options.visibleCount ?? state.visibleItemCount;
+    const visibleLines = Number.isFinite(resolvedVisible)
+      ? Math.max(1, Math.floor(resolvedVisible))
+      : 1;
+
+    const layout = getTimelineLayout(state);
+    if (layout.length === 0) {
+      const needsUpdate = state.scrollOffset !== 0 || state.visibleItemCount !== visibleLines;
+      return needsUpdate
+        ? { ...state, scrollOffset: 0, visibleItemCount: visibleLines }
+        : state;
+    }
+
+    const totalLines = layout[layout.length - 1].offset + layout[layout.length - 1].height;
+    const maxOffset = Math.max(0, totalLines - visibleLines);
+
+    let desiredOffset = options.desiredScrollOffset ?? state.scrollOffset;
+    if (!Number.isFinite(desiredOffset)) {
+      desiredOffset = 0;
+    }
+    let nextOffset = Math.max(0, Math.min(Math.floor(desiredOffset), maxOffset));
+
+    if (options.ensureSelectedVisible !== false) {
+      const selection = getCurrentSelection(state);
+      if (selection.id && selection.type) {
+        const selectedIndex = layout.findIndex(
+          (entry) => entry.item.id === selection.id && entry.item.type === selection.type
+        );
+        nextOffset = calculateScrollOffset(layout, selectedIndex, nextOffset, visibleLines);
+      } else {
+        nextOffset = Math.max(0, Math.min(nextOffset, maxOffset));
+      }
+    } else {
+      nextOffset = Math.max(0, Math.min(nextOffset, maxOffset));
+    }
+
+    if (nextOffset === state.scrollOffset && visibleLines === state.visibleItemCount) {
+      return state;
+    }
+
+    return {
+      ...state,
+      scrollOffset: nextOffset,
+      visibleItemCount: visibleLines,
+    };
   }
 
   /**

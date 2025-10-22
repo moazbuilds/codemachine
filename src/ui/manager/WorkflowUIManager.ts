@@ -293,11 +293,19 @@ export class WorkflowUIManager {
         break;
 
       case 'NAVIGATE_UP':
-        this.state.navigateUp();
+        this.state.navigateUp(action.visibleItemCount);
         break;
 
       case 'NAVIGATE_DOWN':
-        this.state.navigateDown();
+        this.state.navigateDown(action.visibleItemCount);
+        break;
+
+      case 'SET_VISIBLE_COUNT':
+        this.state.setVisibleItemCount(action.count);
+        break;
+
+      case 'SET_SCROLL_OFFSET':
+        this.state.setScrollOffset(action.offset, action.visibleItemCount);
         break;
 
       case 'SELECT_ITEM':

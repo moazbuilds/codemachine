@@ -8,6 +8,22 @@ export type NavigableItem =
   | { type: 'summary'; id: string; parentId: string }
   | { type: 'sub'; id: string; agent: SubAgentState };
 
+export interface TimelineLayoutEntry {
+  item: NavigableItem;
+  height: number;
+  offset: number;
+}
+
+/**
+ * Calculate the height (in lines) that each item type occupies
+ * - Main agent: 1 line
+ * - Summary: 1 line
+ * - Sub-agent: 1 line
+ */
+export function getItemHeight(_item: NavigableItem): number {
+  return 1;
+}
+
 /**
  * Current selection state
  */
@@ -43,6 +59,35 @@ export function getFlatNavigableList(state: WorkflowState): NavigableItem[] {
   }
 
   return items;
+}
+
+/**
+ * Build layout metadata for the timeline to support scrolling calculations.
+ */
+export function getTimelineLayout(state: WorkflowState): TimelineLayoutEntry[] {
+  const items = getFlatNavigableList(state);
+  const layout: TimelineLayoutEntry[] = [];
+  let offset = 0;
+
+  for (const item of items) {
+    const height = Math.max(1, getItemHeight(item));
+    layout.push({ item, height, offset });
+    offset += height;
+  }
+
+  return layout;
+}
+
+/**
+ * Calculate total visible height of the timeline in terminal rows.
+ */
+export function getTotalTimelineHeight(state: WorkflowState): number {
+  const layout = getTimelineLayout(state);
+  if (layout.length === 0) {
+    return 0;
+  }
+  const last = layout[layout.length - 1];
+  return last.offset + last.height;
 }
 
 /**
@@ -125,4 +170,43 @@ export function getCurrentSelection(state: WorkflowState): NavigationSelection {
     return { id: state.selectedSubAgentId, type: 'sub' };
   }
   return { id: null, type: null };
+}
+
+/**
+ * Calculate the new scroll offset to keep the selected item visible
+ * @param selectedIndex - Index of the selected item in the flat list
+ * @param currentScrollOffset - Current scroll offset
+ * @param visibleItemCount - Number of items that can fit in the visible area
+ * @returns New scroll offset
+ */
+export function calculateScrollOffset(
+  layout: TimelineLayoutEntry[],
+  selectedIndex: number,
+  currentScrollOffset: number,
+  visibleLines: number
+): number {
+  if (layout.length === 0) {
+    return 0;
+  }
+
+  const totalLines = layout[layout.length - 1].offset + layout[layout.length - 1].height;
+  const maxOffset = Math.max(0, totalLines - visibleLines);
+  const clampedOffset = Math.max(0, Math.min(currentScrollOffset, maxOffset));
+
+  if (selectedIndex < 0 || selectedIndex >= layout.length) {
+    return clampedOffset;
+  }
+
+  const entry = layout[selectedIndex];
+  const itemStart = entry.offset;
+  const itemEnd = entry.offset + entry.height - 1;
+  let nextOffset = clampedOffset;
+
+  if (itemStart < clampedOffset) {
+    nextOffset = itemStart;
+  } else if (itemEnd >= clampedOffset + visibleLines) {
+    nextOffset = itemEnd - visibleLines + 1;
+  }
+
+  return Math.max(0, Math.min(nextOffset, maxOffset));
 }
