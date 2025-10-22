@@ -16,10 +16,11 @@ export function formatDuration(seconds: number): string {
 }
 
 /**
- * Format runtime since start (auto-updates)
+ * Format runtime since start (auto-updates if no endTime provided)
  */
-export function formatRuntime(startTime: number): string {
-  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+export function formatRuntime(startTime: number, endTime?: number): string {
+  const now = endTime ?? Date.now();
+  const elapsed = Math.floor((now - startTime) / 1000);
   return formatDuration(elapsed);
 }
 

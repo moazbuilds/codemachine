@@ -75,6 +75,9 @@ export class WorkflowUIManager {
 
       MonitoringCleanup.registerWorkflowHandlers({
         onStop: () => {
+          // Freeze workflow runtime immediately (not individual agents)
+          this.state.freezeWorkflowRuntime();
+
           // Abort the currently running agent
           (process as NodeJS.EventEmitter).emit('workflow:skip');
 
@@ -333,6 +336,10 @@ export class WorkflowUIManager {
    * Set workflow execution status
    */
   setWorkflowStatus(status: WorkflowStatus): void {
+    // Freeze runtime when workflow reaches terminal status
+    if (status === 'completed' || status === 'stopped' || status === 'stopping') {
+      this.state.freezeWorkflowRuntime();
+    }
     this.state.setWorkflowStatus(status);
   }
 
@@ -456,5 +463,40 @@ export class WorkflowUIManager {
         this.syncSubAgentsFromRegistry();
       }
     }, 500);
+  }
+
+  /**
+   * Reset an agent for a new loop iteration
+   * Clears UI data (telemetry, tool counts, subagents) and monitoring registry data
+   */
+  resetAgentForLoop(agentId: string): void {
+    // Reset UI state
+    this.state.resetAgentForLoop(agentId);
+    this.state.clearSubAgentsForParent(agentId);
+
+    // Clear monitoring registry descendants
+    const monitoringId = this.agentIdMap.get(agentId);
+    if (monitoringId !== undefined) {
+      const monitor = AgentMonitorService.getInstance();
+      const loggerService = AgentLoggerService.getInstance();
+
+      // Get all descendants to clean up their log streams
+      const subtree = monitor.getFullSubtree(monitoringId);
+      const descendants = subtree.filter(agent => agent.id !== monitoringId);
+
+      // Close log streams for all descendants
+      for (const descendant of descendants) {
+        loggerService.closeStream(descendant.id).catch(() => {
+          // Ignore errors - stream may not exist yet
+        });
+      }
+
+      // Clear descendants from monitoring registry
+      monitor.clearDescendants(monitoringId);
+    }
+
+    if (this.fallbackMode) {
+      console.log(`Reset agent ${agentId} for new loop iteration`);
+    }
   }
 }

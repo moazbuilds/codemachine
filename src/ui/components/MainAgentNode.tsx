@@ -37,33 +37,49 @@ export const MainAgentNode: React.FC<MainAgentNodeProps> = ({ agent, isSelected 
   }
   const activityStr = activities.length > 0 ? ` • ${activities.join(', ')}` : '';
 
-  const loopInfo =
-    agent.loopRound && agent.loopRound > 0
-      ? ` • ⎿ Round ${agent.loopRound}`
-      : '';
+  const hasLoopRound = agent.loopRound && agent.loopRound > 0;
 
+  // Main agent line (same for both cases)
+  const mainLine = (
+    <Text>
+      {isSelected && <Text color="white">&gt; </Text>}
+      {!isSelected && '  '}
+      {agent.status === 'running' ? (
+        <Text color="white">
+          <Spinner type="dots" />
+        </Text>
+      ) : (
+        <Text color={color}>{getStatusIcon(agent.status)}</Text>
+      )}
+      {' '}
+      <Text bold>{agent.name}</Text>
+      {' '}
+      <Text dimColor>({agent.engine})</Text>
+      {duration && <Text> • {duration}</Text>}
+      {tokenStr && <Text dimColor> • {tokenStr}</Text>}
+      {activityStr && <Text dimColor>{activityStr}</Text>}
+      {agent.error && <Text color="red"> • Error: {agent.error}</Text>}
+    </Text>
+  );
+
+  // If loop round exists, show cycle on separate line below
+  if (hasLoopRound) {
+    return (
+      <Box paddingX={1} flexDirection="column">
+        {mainLine}
+        <Box paddingLeft={2}>
+          <Text bold color="cyan">
+            ⎿ Cycle {agent.loopRound}
+          </Text>
+        </Box>
+      </Box>
+    );
+  }
+
+  // Normal single-line display
   return (
     <Box paddingX={1}>
-      <Text>
-        {isSelected && <Text color="white">&gt; </Text>}
-        {!isSelected && '  '}
-        {agent.status === 'running' ? (
-          <Text color="white">
-            <Spinner type="dots" />
-          </Text>
-        ) : (
-          <Text color={color}>{getStatusIcon(agent.status)}</Text>
-        )}
-        {' '}
-        <Text bold>{agent.name}</Text>
-        {' '}
-        <Text dimColor>({agent.engine})</Text>
-        {duration && <Text> • {duration}</Text>}
-        {tokenStr && <Text dimColor> • {tokenStr}</Text>}
-        {activityStr && <Text dimColor>{activityStr}</Text>}
-        {loopInfo && <Text dimColor>{loopInfo}</Text>}
-        {agent.error && <Text color="red"> • Error: {agent.error}</Text>}
-      </Text>
+      {mainLine}
     </Box>
   );
 };

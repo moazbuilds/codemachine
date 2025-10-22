@@ -339,6 +339,15 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
           skipList: loopResult.decision.skipList || [],
         });
 
+        // Reset all agents that will be re-executed in the loop
+        // Clear their UI data (telemetry, tool counts, subagents) and monitoring registry data
+        for (let resetIndex = loopResult.newIndex; resetIndex <= index; resetIndex += 1) {
+          const resetStep = template.steps[resetIndex];
+          if (resetStep && resetStep.type === 'module') {
+            ui.resetAgentForLoop(resetStep.agentId);
+          }
+        }
+
         index = loopResult.newIndex;
         continue;
       }

@@ -61,9 +61,20 @@ export class WorkflowUIState {
   }
 
   updateAgentStatus(agentId: string, status: AgentStatus): void {
+    // Auto-set endTime for terminal statuses to freeze runtime
+    const shouldSetEndTime = status === 'completed' || status === 'failed' || status === 'skipped';
+
     this.state = {
       ...this.state,
-      agents: updateAgentStatusInList(this.state.agents, agentId, status),
+      agents: this.state.agents.map((agent) =>
+        agent.id === agentId
+          ? {
+              ...agent,
+              status,
+              endTime: shouldSetEndTime ? Date.now() : agent.endTime,
+            }
+          : agent
+      ),
     };
 
     // Auto-select agent when it starts running
@@ -207,17 +218,19 @@ export class WorkflowUIState {
     const newSubAgents = new Map(this.state.subAgents);
     let updated = false;
 
+    // Auto-set endTime for terminal statuses to freeze runtime
+    const shouldSetEndTime = status === 'completed' || status === 'failed' || status === 'skipped';
+
     // Find and update the sub-agent across all parents
     for (const [parentId, subAgents] of newSubAgents.entries()) {
       const index = subAgents.findIndex(sa => sa.id === subAgentId);
       if (index >= 0) {
         const updatedSubAgents = [...subAgents];
-        updatedSubAgents[index] = { ...updatedSubAgents[index], status };
-
-        // Set endTime if status is completed or failed equivalent
-        if (status === 'completed') {
-          updatedSubAgents[index].endTime = Date.now();
-        }
+        updatedSubAgents[index] = {
+          ...updatedSubAgents[index],
+          status,
+          endTime: shouldSetEndTime ? Date.now() : updatedSubAgents[index].endTime,
+        };
 
         newSubAgents.set(parentId, updatedSubAgents);
         updated = true;
@@ -240,6 +253,53 @@ export class WorkflowUIState {
    */
   getSubAgentsForParent(parentId: string): SubAgentState[] {
     return this.state.subAgents.get(parentId) || [];
+  }
+
+  /**
+   * Clear all sub-agents for a parent agent (used when resetting for loop iterations)
+   */
+  clearSubAgentsForParent(parentId: string): void {
+    const newSubAgents = new Map(this.state.subAgents);
+    newSubAgents.delete(parentId);
+
+    this.state = {
+      ...this.state,
+      subAgents: newSubAgents,
+    };
+
+    this.notifyListeners();
+  }
+
+  /**
+   * Reset an agent's runtime data for a new loop iteration
+   * Clears telemetry, tool count, thinking count, and resets status to pending
+   */
+  resetAgentForLoop(agentId: string): void {
+    this.state = {
+      ...this.state,
+      agents: this.state.agents.map((agent) =>
+        agent.id === agentId
+          ? {
+              ...agent,
+              status: 'pending',
+              toolCount: 0,
+              thinkingCount: 0,
+              startTime: Date.now(),
+              endTime: undefined,
+              error: undefined,
+              telemetry: {
+                tokensIn: 0,
+                tokensOut: 0,
+                cached: undefined,
+                cost: undefined,
+                duration: undefined,
+              },
+            }
+          : agent
+      ),
+    };
+
+    this.notifyListeners();
   }
 
   getState(): Readonly<WorkflowState> {
@@ -418,6 +478,22 @@ export class WorkflowUIState {
     this.state = {
       ...this.state,
       workflowStatus: status,
+    };
+
+    this.notifyListeners();
+  }
+
+  /**
+   * Freeze workflow runtime (called on Ctrl+C or completion)
+   */
+  freezeWorkflowRuntime(): void {
+    if (this.state.endTime) {
+      return; // Already frozen
+    }
+
+    this.state = {
+      ...this.state,
+      endTime: Date.now(),
     };
 
     this.notifyListeners();
