@@ -3,7 +3,8 @@ import { Box, Text } from 'ink';
 import Spinner from 'ink-spinner';
 import type { TriggeredAgentState } from '../state/types';
 import { getStatusIcon, getStatusColor } from '../utils/statusIcons';
-import { formatDuration, formatTokens } from '../utils/formatters';
+import { formatTokens } from '../utils/formatters';
+import { calculateDuration } from '../utils/calculateDuration';
 
 export interface TriggeredAgentListProps {
   triggeredAgents: TriggeredAgentState[];
@@ -30,15 +31,11 @@ export const TriggeredAgentList: React.FC<TriggeredAgentListProps> = ({
       {displayAgents.map((agent) => {
         const color = getStatusColor(agent.status);
 
-        // Calculate duration
-        let duration = '';
-        if (agent.endTime) {
-          const seconds = (agent.endTime - agent.startTime) / 1000;
-          duration = formatDuration(seconds);
-        } else if (agent.status === 'running') {
-          const seconds = (Date.now() - agent.startTime) / 1000;
-          duration = formatDuration(seconds);
-        }
+        const duration = calculateDuration({
+          startTime: agent.startTime,
+          endTime: agent.endTime,
+          status: agent.status,
+        });
 
         // Telemetry
         const { tokensIn, tokensOut } = agent.telemetry;

@@ -9,6 +9,7 @@ describe('TelemetryBar', () => {
       <TelemetryBar
         workflowName="Test Workflow"
         runtime="00:12:45"
+        status="running"
         total={{
           tokensIn: 1000,
           tokensOut: 2000,
@@ -25,6 +26,7 @@ describe('TelemetryBar', () => {
       <TelemetryBar
         workflowName="Test Workflow"
         runtime="00:00:05"
+        status="running"
         total={{
           tokensIn: 1500,
           tokensOut: 3500,
@@ -42,6 +44,7 @@ describe('TelemetryBar', () => {
       <TelemetryBar
         workflowName="Test Workflow"
         runtime="00:00:10"
+        status="running"
         total={{
           tokensIn: 1000,
           tokensOut: 2000,
@@ -59,6 +62,7 @@ describe('TelemetryBar', () => {
       <TelemetryBar
         workflowName="Test Workflow"
         runtime="00:00:10"
+        status="running"
         total={{
           tokensIn: 1000,
           tokensOut: 2000,
@@ -68,5 +72,43 @@ describe('TelemetryBar', () => {
     );
 
     expect(lastFrame()).not.toContain('cached');
+  });
+
+  it('should prompt for second Ctrl+C while stopping', () => {
+    const { lastFrame } = render(
+      <TelemetryBar
+        workflowName="Test Workflow"
+        runtime="00:01:00"
+        status="stopping"
+        total={{
+          tokensIn: 10,
+          tokensOut: 10,
+        }}
+      />
+    );
+
+    expect(lastFrame()).toContain('Press Ctrl+C again to exit');
+  });
+
+  it('should show completed and stopped statuses', () => {
+    const completed = render(
+      <TelemetryBar
+        workflowName="Completed Workflow"
+        runtime="00:05:00"
+        status="completed"
+        total={{ tokensIn: 0, tokensOut: 0 }}
+      />
+    );
+    expect(completed.lastFrame()).toContain('✓ Completed');
+
+    const stopped = render(
+      <TelemetryBar
+        workflowName="Stopped Workflow"
+        runtime="00:05:00"
+        status="stopped"
+        total={{ tokensIn: 0, tokensOut: 0 }}
+      />
+    );
+    expect(stopped.lastFrame()).toContain('⏹ Stopped by user');
   });
 });

@@ -12,18 +12,21 @@ export class MonitoringCleanup {
   private static firstCtrlCPressed = false;
   private static firstCtrlCTime = 0;
   private static readonly CTRL_C_DEBOUNCE_MS = 500; // Require 500ms between Ctrl+C presses
+  private static workflowHandlers: {
+    onStop?: () => void;
+    onExit?: () => void;
+  } = {};
 
   /**
-   * Callback invoked on first Ctrl+C to gracefully stop workflow
-   * Should set UI status to 'stopped' and show "Press Ctrl+C again to exit" message
+   * Register callbacks invoked during the two-stage Ctrl+C flow.
    */
-  static onWorkflowStop?: () => void;
+  static registerWorkflowHandlers(handlers: { onStop?: () => void; onExit?: () => void }): void {
+    this.workflowHandlers = handlers;
+  }
 
-  /**
-   * Callback invoked on second Ctrl+C before cleanup and exit
-   * Should clear waitingForExit flag to show "Stopped by user" message
-   */
-  static onWorkflowExit?: () => void;
+  static clearWorkflowHandlers(): void {
+    this.workflowHandlers = {};
+  }
 
   /**
    * Set up signal handlers for graceful cleanup
@@ -45,9 +48,7 @@ export class MonitoringCleanup {
         logger.debug('First Ctrl+C detected - stopping workflow gracefully');
 
         // Call UI callback to update status
-        if (this.onWorkflowStop) {
-          this.onWorkflowStop();
-        }
+        this.workflowHandlers.onStop?.();
 
         // Don't exit - wait for second Ctrl+C
         return;
@@ -64,9 +65,7 @@ export class MonitoringCleanup {
       logger.debug(`Second Ctrl+C detected after ${timeSinceFirst}ms - cleaning up and exiting`);
 
       // Call UI callback to update status before exit
-      if (this.onWorkflowExit) {
-        this.onWorkflowExit();
-      }
+      this.workflowHandlers.onExit?.();
 
       await this.handleSignal('SIGINT', 'User interrupted (Ctrl+C)');
     });

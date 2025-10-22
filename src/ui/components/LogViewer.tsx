@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Box, Text, useInput, useStdout } from 'ink';
 import { useLogStream } from '../hooks/useLogStream';
 import { formatBytes } from '../utils/logReader';
+import { useCtrlCHandler } from '../hooks/useCtrlCHandler';
+import { LineSyntaxHighlight } from '../utils/lineSyntaxHighlight';
 
 export interface LogViewerProps {
   uiAgentId: string;
@@ -25,6 +27,8 @@ export const LogViewer: React.FC<LogViewerProps> = ({
   const [scrollOffset, setScrollOffset] = useState(0);
   const { stdout } = useStdout();
 
+  useCtrlCHandler();
+
   // Calculate visible lines (terminal height - header - footer)
   const terminalHeight = stdout?.rows || 40;
   const visibleLines = terminalHeight - 6; // Reserve 6 lines for header/footer
@@ -39,16 +43,6 @@ export const LogViewer: React.FC<LogViewerProps> = ({
 
   // Keyboard handling
   useInput((input, key) => {
-    // Handle Ctrl+C manually since we disabled exitOnCtrlC
-    // In raw mode, Ctrl+C can be represented as:
-    // - key.ctrl && input === 'c'
-    // - input === '\x03' (ETX character, ASCII code 3)
-    if ((key.ctrl && input === 'c') || input === '\x03') {
-      // Use process.kill to send actual SIGINT signal
-      process.kill(process.pid, 'SIGINT');
-      return;
-    }
-
     if ((key.ctrl && input === 'l') || input === 'q' || key.escape) {
       onClose();
     } else if (key.upArrow) {
@@ -111,7 +105,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
         ) : (
           <Box flexDirection="column">
             {displayLines.map((line, idx) => (
-              <LogLine key={scrollOffset + idx} line={line} lineNumber={scrollOffset + idx + 1} />
+              <LineSyntaxHighlight key={scrollOffset + idx} line={line} />
             ))}
           </Box>
         )}
@@ -135,36 +129,4 @@ export const LogViewer: React.FC<LogViewerProps> = ({
       </Box>
     </Box>
   );
-};
-
-/**
- * Single log line with syntax highlighting
- * Reuses the same highlighting logic as OutputWindow
- */
-const LogLine: React.FC<{ line: string; lineNumber: number }> = ({ line }) => {
-  // Detect and highlight different output types
-  if (line.includes('🔧 TOOL')) {
-    return <Text color="cyan">{line}</Text>;
-  }
-  if (line.includes('🧠 THINKING')) {
-    return <Text color="magenta">{line}</Text>;
-  }
-  if (line.includes('💬 TEXT') || line.includes('💬 MESSAGE')) {
-    return <Text>{line}</Text>;
-  }
-  if (line.includes('⏱️') || line.includes('Tokens:')) {
-    return <Text color="yellow">{line}</Text>;
-  }
-  if (line.includes('ERROR') || line.includes('✗') || line.includes('Error:')) {
-    return <Text color="red">{line}</Text>;
-  }
-  if (line.includes('✅') || line.includes('✓')) {
-    return <Text color="green">{line}</Text>;
-  }
-  if (line.startsWith('===')) {
-    return <Text bold>{line}</Text>;
-  }
-
-  // Default
-  return <Text>{line}</Text>;
 };

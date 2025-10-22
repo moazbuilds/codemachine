@@ -4,6 +4,7 @@ import type { AgentState, SubAgentState } from '../state/types';
 import { calculateOutputWindowHeight } from '../utils/heightCalculations';
 import { useTerminalResize } from '../hooks/useTerminalResize';
 import { useLogStream } from '../hooks/useLogStream';
+import { LineSyntaxHighlight } from '../utils/lineSyntaxHighlight';
 
 export interface OutputWindowProps {
   currentAgent: AgentState | SubAgentState | null;
@@ -26,7 +27,7 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
   getMonitoringId,
 }) => {
   const { stdout } = useStdout();
-  const _terminalSize = useTerminalResize();
+  useTerminalResize();
 
   // Calculate available height dynamically using centralized utility
   // Recalculates when terminal size changes
@@ -63,10 +64,11 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
   }, [sourceLines, effectiveMaxLines]);
 
   // Prepare output lines as React nodes
-  const outputNodes = useMemo(() =>
-    visibleLines.map((line, index) => (
-      <OutputLine key={index} line={line} />
-    )),
+  const outputNodes = useMemo(
+    () =>
+      visibleLines.map((line, index) => (
+        <LineSyntaxHighlight key={index} line={line} />
+      )),
     [visibleLines]
   );
 
@@ -96,32 +98,4 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
       </Box>
     </Box>
   );
-};
-
-/**
- * Single output line with syntax highlighting
- */
-const OutputLine: React.FC<{ line: string }> = ({ line }) => {
-  // Detect and highlight different output types
-  if (line.includes('🔧 TOOL')) {
-    return <Text color="cyan">{line}</Text>;
-  }
-  if (line.includes('🧠 THINKING')) {
-    return <Text color="magenta">{line}</Text>;
-  }
-  if (line.includes('💬 TEXT') || line.includes('💬 MESSAGE')) {
-    return <Text>{line}</Text>;
-  }
-  if (line.includes('⏱️') || line.includes('Tokens:')) {
-    return <Text color="yellow">{line}</Text>;
-  }
-  if (line.includes('ERROR') || line.includes('✗')) {
-    return <Text color="red">{line}</Text>;
-  }
-  if (line.includes('✅') || line.includes('✓')) {
-    return <Text color="green">{line}</Text>;
-  }
-
-  // Default
-  return <Text>{line}</Text>;
 };

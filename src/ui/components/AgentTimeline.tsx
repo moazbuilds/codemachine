@@ -17,9 +17,7 @@ export interface AgentTimelineProps {
   expandedNodes: Set<string>;
   selectedSubAgentId: string | null;
   selectedItemType: 'main' | 'summary' | 'sub' | null;
-  onSelectAgent: (agentId: string) => void;
   onToggleExpand: (agentId: string) => void;
-  onSelectSubAgent: (subAgentId: string) => void;
 }
 
 /**
@@ -34,12 +32,10 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
   expandedNodes,
   selectedSubAgentId,
   selectedItemType,
-  onSelectAgent,
   onToggleExpand,
-  onSelectSubAgent,
 }) => {
   const { stdout } = useStdout();
-  const _terminalSize = useTerminalResize();
+  useTerminalResize();
 
   // Calculate available height dynamically using centralized utility
   // Recalculates when terminal size changes
@@ -59,9 +55,7 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
         <Box key={`${agent.id}-${index}`} flexDirection="column">
           <MainAgentNode
             agent={agent}
-            index={index + 1}
             isSelected={isSelected}
-            onSelect={() => onSelectAgent(agent.id)}
           />
 
           {hasSubAgents && (
@@ -77,7 +71,6 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
                 <SubAgentList
                   subAgents={agentSubAgents}
                   selectedSubAgentId={selectedSubAgentId}
-                  onSelect={onSelectSubAgent}
                 />
               )}
             </>
@@ -101,9 +94,7 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
     expandedNodes,
     selectedSubAgentId,
     selectedItemType,
-    onSelectAgent,
     onToggleExpand,
-    onSelectSubAgent,
   ]);
 
   return (
