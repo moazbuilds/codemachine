@@ -1,4 +1,4 @@
-import type { WorkflowState, AgentStatus, AgentTelemetry, LoopState, SubAgentState } from './types';
+import type { WorkflowState, AgentStatus, AgentTelemetry, LoopState, SubAgentState, WorkflowStatus } from './types';
 import type { EngineType } from '../../infra/engines/index.js';
 import {
   createNewAgent,
@@ -38,6 +38,7 @@ export class WorkflowUIState {
       selectedItemType: null,
       // Workflow progress tracking
       totalSteps,
+      workflowStatus: 'running', // Initialize as running
     };
   }
 
@@ -359,6 +360,18 @@ export class WorkflowUIState {
         outputBuffer: subAgentBuffer,
       };
     }
+
+    this.notifyListeners();
+  }
+
+  /**
+   * Set workflow execution status
+   */
+  setWorkflowStatus(status: WorkflowStatus): void {
+    this.state = {
+      ...this.state,
+      workflowStatus: status,
+    };
 
     this.notifyListeners();
   }

@@ -1,10 +1,13 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import { formatTokens, formatNumber } from '../utils/formatters';
+import { ShimmerText } from './ShimmerText';
+import type { WorkflowStatus } from '../state/types';
 
 export interface TelemetryBarProps {
   workflowName: string;
   runtime: string;
+  status: WorkflowStatus;
   total: {
     tokensIn: number;
     tokensOut: number;
@@ -13,12 +16,26 @@ export interface TelemetryBarProps {
 }
 
 /**
- * Show workflow info and total telemetry in footer
+ * Show workflow info, status, and total telemetry in footer
  */
-export const TelemetryBar: React.FC<TelemetryBarProps> = ({ workflowName, runtime, total }) => {
+export const TelemetryBar: React.FC<TelemetryBarProps> = ({ workflowName, runtime, status, total }) => {
   const totalText = `${formatTokens(total.tokensIn, total.tokensOut)}${
     total.cached ? ` (${formatNumber(total.cached)} cached)` : ''
   }`;
+
+  // Render status with animation for running state
+  const statusElement = (() => {
+    switch (status) {
+      case 'running':
+        return <ShimmerText text="Running..." />;
+      case 'completed':
+        return <Text color="green">✓ Completed</Text>;
+      case 'stopped':
+        return <Text color="red">⏹ Stopped by user</Text>;
+      default:
+        return null;
+    }
+  })();
 
   return (
     <Box
@@ -31,6 +48,8 @@ export const TelemetryBar: React.FC<TelemetryBarProps> = ({ workflowName, runtim
       <Text>
         <Text bold>{workflowName}</Text>
         <Text dimColor> • {runtime}</Text>
+        <Text> • </Text>
+        {statusElement}
       </Text>
       <Text>
         <Text dimColor>Tokens: </Text>

@@ -353,6 +353,8 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
             `${step.agentName} failed: ${error instanceof Error ? error.message : String(error)}`,
           ),
         );
+        // Set workflow status to stopped on error
+        ui.setWorkflowStatus('stopped');
         throw error;
       }
     } finally {
@@ -360,8 +362,13 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       process.removeListener('workflow:skip', skipListener);
     }
   }
-  } finally {
-    // Always cleanup UI on workflow end
-    ui.stop();
+
+  // Workflow completed successfully - set status and keep UI alive
+  ui.setWorkflowStatus('completed');
+  // UI will stay running - user presses Ctrl+C to exit
+  } catch (error) {
+    // On workflow error, set status to stopped
+    ui.setWorkflowStatus('stopped');
+    throw error;
   }
 }
