@@ -38,7 +38,7 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
     console.log([
       '',
       'Available commands:',
-      '  /start                Run configured workflow queue and stay in session',
+      '  /start                Run configured workflow queue',
       '  /templates            List and select workflow templates',
       '  /login                Authenticate with AI services',
       '  /logout               Sign out of AI services',
@@ -118,19 +118,25 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
     }
 
     if (raw === '/start') {
+      // Close readline interface to release stdin control to workflow UI
+      // The workflow UI handles all input including Ctrl+C behavior:
+      // - First Ctrl+C: Stops workflow but keeps UI alive for navigation
+      // - Second Ctrl+C: Exits the entire process
+      rl.close();
+
       try {
         // Clear terminal for clean workflow start
         clearTerminal();
 
         debug(`Launching workflow queue (spec=${specificationPath})`);
         await runWorkflowQueue({ cwd, specificationPath });
-        console.log('Workflow finished. You are still in the session.');
+
+        // If workflow completes normally, it calls process.exit()
+        // We only reach here if there's an error during workflow startup
       } catch (error) {
         console.error(error instanceof Error ? error.message : String(error));
+        process.exit(1);
       }
-      prompt();
-      rl.prompt();
-      continue;
     }
 
     if (raw === '/templates' || raw === '/template') {
