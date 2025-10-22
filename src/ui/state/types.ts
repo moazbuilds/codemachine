@@ -6,7 +6,7 @@ import type { EngineType } from '../../infra/engines/index.js';
 export type AgentStatus =
   | 'pending'      // ○ - Not yet started
   | 'running'      // ⠋ - Currently executing
-  | 'completed'    // ✓ - Successfully finished
+  | 'completed'    // ● - Successfully finished
   | 'skipped'      // ● - Skipped in loop
   | 'retrying';    // ⟳ - Retrying after failure
 
