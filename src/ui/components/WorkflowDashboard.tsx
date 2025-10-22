@@ -52,9 +52,7 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
 
   // Keyboard event handling
   useInput((input, key) => {
-    if (input === 'q') {
-      onAction({ type: 'QUIT' });
-    } else if (input === 's') {
+    if (input === 's') {
       onAction({ type: 'SKIP' });
     } else if (input === 't') {
       setShowTelemetry(!showTelemetry);
@@ -150,6 +148,7 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
       <TelemetryBar
         workflowName={state.workflowName}
         runtime={runtime}
+        status={state.workflowStatus}
         total={{
           tokensIn: cumulativeStats.totalTokensIn,
           tokensOut: cumulativeStats.totalTokensOut,

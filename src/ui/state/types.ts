@@ -68,6 +68,11 @@ export interface LoopState {
 }
 
 /**
+ * Workflow execution status
+ */
+export type WorkflowStatus = 'running' | 'completed' | 'stopped';
+
+/**
  * Complete workflow UI state
  */
 export interface WorkflowState {
@@ -93,4 +98,5 @@ export interface WorkflowState {
 
   // Workflow progress tracking
   totalSteps: number;
+  workflowStatus: WorkflowStatus;  // Current execution status
 }

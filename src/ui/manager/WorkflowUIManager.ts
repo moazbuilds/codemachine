@@ -4,7 +4,7 @@ import { WorkflowDashboard, type UIAction } from '../components/WorkflowDashboar
 import { WorkflowUIState } from '../state/WorkflowUIState';
 import { processOutputChunk } from '../utils/outputProcessor';
 import { CircularBuffer, BatchUpdater } from '../utils/performance';
-import type { AgentStatus, LoopState, SubAgentState, TriggeredAgentState } from '../state/types';
+import type { AgentStatus, LoopState, SubAgentState, TriggeredAgentState, WorkflowStatus } from '../state/types';
 import type { ParsedTelemetry, EngineType } from '../../infra/engines/index.js';
 import { formatAgentLog } from '../../shared/logging/agent-loggers.js';
 import { AgentMonitorService, convertChildrenToSubAgents } from '../../agents/monitoring/index.js';
@@ -312,6 +312,7 @@ export class WorkflowUIManager {
   private handleAction(action: UIAction): void {
     switch (action.type) {
       case 'QUIT':
+        this.state.setWorkflowStatus('stopped');
         this.stop();
         process.exit(0);
         break;
@@ -356,6 +357,13 @@ export class WorkflowUIManager {
    */
   updateAgentTelemetry(agentId: string, telemetry: ParsedTelemetry) {
     this.state.updateAgentTelemetry(agentId, telemetry);
+  }
+
+  /**
+   * Set workflow execution status
+   */
+  setWorkflowStatus(status: WorkflowStatus): void {
+    this.state.setWorkflowStatus(status);
   }
 
   /**
