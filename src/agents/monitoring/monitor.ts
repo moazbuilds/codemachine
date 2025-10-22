@@ -84,7 +84,7 @@ export class AgentMonitorService {
       telemetry
     });
 
-    logger.info(`Agent ${id} (${agent.name}) completed in ${duration}ms`);
+    logger.debug(`Agent ${id} (${agent.name}) completed in ${duration}ms`);
   }
 
   /**
@@ -276,7 +276,7 @@ export class AgentMonitorService {
     };
 
     this.registry.update(agent.id, failureUpdate);
-    logger.warn(
+    logger.debug(
       `Agent ${agent.id} (${agent.name}) marked as failed: process ${agent.pid} is no longer running`
     );
 
