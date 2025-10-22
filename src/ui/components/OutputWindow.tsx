@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Box, Text, useStdout } from 'ink';
 import type { AgentState, SubAgentState } from '../state/types';
-import { calculateOutputWindowHeight } from '../utils/heightCalculations';
+import { calculateOutputWindowHeight, calculateOutputWindowContentWidth, wrapText } from '../utils/heightCalculations';
 import { useTerminalResize } from '../hooks/useTerminalResize';
 import { useLogStream } from '../hooks/useLogStream';
 import { LineSyntaxHighlight } from '../utils/lineSyntaxHighlight';
@@ -29,10 +29,16 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
   const { stdout } = useStdout();
   useTerminalResize();
 
-  // Calculate available height dynamically using centralized utility
+  // Calculate available dimensions dynamically using centralized utilities
   // Recalculates when terminal size changes
   const calculatedHeight = calculateOutputWindowHeight(stdout);
+  const calculatedWidth = calculateOutputWindowContentWidth(stdout);
   const effectiveMaxLines = maxLines || calculatedHeight;
+
+  // Debug: log width calculations
+  if (process.env.DEBUG_OUTPUT_WIDTH) {
+    console.log(`Terminal width: ${stdout?.columns}, Calculated content width: ${calculatedWidth}`);
+  }
 
   // Detect if current agent is a sub-agent
   const isSubAgent = currentAgent && 'parentId' in currentAgent;
@@ -45,7 +51,7 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
 
   if (!currentAgent) {
     return (
-      <Box flexDirection="column" width="100%" height={effectiveMaxLines} justifyContent="center" alignItems="center">
+      <Box flexDirection="column" flexGrow={1} height={effectiveMaxLines} justifyContent="center" alignItems="center">
         <Text dimColor>No agent selected</Text>
       </Box>
     );
@@ -56,24 +62,46 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
   // Determine which lines to display
   const sourceLines = isSubAgent ? logLines : outputLines;
 
-  const visibleLines = useMemo(() => {
-    if (sourceLines.length > effectiveMaxLines) {
-      return sourceLines.slice(sourceLines.length - effectiveMaxLines);
+  // Process lines for wrapping and truncation
+  const processedLines = useMemo(() => {
+    const lines = sourceLines.length > effectiveMaxLines
+      ? sourceLines.slice(sourceLines.length - effectiveMaxLines)
+      : sourceLines;
+
+    // Process each line for wrapping/truncation
+    const processed: string[] = [];
+    for (const line of lines) {
+      if (line.length <= calculatedWidth) {
+        processed.push(line);
+      } else {
+        // Wrap long lines
+        const wrapped = wrapText(line, calculatedWidth, 3); // Max 3 lines per original line
+        processed.push(...wrapped);
+      }
     }
-    return sourceLines;
-  }, [sourceLines, effectiveMaxLines]);
+
+    // Ensure we don't exceed the height limit after wrapping
+    if (processed.length > effectiveMaxLines) {
+      return processed.slice(processed.length - effectiveMaxLines);
+    }
+
+    return processed;
+  }, [sourceLines, effectiveMaxLines, calculatedWidth]);
 
   // Prepare output lines as React nodes
   const outputNodes = useMemo(
     () =>
-      visibleLines.map((line, index) => (
-        <LineSyntaxHighlight key={index} line={line} />
+      processedLines.map((line, index) => (
+        <LineSyntaxHighlight
+          key={index}
+          line={line}
+        />
       )),
-    [visibleLines]
+    [processedLines]
   );
 
   return (
-    <Box flexDirection="column" width="100%" height="100%">
+    <Box flexDirection="column" flexGrow={1} height="100%">
       {/* Header - Fixed height */}
       <Box paddingX={1} paddingBottom={0} justifyContent="space-between">
         <Text bold underline>
@@ -84,8 +112,15 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
         </Text>
       </Box>
 
-      {/* Output area */}
-      <Box paddingX={1} height={effectiveMaxLines} flexDirection="column">
+      {/* Output area with strict width constraints */}
+      <Box
+        paddingX={1}
+        height={effectiveMaxLines}
+        flexDirection="column"
+        flexGrow={1}
+        width="100%"
+        overflow="hidden"
+      >
         {isSubAgent && isLoading ? (
           <Text dimColor>Loading logs...</Text>
         ) : isSubAgent && error ? (
@@ -93,7 +128,14 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
         ) : sourceLines.length === 0 ? (
           <Text dimColor>Waiting for output...</Text>
         ) : (
-          <Box flexDirection="column">{outputNodes}</Box>
+          <Box
+            flexDirection="column"
+            width="100%"
+            flexGrow={1}
+            overflow="hidden"
+          >
+            {outputNodes}
+          </Box>
         )}
       </Box>
     </Box>

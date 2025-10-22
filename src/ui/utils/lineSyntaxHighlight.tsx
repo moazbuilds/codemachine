@@ -1,41 +1,44 @@
 import React from 'react';
-import { Text } from 'ink';
+import { Text, useStdout } from 'ink';
+import { wrapText, calculateOutputWindowContentWidth } from './heightCalculations';
 
 export interface LineSyntaxHighlightProps {
   line: string;
+  maxWidth?: number;
+  wrap?: boolean;
 }
 
 /**
  * Apply consistent syntax highlighting to workflow output/log lines.
+ * Supports text wrapping and truncation to prevent container width overflow.
  */
-export const LineSyntaxHighlight: React.FC<LineSyntaxHighlightProps> = ({ line }) => {
-  if (line.includes('🔧 TOOL')) {
-    return <Text color="cyan">{line}</Text>;
-  }
+export const LineSyntaxHighlight: React.FC<LineSyntaxHighlightProps> = ({
+  line,
+  maxWidth,
+  wrap = true
+}) => {
+  const { stdout } = useStdout();
 
-  if (line.includes('🧠 THINKING')) {
-    return <Text color="magenta">{line}</Text>;
-  }
+  // Calculate available width if not provided
+  const availableWidth = maxWidth || calculateOutputWindowContentWidth(stdout);
 
-  if (line.includes('💬 TEXT') || line.includes('💬 MESSAGE')) {
-    return <Text>{line}</Text>;
-  }
+  // Determine text color based on content
+  const getTextColor = (text: string) => {
+    if (text.includes('🔧 TOOL')) return 'cyan';
+    if (text.includes('🧠 THINKING')) return 'magenta';
+    if (text.includes('⏱️') || text.includes('Tokens:')) return 'yellow';
+    if (text.includes('ERROR') || text.includes('✗') || text.includes('Error:')) return 'red';
+    if (text.includes('✅') || text.includes('✓')) return 'green';
+    return undefined;
+  };
 
-  if (line.includes('⏱️') || line.includes('Tokens:')) {
-    return <Text color="yellow">{line}</Text>;
-  }
+  const getBold = (text: string) => {
+    return text.startsWith('===');
+  };
 
-  if (line.includes('ERROR') || line.includes('✗') || line.includes('Error:')) {
-    return <Text color="red">{line}</Text>;
-  }
+  // For short lines, just apply syntax highlighting
+  const color = getTextColor(line);
+  const bold = getBold(line);
 
-  if (line.includes('✅') || line.includes('✓')) {
-    return <Text color="green">{line}</Text>;
-  }
-
-  if (line.startsWith('===')) {
-    return <Text bold>{line}</Text>;
-  }
-
-  return <Text>{line}</Text>;
+  return <Text color={color} bold={bold}>{line}</Text>;
 };

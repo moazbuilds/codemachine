@@ -22,7 +22,7 @@ export function clearTerminal(): void {
 
     // Clear any remaining line
     process.stdout.write('\r\x1b[K');
-  } catch (e) {
+  } catch {
     // If escape sequences don't work, fallback to newlines
     process.stdout.write('\n'.repeat(100));
   }
