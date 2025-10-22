@@ -84,34 +84,30 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
   // Pre-populate timeline with all workflow steps BEFORE starting UI
   // This prevents duplicate renders at startup
   // Set initial status based on completion tracking
-  const addedAgents = new Set<string>();
   template.steps.forEach((step, stepIndex) => {
     if (step.type === 'module') {
       const defaultEngine = registry.getDefault();
       const engineType = step.engine ?? defaultEngine?.metadata.id ?? 'unknown';
       const engineName = engineType; // preserve original engine type, even if unknown
 
-      // Use agentId as the unique identifier to prevent duplicates
-      const uniqueAgentId = step.agentId;
+      // Create a unique identifier for each step instance (agentId + stepIndex)
+      // This allows multiple instances of the same agent to appear separately in the UI
+      const uniqueAgentId = `${step.agentId}-step-${stepIndex}`;
 
-      // Only add agent if we haven't seen it before
-      if (!addedAgents.has(uniqueAgentId)) {
-        // Determine initial status based on completion tracking
-        let initialStatus: 'pending' | 'completed' = 'pending';
-        if (completedSteps.includes(stepIndex)) {
-          initialStatus = 'completed';
-        }
+      // Determine initial status based on completion tracking
+      let initialStatus: 'pending' | 'completed' = 'pending';
+      if (completedSteps.includes(stepIndex)) {
+        initialStatus = 'completed';
+      }
 
-        const agentId = ui.addMainAgent(step.agentName ?? step.agentId, engineName, stepIndex, initialStatus, uniqueAgentId);
-        addedAgents.add(uniqueAgentId);
+      const agentId = ui.addMainAgent(step.agentName ?? step.agentId, engineName, stepIndex, initialStatus, uniqueAgentId);
 
-        // Update agent with step information
-        const state = ui.getState();
-        const agent = state.agents.find(a => a.id === agentId);
-        if (agent) {
-          agent.stepIndex = stepIndex;
-          agent.totalSteps = template.steps.filter(s => s.type === 'module').length;
-        }
+      // Update agent with step information
+      const state = ui.getState();
+      const agent = state.agents.find(a => a.id === agentId);
+      if (agent) {
+        agent.stepIndex = stepIndex;
+        agent.totalSteps = template.steps.filter(s => s.type === 'module').length;
       }
     }
   });
@@ -146,20 +142,23 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       continue;
     }
 
-    const skipResult = shouldSkipStep(step, index, completedSteps, activeLoop, ui);
+    // Create unique agent ID for this step instance (matches UI pre-population)
+    const uniqueAgentId = `${step.agentId}-step-${index}`;
+
+    const skipResult = shouldSkipStep(step, index, completedSteps, activeLoop, ui, uniqueAgentId);
     if (skipResult.skip) {
-      ui.logMessage(step.agentId, skipResult.reason!);
+      ui.logMessage(uniqueAgentId, skipResult.reason!);
       continue;
     }
 
     logSkipDebug(step, activeLoop);
 
     // Update UI status to running (this clears the output buffer)
-    ui.updateAgentStatus(step.agentId, 'running');
+    ui.updateAgentStatus(uniqueAgentId, 'running');
 
     // Log start message AFTER clearing buffer
-    ui.logMessage(step.agentId, '═'.repeat(80));
-    ui.logMessage(step.agentId, `${step.agentName} started to work.`);
+    ui.logMessage(uniqueAgentId, '═'.repeat(80));
+    ui.logMessage(uniqueAgentId, `${step.agentName} started to work.`);
 
     // Reset behavior file to default "continue" before each agent run
     const behaviorFile = path.join(cwd, '.codemachine/memory/behavior.json');
@@ -237,7 +236,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       }
 
       engineType = foundEngine.metadata.id;
-      ui.logMessage(step.agentId, `No engine specified, using ${foundEngine.metadata.name} (${engineType})`);
+      ui.logMessage(uniqueAgentId, `No engine specified, using ${foundEngine.metadata.name} (${engineType})`);
     }
 
     // Ensure the selected engine is used during execution
@@ -247,9 +246,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
     // Check if fallback should be executed before the original step
     if (shouldExecuteFallback(step, index, notCompletedSteps)) {
-      ui.logMessage(step.agentId, `Detected incomplete step. Running fallback agent first.`);
+      ui.logMessage(uniqueAgentId, `Detected incomplete step. Running fallback agent first.`);
       try {
-        await executeFallbackStep(step, cwd, workflowStartTime, engineType, ui);
+        await executeFallbackStep(step, cwd, workflowStartTime, engineType, ui, uniqueAgentId);
       } catch (error) {
         // Fallback failed, step remains in notCompletedSteps
         console.error(
@@ -266,7 +265,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     // Set up skip listener and abort controller for this step
     const abortController = new AbortController();
     const skipListener = () => {
-      ui.logMessage(step.agentId, '⏭️  Skip requested by user...');
+      ui.logMessage(uniqueAgentId, '⏭️  Skip requested by user...');
       abortController.abort();
     };
     process.once('workflow:skip', skipListener);
@@ -277,6 +276,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         stderrLogger: () => {}, // No-op: UI reads from log files
         ui,
         abortSignal: abortController.signal,
+        uniqueAgentId,
       });
 
       // Check for trigger behavior first
@@ -290,7 +290,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
             engineType,
             logger: () => {}, // No-op: UI reads from log files
             stderrLogger: () => {}, // No-op: UI reads from log files
-            sourceAgentId: step.agentId,
+            sourceAgentId: uniqueAgentId,
             ui,
             abortSignal: abortController.signal,
           });
@@ -315,11 +315,11 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
       // Update UI status to completed
       // This must happen BEFORE loop logic to ensure UI updates even when loops trigger
-      ui.updateAgentStatus(step.agentId, 'completed');
+      ui.updateAgentStatus(uniqueAgentId, 'completed');
 
       // Log completion messages BEFORE loop check (so they're part of current agent's output)
-      ui.logMessage(step.agentId, `${step.agentName} has completed their work.`);
-      ui.logMessage(step.agentId, '\n' + '═'.repeat(80) + '\n');
+      ui.logMessage(uniqueAgentId, `${step.agentName} has completed their work.`);
+      ui.logMessage(uniqueAgentId, '\n' + '═'.repeat(80) + '\n');
 
       const loopResult = await handleLoopLogic(step, index, output, loopCounters, cwd, ui);
 
@@ -332,7 +332,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         const iteration = (loopCounters.get(loopKey) || 0) + 1;
         ui.setLoopState({
           active: true,
-          sourceAgent: step.agentId,
+          sourceAgent: uniqueAgentId,
           backSteps: loopResult.decision.stepsBack,
           iteration,
           maxIterations: step.module?.behavior?.type === 'loop' ? step.module.behavior.maxIterations ?? Infinity : Infinity,
@@ -345,7 +345,8 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         for (let resetIndex = loopResult.newIndex; resetIndex <= index; resetIndex += 1) {
           const resetStep = template.steps[resetIndex];
           if (resetStep && resetStep.type === 'module') {
-            ui.resetAgentForLoop(resetStep.agentId, iteration);
+            const resetUniqueAgentId = `${resetStep.agentId}-step-${resetIndex}`;
+            ui.resetAgentForLoop(resetUniqueAgentId, iteration);
           }
         }
 
@@ -359,15 +360,15 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         activeLoop = newActiveLoop;
         if (!newActiveLoop) {
           ui.setLoopState(null);
-          ui.clearLoopRound(step.agentId);
+          ui.clearLoopRound(uniqueAgentId);
         }
       }
     } catch (error) {
       // Check if this was a user-requested skip (abort)
       if (error instanceof Error && error.name === 'AbortError') {
-        ui.updateAgentStatus(step.agentId, 'skipped');
-        ui.logMessage(step.agentId, `${step.agentName} was skipped by user.`);
-        ui.logMessage(step.agentId, '\n' + '═'.repeat(80) + '\n');
+        ui.updateAgentStatus(uniqueAgentId, 'skipped');
+        ui.logMessage(uniqueAgentId, `${step.agentName} was skipped by user.`);
+        ui.logMessage(uniqueAgentId, '\n' + '═'.repeat(80) + '\n');
         // Continue to next step - don't throw
       } else {
         // Don't update status to failed - let it stay as running/retrying

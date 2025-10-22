@@ -12,16 +12,20 @@ export function shouldSkipStep(
   completedSteps: number[],
   activeLoop: ActiveLoop | null,
   ui?: WorkflowUIManager,
+  uniqueAgentId?: string,
 ): { skip: boolean; reason?: string } {
+  // Use provided unique agent ID or fall back to step.agentId
+  const agentId = uniqueAgentId ?? step.agentId;
+
   // Skip step if executeOnce is true and it's already completed
   if (step.executeOnce && completedSteps.includes(index)) {
-    ui?.updateAgentStatus(step.agentId, 'skipped');
+    ui?.updateAgentStatus(agentId, 'skipped');
     return { skip: true, reason: `${step.agentName} skipped (already completed).` };
   }
 
   // Skip step if it's in the active loop's skip list
   if (activeLoop?.skip.includes(step.agentId)) {
-    ui?.updateAgentStatus(step.agentId, 'skipped');
+    ui?.updateAgentStatus(agentId, 'skipped');
     return { skip: true, reason: `${step.agentName} skipped (loop configuration).` };
   }
 

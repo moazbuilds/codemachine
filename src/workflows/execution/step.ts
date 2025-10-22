@@ -20,6 +20,8 @@ export interface StepExecutorOptions {
   parentId?: number;
   /** Disable monitoring (for special cases) */
   disableMonitoring?: boolean;
+  /** Unique agent ID for UI updates (includes step index) */
+  uniqueAgentId?: string;
 }
 
 async function ensureProjectScaffold(cwd: string): Promise<void> {
@@ -105,6 +107,9 @@ export async function executeStep(
   const loggerService = !options.disableMonitoring ? AgentLoggerService.getInstance() : null;
   let monitoringAgentId: number | undefined;
 
+  // Use unique agent ID for UI updates, or fall back to step.agentId
+  const uiAgentId = options.uniqueAgentId ?? step.agentId;
+
   if (monitor && loggerService) {
     monitoringAgentId = monitor.register({
       name: step.agentId,
@@ -116,7 +121,7 @@ export async function executeStep(
 
     // Notify UI about the monitoring ID mapping
     if (options.ui) {
-      options.ui.registerMonitoringId(step.agentId, monitoringAgentId);
+      options.ui.registerMonitoringId(uiAgentId, monitoringAgentId);
     }
   }
 
@@ -151,7 +156,7 @@ export async function executeStep(
         }
       },
       onTelemetry: (telemetry) => {
-        options.ui?.updateAgentTelemetry(step.agentId, telemetry);
+        options.ui?.updateAgentTelemetry(uiAgentId, telemetry);
 
         // Update telemetry in monitoring
         if (monitor && monitoringAgentId !== undefined) {
@@ -166,7 +171,7 @@ export async function executeStep(
     if (options.ui) {
       const finalTelemetry = parseTelemetryChunk(totalStdout);
       if (finalTelemetry) {
-        options.ui.updateAgentTelemetry(step.agentId, finalTelemetry);
+        options.ui.updateAgentTelemetry(uiAgentId, finalTelemetry);
       }
     }
 
