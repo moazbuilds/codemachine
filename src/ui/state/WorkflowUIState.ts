@@ -29,6 +29,7 @@ export class WorkflowUIState {
       agents: [],
       subAgents: new Map(),
       triggeredAgents: [],
+      executionHistory: [],
       loopState: null,
       expandedNodes: new Set(),
       showTelemetryView: false,
@@ -497,6 +498,104 @@ export class WorkflowUIState {
     };
 
     this.notifyListeners();
+  }
+
+  /**
+   * Save agent's current state to execution history before resetting
+   * Used for loop cycles to preserve telemetry data
+   */
+  saveAgentToHistory(agentId: string, cycleNumber?: number): void {
+    const agent = this.state.agents.find(a => a.id === agentId);
+    if (!agent) {
+      return;
+    }
+
+    // Calculate duration if endTime exists
+    const duration = agent.endTime
+      ? (agent.endTime - agent.startTime) / 1000
+      : undefined;
+
+    const record: import('./types').ExecutionRecord = {
+      id: `${agentId}-${cycleNumber || Date.now()}`,
+      agentName: agent.name,
+      agentId: agent.id,
+      cycleNumber,
+      engine: agent.engine,
+      status: agent.status,
+      startTime: agent.startTime,
+      endTime: agent.endTime,
+      duration,
+      telemetry: { ...agent.telemetry },
+      toolCount: agent.toolCount,
+      thinkingCount: agent.thinkingCount,
+      error: agent.error,
+    };
+
+    this.state = {
+      ...this.state,
+      executionHistory: [...this.state.executionHistory, record],
+    };
+
+    this.notifyListeners();
+  }
+
+  /**
+   * Save subagents to execution history
+   * Called when clearing subagents before loop reset
+   */
+  saveSubAgentsToHistory(parentId: string): void {
+    const subAgents = this.state.subAgents.get(parentId);
+    if (!subAgents || subAgents.length === 0) {
+      return;
+    }
+
+    const records: import('./types').ExecutionRecord[] = subAgents.map((subAgent) => {
+      const duration = subAgent.endTime
+        ? (subAgent.endTime - subAgent.startTime) / 1000
+        : undefined;
+
+      return {
+        id: `${subAgent.id}-${Date.now()}`,
+        agentName: subAgent.name,
+        agentId: subAgent.id,
+        engine: subAgent.engine,
+        status: subAgent.status,
+        startTime: subAgent.startTime,
+        endTime: subAgent.endTime,
+        duration,
+        telemetry: { ...subAgent.telemetry },
+        toolCount: 0, // Subagents don't track tool count
+        thinkingCount: 0, // Subagents don't track thinking count
+        error: subAgent.error,
+      };
+    });
+
+    this.state = {
+      ...this.state,
+      executionHistory: [...this.state.executionHistory, ...records],
+    };
+
+    this.notifyListeners();
+  }
+
+  /**
+   * Get cumulative telemetry from execution history
+   * This persists across loop resets
+   */
+  getCumulativeTelemetry(): {
+    totalTokensIn: number;
+    totalTokensOut: number;
+    totalCached: number;
+    totalCost: number;
+  } {
+    const history = this.state.executionHistory;
+
+    return {
+      totalTokensIn: history.reduce((sum, record) => sum + record.telemetry.tokensIn, 0),
+      totalTokensOut: history.reduce((sum, record) => sum + record.telemetry.tokensOut, 0),
+      totalCached: history.reduce((sum, record) => sum + (record.telemetry.cached || 0), 0),
+      totalCost: history.reduce((sum, record) => sum + (record.telemetry.cost || 0), 0),
+    };
   }
 
 }

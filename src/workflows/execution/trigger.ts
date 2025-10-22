@@ -41,6 +41,12 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
     const rawTemplate = await loadAgentTemplate(triggerAgentId, cwd);
     const triggeredAgentTemplate = await processPromptString(rawTemplate, cwd);
 
+    // Get engine and resolve model/reasoning
+    const engine = getEngine(engineType);
+    const engineModule = registry.get(engineType);
+    const triggeredModel = (triggeredAgentConfig.model as string | undefined) ?? engineModule?.metadata.defaultModel;
+    const triggeredReasoning = (triggeredAgentConfig.modelReasoningEffort as 'low' | 'medium' | 'high' | undefined) ?? engineModule?.metadata.defaultModelReasoningEffort;
+
     // Find parent agent in monitoring system by sourceAgentId
     let parentMonitoringId: number | undefined;
     if (monitor) {
@@ -50,11 +56,13 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
         parentMonitoringId = parentAgents.sort((a, b) => b.id - a.id)[0].id;
       }
 
-      // Register triggered agent with parent relationship
+      // Register triggered agent with parent relationship and engine/model info
       monitoringAgentId = monitor.register({
         name: triggerAgentId,
         prompt: `Triggered by ${sourceAgentId}`,
-        parentId: parentMonitoringId
+        parentId: parentMonitoringId,
+        engineProvider: engineType,
+        modelName: triggeredModel,
       });
     }
 
@@ -85,12 +93,6 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
     const adapter = new MemoryAdapter(memoryDir);
     const store = new MemoryStore(adapter);
     const compositePrompt = `[SYSTEM]\n${triggeredAgentTemplate}`;
-
-    // Get engine and resolve model/reasoning
-    const engine = getEngine(engineType);
-    const engineModule = registry.get(engineType);
-    const triggeredModel = (triggeredAgentConfig.model as string | undefined) ?? engineModule?.metadata.defaultModel;
-    const triggeredReasoning = (triggeredAgentConfig.modelReasoningEffort as 'low' | 'medium' | 'high' | undefined) ?? engineModule?.metadata.defaultModelReasoningEffort;
 
     // Execute triggered agent
     let totalTriggeredStdout = '';
