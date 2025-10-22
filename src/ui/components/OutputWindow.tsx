@@ -1,10 +1,12 @@
 import React, { useMemo } from 'react';
 import { Box, Text, useStdout } from 'ink';
+import Spinner from 'ink-spinner';
 import type { AgentState, SubAgentState } from '../state/types';
 import { calculateOutputWindowHeight, calculateOutputWindowContentWidth, wrapText } from '../utils/heightCalculations';
 import { useTerminalResize } from '../hooks/useTerminalResize';
 import { useLogStream } from '../hooks/useLogStream';
 import { LineSyntaxHighlight } from '../utils/lineSyntaxHighlight';
+import { ShimmerText } from './ShimmerText';
 
 export interface OutputWindowProps {
   currentAgent: AgentState | SubAgentState | null;
@@ -41,7 +43,7 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
   const monitoringId = currentAgent ? getMonitoringId(currentAgent.id) : undefined;
 
   // Use log stream for all agents (main and sub-agents)
-  const { lines: logLines, isLoading, error } = useLogStream(monitoringId);
+  const { lines: logLines, isLoading, isConnecting, error } = useLogStream(monitoringId);
 
   if (!currentAgent) {
     return (
@@ -117,6 +119,10 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
       >
         {isLoading ? (
           <Text dimColor>Loading logs...</Text>
+        ) : isConnecting ? (
+          <Text>
+            <Text color="green"><Spinner type="dots" /></Text> <ShimmerText text="Connecting to agent data" />
+          </Text>
         ) : error ? (
           <Text color="red">Error loading logs: {error}</Text>
         ) : sourceLines.length === 0 ? (
