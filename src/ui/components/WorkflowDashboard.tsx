@@ -142,6 +142,7 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
           <OutputWindow
             currentAgent={currentAgent}
             outputLines={state.outputBuffer}
+            getMonitoringId={getMonitoringId}
           />
         </Box>
       </Box>
