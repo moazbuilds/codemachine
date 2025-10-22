@@ -46,16 +46,19 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
     const nodes: React.ReactNode[] = [];
 
     mainAgents.forEach((agent, index) => {
-      const isSelected = isAgentSelected(agent.id, selectedAgentId, selectedSubAgentId);
       const isExpanded = expandedNodes.has(agent.id);
       const agentSubAgents = subAgents.get(agent.id) || [];
       const hasSubAgents = agentSubAgents.length > 0;
+
+      // Only show arrow on main agent if selectedItemType is 'main'
+      const isMainSelected = selectedItemType === 'main' &&
+                             isAgentSelected(agent.id, selectedAgentId, selectedSubAgentId);
 
       nodes.push(
         <Box key={`${agent.id}-${index}`} flexDirection="column">
           <MainAgentNode
             agent={agent}
-            isSelected={isSelected}
+            isSelected={isMainSelected}
           />
 
           {hasSubAgents && (

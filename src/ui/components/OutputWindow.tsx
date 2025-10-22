@@ -118,10 +118,10 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
         overflow="hidden"
       >
         {isLoading ? (
-          <Text dimColor>Loading logs...</Text>
+          <Text dimColor>Waiting for agent output...</Text>
         ) : isConnecting ? (
           <Text>
-            <Text color="green"><Spinner type="dots" /></Text> <ShimmerText text="Connecting to agent data" sweepSeconds={2.0} bandHalfWidth={2.5} />
+            <Text color="white"><Spinner type="dots" /></Text> <ShimmerText text="Connecting to agent data" sweepSeconds={2.0} bandHalfWidth={2.5} />
           </Text>
         ) : error ? (
           <Text color="red">Error loading logs: {error}</Text>
