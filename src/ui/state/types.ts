@@ -80,6 +80,7 @@ export interface WorkflowState {
   version: string;
   packageName: string;
   startTime: number;
+  endTime?: number;  // Set when workflow stops (Ctrl+C or completion)
 
   agents: AgentState[];
   subAgents: Map<string, SubAgentState[]>;

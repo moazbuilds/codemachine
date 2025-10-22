@@ -48,14 +48,14 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
 
   useCtrlCHandler();
 
-  // Update runtime every second
+  // Update runtime every second (or freeze if endTime is set)
   useEffect(() => {
     const interval = setInterval(() => {
-      setRuntime(formatRuntime(state.startTime));
+      setRuntime(formatRuntime(state.startTime, state.endTime));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [state.startTime]);
+  }, [state.startTime, state.endTime]);
 
   // Keyboard event handling
   useInput((input, key) => {
@@ -83,12 +83,27 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
   // Get current agent for output window using centralized logic
   const currentAgent = getOutputAgent(state);
 
-  // Calculate cumulative telemetry
+  // Calculate cumulative telemetry from main agents
+  let totalTokensIn = state.agents.reduce((sum, a) => sum + a.telemetry.tokensIn, 0);
+  let totalTokensOut = state.agents.reduce((sum, a) => sum + a.telemetry.tokensOut, 0);
+  let totalCached = state.agents.reduce((sum, a) => sum + (a.telemetry.cached || 0), 0);
+  let totalCost = state.agents.reduce((sum, a) => sum + (a.telemetry.cost || 0), 0);
+
+  // Include subagent telemetry in totals
+  for (const subAgents of state.subAgents.values()) {
+    for (const subAgent of subAgents) {
+      totalTokensIn += subAgent.telemetry.tokensIn;
+      totalTokensOut += subAgent.telemetry.tokensOut;
+      totalCached += subAgent.telemetry.cached || 0;
+      totalCost += subAgent.telemetry.cost || 0;
+    }
+  }
+
   const cumulativeStats = {
-    totalTokensIn: state.agents.reduce((sum, a) => sum + a.telemetry.tokensIn, 0),
-    totalTokensOut: state.agents.reduce((sum, a) => sum + a.telemetry.tokensOut, 0),
-    totalCached: state.agents.reduce((sum, a) => sum + (a.telemetry.cached || 0), 0),
-    totalCost: state.agents.reduce((sum, a) => sum + (a.telemetry.cost || 0), 0),
+    totalTokensIn,
+    totalTokensOut,
+    totalCached,
+    totalCost,
     loopIterations: state.loopState?.iteration,
   };
 

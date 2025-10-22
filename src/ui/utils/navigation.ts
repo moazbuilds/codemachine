@@ -16,11 +16,15 @@ export interface TimelineLayoutEntry {
 
 /**
  * Calculate the height (in lines) that each item type occupies
- * - Main agent: 1 line
+ * - Main agent: 1 line (or 2 if showing cycle indicator)
  * - Summary: 1 line
  * - Sub-agent: 1 line
  */
-export function getItemHeight(_item: NavigableItem): number {
+export function getItemHeight(item: NavigableItem): number {
+  // Main agents with loop rounds take 2 lines (main line + cycle line)
+  if (item.type === 'main' && item.agent.loopRound && item.agent.loopRound > 0) {
+    return 2;
+  }
   return 1;
 }
 

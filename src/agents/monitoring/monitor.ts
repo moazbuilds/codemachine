@@ -77,12 +77,18 @@ export class AgentMonitorService {
     const endTime = new Date().toISOString();
     const duration = new Date(endTime).getTime() - new Date(agent.startTime).getTime();
 
-    this.registry.update(id, {
+    const updates: Partial<AgentRecord> = {
       status: 'completed',
       endTime,
       duration,
-      telemetry
-    });
+    };
+
+    // Only update telemetry if provided (preserve existing telemetry otherwise)
+    if (telemetry) {
+      updates.telemetry = telemetry;
+    }
+
+    this.registry.update(id, updates);
 
     logger.debug(`Agent ${id} (${agent.name}) completed in ${duration}ms`);
   }
@@ -101,11 +107,13 @@ export class AgentMonitorService {
     const duration = new Date(endTime).getTime() - new Date(agent.startTime).getTime();
     const errorMessage = error instanceof Error ? error.message : error;
 
+    // Preserve existing telemetry when failing
     this.registry.update(id, {
       status: 'failed',
       endTime,
       duration,
       error: errorMessage
+      // Note: telemetry is NOT included here, so existing telemetry is preserved
     });
 
     // Suppress error logs for user interruptions (Ctrl+C) - use debug instead
@@ -236,6 +244,33 @@ export class AgentMonitorService {
     }
 
     return result;
+  }
+
+  /**
+   * Clear all descendants of an agent (used for loop resets)
+   * Removes all child agents recursively from the registry
+   */
+  clearDescendants(agentId: number): void {
+    this.registry.reload();
+    const agent = this.registry.get(agentId);
+    if (!agent) {
+      return;
+    }
+
+    // Get all descendants before clearing
+    const children = this.getChildren(agentId);
+
+    // Recursively delete all descendants
+    for (const child of children) {
+      this.clearDescendants(child.id);
+      this.registry.delete(child.id);
+    }
+
+    // Clear the children array of the parent
+    agent.children = [];
+    this.registry.save(agent);
+
+    logger.debug(`Cleared ${children.length} descendants for agent ${agentId}`);
   }
 
   /**
