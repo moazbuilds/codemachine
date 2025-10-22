@@ -10,6 +10,8 @@ import { renderTypewriter } from '../presentation/typewriter.js';
 import { palette } from '../presentation/layout.js';
 import { runWorkflowQueue } from '../../workflows/index.js';
 import { createTemplateHandler, createAuthHandler } from './session-handlers/index.js';
+import { clearTerminal } from '../../shared/utils/terminal.js';
+import { debug } from '../../shared/logging/logger.js';
 
 export interface SessionShellOptions {
   cwd: string;
@@ -117,7 +119,10 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
 
     if (raw === '/start') {
       try {
-        console.log(`Launching workflow queue (spec=${specificationPath})`);
+        // Clear terminal for clean workflow start
+        clearTerminal();
+
+        debug(`Launching workflow queue (spec=${specificationPath})`);
         await runWorkflowQueue({ cwd, specificationPath });
         console.log('Workflow finished. You are still in the session.');
       } catch (error) {
