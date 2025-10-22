@@ -42,7 +42,8 @@ export const TelemetryBar: React.FC<TelemetryBarProps> = ({ workflowName, runtim
   return (
     <Box
       paddingX={1}
-      paddingBottom={1}
+      paddingTop={0}
+      paddingBottom={0}
       borderStyle="round"
       justifyContent="space-between"
       width="100%"

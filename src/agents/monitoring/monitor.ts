@@ -60,7 +60,7 @@ export class AgentMonitorService {
     }
 
     this.registry.save(agent);
-    logger.info(`Registered agent ${id} (${input.name})`);
+    logger.debug(`Registered agent ${id} (${input.name})`);
     return id;
   }
 
@@ -111,6 +111,8 @@ export class AgentMonitorService {
     // Suppress error logs for user interruptions (Ctrl+C) - use debug instead
     if (errorMessage.includes('User interrupted')) {
       logger.debug(`Agent ${id} (${agent.name}) aborted by user after ${duration}ms`);
+    } else if (errorMessage.includes('operation was aborted')) {
+      logger.debug(`Agent ${id} (${agent.name}) failed after ${duration}ms: ${errorMessage}`);
     } else {
       logger.error(`Agent ${id} (${agent.name}) failed after ${duration}ms: ${errorMessage}`);
     }

@@ -3,16 +3,16 @@
  */
 export const UI_COMPONENT_HEIGHTS = {
   BRANDING_HEADER: 3,        // ASCII art header
-  TELEMETRY_BAR: 2,         // Telemetry bar with border and padding
-  STATUS_FOOTER: 1,         // Status footer line
-  OUTPUT_WINDOW_HEADER: 2,  // Output window internal header
-  BORDERS_AND_PADDING: 2,   // Total borders and padding throughout UI
-  MINIMUM_HEIGHT: 10,       // Minimum usable height for UI
+  TELEMETRY_BAR: 3,         // Telemetry bar with border + extra spacing
+  STATUS_FOOTER: 2,         // Status footer line + spacing
+  OUTPUT_WINDOW_HEADER: 1,  // Header line only (no padding)
+  BORDERS_AND_PADDING: 2,   // Additional buffer for header/footer visibility
+  MINIMUM_HEIGHT: 8,        // Reduced minimum for smaller boxes
 } as const;
 
 /**
  * Calculate available height for main content area
- * Accounts for all fixed UI elements
+ * Accounts for all fixed UI elements with extra buffer to ensure header/footer visibility
  */
 export function calculateMainContentHeight(stdout: NodeJS.WriteStream | null): number {
   const terminalHeight = stdout?.rows || 40;
@@ -20,25 +20,28 @@ export function calculateMainContentHeight(stdout: NodeJS.WriteStream | null): n
   const fixedElementsHeight =
     UI_COMPONENT_HEIGHTS.BRANDING_HEADER +
     UI_COMPONENT_HEIGHTS.TELEMETRY_BAR +
-    UI_COMPONENT_HEIGHTS.STATUS_FOOTER;
+    UI_COMPONENT_HEIGHTS.STATUS_FOOTER +
+    UI_COMPONENT_HEIGHTS.BORDERS_AND_PADDING;
 
-  const availableHeight = terminalHeight - fixedElementsHeight;
+  // No additional buffer - all reserved in calculations
+  const totalReservedHeight = fixedElementsHeight;
+
+  const availableHeight = terminalHeight - totalReservedHeight;
   return Math.max(availableHeight, UI_COMPONENT_HEIGHTS.MINIMUM_HEIGHT);
 }
 
 /**
  * Calculate available height for OutputWindow component
- * Accounts for OutputWindow's internal header and borders
+ * Accounts for OutputWindow's internal header and minimal borders
  */
 export function calculateOutputWindowHeight(stdout: NodeJS.WriteStream | null): number {
   const mainContentHeight = calculateMainContentHeight(stdout);
 
   const outputWindowOverhead =
-    UI_COMPONENT_HEIGHTS.OUTPUT_WINDOW_HEADER +
-    UI_COMPONENT_HEIGHTS.BORDERS_AND_PADDING;
+    UI_COMPONENT_HEIGHTS.OUTPUT_WINDOW_HEADER;
 
   const availableHeight = mainContentHeight - outputWindowOverhead;
-  return Math.max(availableHeight, 5); // Minimum 5 lines for output content
+  return Math.max(availableHeight, 4); // Reduced minimum for smaller boxes
 }
 
 /**
@@ -48,10 +51,11 @@ export function calculateOutputWindowHeight(stdout: NodeJS.WriteStream | null): 
 export function calculateAgentTimelineHeight(stdout: NodeJS.WriteStream | null): number {
   const mainContentHeight = calculateMainContentHeight(stdout);
 
-  const timelineOverhead = UI_COMPONENT_HEIGHTS.BORDERS_AND_PADDING;
+  // Minimal overhead for header only
+  const timelineOverhead = UI_COMPONENT_HEIGHTS.OUTPUT_WINDOW_HEADER;
   const availableHeight = mainContentHeight - timelineOverhead;
 
-  return Math.max(availableHeight, 5); // Minimum 5 lines for timeline content
+  return Math.max(availableHeight, 4); // Reduced minimum for smaller boxes
 }
 
 /**

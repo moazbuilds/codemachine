@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, useInput } from 'ink';
+import { Box, useInput, useStdout } from 'ink';
 import type { WorkflowState } from '../state/types';
 import { BrandingHeader } from './BrandingHeader';
 import { AgentTimeline } from './AgentTimeline';
@@ -11,6 +11,7 @@ import { LogViewer } from './LogViewer';
 import { formatRuntime } from '../utils/formatters';
 import { getOutputAgent } from '../utils/agentSelection';
 import { useCtrlCHandler } from '../hooks/useCtrlCHandler';
+import { calculateMainContentHeight } from '../utils/heightCalculations';
 
 export interface WorkflowDashboardProps {
   state: WorkflowState;
@@ -38,6 +39,7 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
   onAction,
   getMonitoringId,
 }) => {
+  const { stdout } = useStdout();
   const [showTelemetry, setShowTelemetry] = useState(false);
   const [runtime, setRuntime] = useState('00:00:00');
   const [logViewerAgentId, setLogViewerAgentId] = useState<string | null>(null);
@@ -88,6 +90,9 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
     loopIterations: state.loopState?.iteration,
   };
 
+  // Calculate constrained height for main content area
+  const mainContentHeight = calculateMainContentHeight(stdout);
+
   // Log viewer (highest priority)
   if (logViewerAgentId) {
     return (
@@ -114,14 +119,18 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
 
   // Main workflow view
   return (
-    <Box flexDirection="column" height="100%">
+    <Box flexDirection="column" height="100%" gap={0}>
       <BrandingHeader
         version={state.version}
         currentDir={process.cwd()}
       />
 
-      {/* Main content area with fixed height constraint */}
-      <Box flexGrow={1} flexDirection="row">
+      {/* Main content area with explicit height constraint */}
+      <Box
+        height={mainContentHeight}
+        flexDirection="row"
+        paddingTop={0}
+      >
         {/* Workflow Steps - Fixed width */}
         <Box width={75} flexDirection="column" borderStyle="single" borderColor="cyan">
           <AgentTimeline

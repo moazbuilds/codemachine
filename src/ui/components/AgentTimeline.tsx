@@ -100,7 +100,7 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
   return (
     <Box flexDirection="column" width="100%" height="100%">
       {/* Header - Fixed height */}
-      <Box paddingX={1} paddingBottom={1}>
+      <Box paddingX={1} paddingBottom={0}>
         <Text bold underline>Main Workflow Steps</Text>
       </Box>
 

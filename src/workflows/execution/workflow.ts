@@ -6,6 +6,7 @@ import { loadTemplateWithPath } from '../templates/index.js';
 import {
   formatAgentLog,
 } from '../../shared/logging/index.js';
+import { debug } from '../../shared/logging/logger.js';
 import {
   getTemplatePathFromTracking,
   getCompletedSteps,
@@ -37,7 +38,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
   const { template } = await loadTemplateWithPath(cwd, templatePath);
 
-  console.log(`Using workflow template: ${template.name}`);
+  debug(`Using workflow template: ${template.name}`);
 
   // Sync agent configurations before running the workflow
   const workflowAgents = Array.from(
