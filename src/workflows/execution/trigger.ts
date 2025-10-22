@@ -102,20 +102,16 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
       onData: (chunk) => {
         totalTriggeredStdout += chunk;
 
-        // Dual-stream: write to log file AND original logger
+        // Write to log file only (UI reads from log file)
         if (loggerService && monitoringAgentId !== undefined) {
           loggerService.write(monitoringAgentId, chunk);
         }
-
-        logger(chunk);
       },
       onErrorData: (chunk) => {
-        // Also log stderr to file
+        // Write stderr to log file only (UI reads from log file)
         if (loggerService && monitoringAgentId !== undefined) {
           loggerService.write(monitoringAgentId, `[STDERR] ${chunk}`);
         }
-
-        stderrLogger(chunk);
       },
       onTelemetry: (telemetry) => {
         ui?.updateAgentTelemetry(triggerAgentId, telemetry);

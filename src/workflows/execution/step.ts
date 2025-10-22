@@ -137,20 +137,16 @@ export async function executeStep(
       onData: (chunk) => {
         totalStdout += chunk;
 
-        // Dual-stream: write to log file AND original logger
+        // Write to log file only (UI reads from log file)
         if (loggerService && monitoringAgentId !== undefined) {
           loggerService.write(monitoringAgentId, chunk);
         }
-
-        options.logger(chunk);
       },
       onErrorData: (chunk) => {
-        // Also log stderr to file
+        // Write stderr to log file only (UI reads from log file)
         if (loggerService && monitoringAgentId !== undefined) {
           loggerService.write(monitoringAgentId, `[STDERR] ${chunk}`);
         }
-
-        options.stderrLogger(chunk);
       },
       onTelemetry: (telemetry) => {
         options.ui?.updateAgentTelemetry(step.agentId, telemetry);

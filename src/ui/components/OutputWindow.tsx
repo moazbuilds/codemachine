@@ -8,7 +8,6 @@ import { LineSyntaxHighlight } from '../utils/lineSyntaxHighlight';
 
 export interface OutputWindowProps {
   currentAgent: AgentState | SubAgentState | null;
-  outputLines: string[];
   maxLines?: number;
   getMonitoringId: (uiId: string) => number | undefined;
 }
@@ -17,12 +16,10 @@ export interface OutputWindowProps {
  * Output window showing current agent's output
  * Displays last N lines with syntax highlighting
  *
- * For main agents: Uses in-memory outputLines buffer
- * For sub-agents: Streams from log files using useLogStream
+ * Streams from log files using useLogStream for all agents
  */
 export const OutputWindow: React.FC<OutputWindowProps> = ({
   currentAgent,
-  outputLines,
   maxLines,
   getMonitoringId,
 }) => {
@@ -40,14 +37,11 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
     console.log(`Terminal width: ${stdout?.columns}, Calculated content width: ${calculatedWidth}`);
   }
 
-  // Detect if current agent is a sub-agent
-  const isSubAgent = currentAgent && 'parentId' in currentAgent;
+  // Get monitoring ID for log streaming
   const monitoringId = currentAgent ? getMonitoringId(currentAgent.id) : undefined;
 
-  // Use log stream for sub-agents
-  const { lines: logLines, isLoading, error } = useLogStream(
-    isSubAgent ? monitoringId : undefined
-  );
+  // Use log stream for all agents (main and sub-agents)
+  const { lines: logLines, isLoading, error } = useLogStream(monitoringId);
 
   if (!currentAgent) {
     return (
@@ -57,10 +51,10 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
     );
   }
 
-  const agentType = isSubAgent ? 'sub-agent' : 'main';
+  const agentType = currentAgent && 'parentId' in currentAgent ? 'sub-agent' : 'main';
 
-  // Determine which lines to display
-  const sourceLines = isSubAgent ? logLines : outputLines;
+  // Use log lines for all agents
+  const sourceLines = logLines;
 
   // Process lines for wrapping and truncation
   const processedLines = useMemo(() => {
@@ -121,9 +115,9 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
         width="100%"
         overflow="hidden"
       >
-        {isSubAgent && isLoading ? (
+        {isLoading ? (
           <Text dimColor>Loading logs...</Text>
-        ) : isSubAgent && error ? (
+        ) : error ? (
           <Text color="red">Error loading logs: {error}</Text>
         ) : sourceLines.length === 0 ? (
           <Text dimColor>Waiting for output...</Text>

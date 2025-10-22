@@ -109,36 +109,9 @@ describe('WorkflowUIState', () => {
     });
   });
 
-  describe('appendOutput', () => {
-    beforeEach(() => {
-      // Add an agent and select it for output buffer tests
-      const agentId = state.addMainAgent('test-agent', 'claude', 0);
-      state.selectAgent(agentId);
-    });
-
-    it('should add output line to buffer', () => {
-      const currentState = state.getState();
-      const agentId = currentState.agents[0].id;
-      state.appendOutput(agentId, 'Test output line');
-
-      const updatedState = state.getState();
-      expect(updatedState.outputBuffers.get(agentId)).toContain('Test output line');
-      expect(updatedState.outputBuffer).toContain('Test output line');
-    });
-
-    it('should limit buffer to 1000 lines', () => {
-      const currentState = state.getState();
-      const agentId = currentState.agents[0].id;
-      for (let i = 0; i < 1500; i++) {
-        state.appendOutput(agentId, `Line ${i}`);
-      }
-
-      const updatedState = state.getState();
-      expect(updatedState.outputBuffer.length).toBe(1000);
-      expect(updatedState.outputBuffer[0]).toBe('Line 500');
-      expect(updatedState.outputBuffer[999]).toBe('Line 1499');
-    });
-  });
+  // REMOVED: appendOutput() and in-memory buffering have been removed
+  // UI now reads directly from log files using useLogStream hook
+  // See: Unification of main and sub-agent logging architecture
 
   describe('updateAgentTelemetry', () => {
     it('should update telemetry data', () => {

@@ -1,6 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WorkflowUIManager } from '../../../src/ui/manager/WorkflowUIManager';
 
+/**
+ * NOTE: Many tests in this file reference removed functionality:
+ * - handleOutputChunk() method has been removed
+ * - outputBuffer in-memory buffering has been removed
+ * - UI now reads directly from log files using useLogStream hook
+ *
+ * Tests that use these features should be updated or removed.
+ */
+
 describe('Edge Cases and Error Handling', () => {
   let manager: WorkflowUIManager;
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;

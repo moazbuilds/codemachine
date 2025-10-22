@@ -88,9 +88,6 @@ export interface WorkflowState {
   loopState: LoopState | null;
   expandedNodes: Set<string>;
 
-  outputBuffers: Map<string, string[]>;     // Agent ID -> buffer mapping (last 1000 lines per agent)
-  outputBuffer: string[];     // Current selected agent's output buffer (for backward compatibility)
-
   showTelemetryView: boolean;
   selectedAgentId: string | null;
   selectedSubAgentId: string | null;
