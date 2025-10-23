@@ -6,6 +6,7 @@ import * as path from 'node:path';
 import updateNotifier from 'update-notifier';
 import { banner, formatKeyValue, palette, divider } from './layout.js';
 import { getActiveTemplate } from '../../shared/workflows/index.js';
+import { clearTerminal } from '../../shared/utils/terminal.js';
 
 function findPackageJson(moduleUrl: string): string {
   let currentDir = dirname(fileURLToPath(moduleUrl));
@@ -110,34 +111,17 @@ async function renderStatus(): Promise<string> {
   return lines.join('\n');
 }
 
-function renderCommands(): string {
-  const lines = [
-    formatKeyValue('/start', 'Run configured workflow queue'),
-    formatKeyValue('/templates', 'Browse available templates'),
-    formatKeyValue('/version', 'Show CLI version'),
-    formatKeyValue('/help', 'Show command help'),
-  ];
-  return lines.join('\n');
-}
 
-function renderSpecificationsPrompt(specificationPath?: string): string {
-  const displayPath = specificationPath || '.codemachine/inputs/specifications.md';
-  const line1 = `Have you written the full specification in ${displayPath}?`;
-  const line2 = 'Add any necessary context files, then run /start to begin.';
-  return [line1, line2, renderSeparator()].join('\n');
-}
 
 export async function renderMainMenu(specificationPath?: string): Promise<string> {
+  // Clear terminal before showing main menu
+  clearTerminal();
+
   const parts: string[] = [];
-  parts.push(banner('CodeMachine - Multi-Agent Workflow Orchestration'));
-  // Render left-aligned ASCII with MACHINE centered under CODE
   parts.push(geminiAscii());
   parts.push(renderSeparator());
   parts.push(await renderStatus());
   parts.push(renderSeparator());
-  parts.push(renderCommands());
-  parts.push(renderSeparator());
-  parts.push(renderSpecificationsPrompt(specificationPath));
   return parts.join('\n');
 }
 

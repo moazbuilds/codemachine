@@ -1,15 +1,15 @@
 import { createRequire } from 'node:module';
-import { createInterface } from 'node:readline/promises';
-import { stdin as input, stdout as output } from 'node:process';
 import { existsSync } from 'node:fs';
 import { dirname, join, parse } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawn } from 'node:child_process';
+import React from 'react';
+import { render } from 'ink';
 
 import { renderMainMenu } from '../presentation/main-menu.js';
 import { renderTypewriter } from '../presentation/typewriter.js';
-import { palette } from '../presentation/layout.js';
+import { SessionShell } from '../components/SessionShell.js';
 import { runWorkflowQueue } from '../../workflows/index.js';
-import { createTemplateHandler, createAuthHandler } from './session-handlers/index.js';
 import { clearTerminal } from '../../shared/utils/terminal.js';
 import { debug } from '../../shared/logging/logger.js';
 
@@ -18,6 +18,28 @@ export interface SessionShellOptions {
   specificationPath: string;
   specDisplayPath?: string; // Original path for display purposes
   showIntro?: boolean;
+}
+
+/**
+ * Run a codemachine CLI command as a subprocess
+ * Returns a promise that resolves with the exit code
+ */
+function runCliCommand(args: string[]): Promise<number> {
+  return new Promise((resolve) => {
+    const child = spawn('codemachine', args, {
+      stdio: 'inherit', // Pass stdin/stdout/stderr directly to the child
+      shell: false,
+    });
+
+    child.on('close', (code) => {
+      resolve(code ?? 0);
+    });
+
+    child.on('error', (error) => {
+      console.error(`Failed to start command: ${error.message}`);
+      resolve(1);
+    });
+  });
 }
 
 export async function runSessionShell(options: SessionShellOptions): Promise<void> {
@@ -29,100 +51,20 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
     await renderTypewriter({ text: menu + '\n' });
   }
 
-  const rl = createInterface({ input, output, terminal: true });
-  const prompt = () => rl.setPrompt(palette.primary('CODEMACHINE> '));
-  prompt();
-  rl.prompt();
-
-  const help = () => {
-    console.log([
-      '',
-      'Available commands:',
-      '  /start                Run configured workflow queue',
-      '  /templates            List and select workflow templates',
-      '  /login                Authenticate with AI services',
-      '  /logout               Sign out of AI services',
-      '  /version              Show CLI version',
-      '  /mcp                  MCP support coming soon',
-      '  /help                 Show this help',
-      '  /exit                 Exit the session',
-      '',
-    ].join('\n'));
-  };
-
   const require = createRequire(import.meta.url);
   const packageJsonPath = findPackageJson(import.meta.url);
   const pkg = require(packageJsonPath) as { version: string };
 
-  // Initialize handlers
-  const onHandlerComplete = () => {
-    prompt();
-    rl.prompt();
-  };
+  let inkInstance: ReturnType<typeof render> | null = null;
+  let shouldExit = false;
 
-  const templateHandler = createTemplateHandler(rl, onHandlerComplete);
-  const authHandler = createAuthHandler(rl, onHandlerComplete);
-
-  for await (const line of rl) {
-    const raw = (line || '').trim();
-
-    // Skip processing if any handler is active
-    if (templateHandler.isActive() || authHandler.isActive()) {
-      continue;
-    }
-
-    if (!raw) {
-      prompt();
-      rl.prompt();
-      continue;
-    }
-
-    if (raw === '/exit' || raw === '/quit') {
-      break;
-    }
-
-    if (raw === '/help' || raw === '/h') {
-      help();
-      prompt();
-      rl.prompt();
-      continue;
-    }
-
-    if (raw === '/version') {
-      console.log(`CodeMachine v${pkg.version}`);
-      prompt();
-      rl.prompt();
-      continue;
-    }
-
-    if (raw === '/login') {
-      try {
-        await authHandler.handleLogin();
-      } catch (error) {
-        console.error('Error during login:', error instanceof Error ? error.message : String(error));
-        prompt();
-        rl.prompt();
+  const handleCommand = async (command: string): Promise<void> => {
+    if (command === '/start') {
+      // Unmount Ink UI to release stdin control
+      if (inkInstance) {
+        inkInstance.unmount();
+        inkInstance = null;
       }
-      continue;
-    }
-
-    if (raw === '/logout') {
-      try {
-        await authHandler.handleLogout();
-      } catch (error) {
-        console.error('Error during logout:', error instanceof Error ? error.message : String(error));
-        prompt();
-        rl.prompt();
-      }
-      continue;
-    }
-
-    if (raw === '/start') {
-      // Close readline interface to release stdin control to workflow UI
-      // The workflow UI handles all input including Ctrl+C behavior:
-      // - First Ctrl+C: Stops workflow but keeps UI alive for navigation
-      // - Second Ctrl+C: Exits the entire process
-      rl.close();
 
       try {
         // Clear terminal for clean workflow start
@@ -137,32 +79,101 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
         console.error(error instanceof Error ? error.message : String(error));
         process.exit(1);
       }
-    }
-
-    if (raw === '/templates' || raw === '/template') {
-      try {
-        await templateHandler.handle();
-      } catch (error) {
-        console.error('Error running templates command:', error instanceof Error ? error.message : String(error));
-        prompt();
-        rl.prompt();
+    } else if (command === '/help' || command === '/h') {
+      console.log([
+        '',
+        'Available commands:',
+        '  /start                Run configured workflow queue',
+        '  /templates            List and select workflow templates',
+        '  /login                Authenticate with AI services',
+        '  /logout               Sign out of AI services',
+        '  /version              Show CLI version',
+        '  /help                 Show this help',
+        '  /exit                 Exit the session',
+        '',
+      ].join('\n'));
+    } else if (command === '/version') {
+      console.log(`CodeMachine v${pkg.version}`);
+    } else if (command === '/login') {
+      // Unmount Ink UI to release terminal control
+      if (inkInstance) {
+        inkInstance.unmount();
+        inkInstance = null;
       }
-      continue;
+
+      // Clear terminal for clean auth flow
+      clearTerminal();
+
+      // Run the auth login command as a subprocess
+      await runCliCommand(['auth', 'login']);
+
+      // Restart Ink UI after command completes
+      startInkUI();
+    } else if (command === '/logout') {
+      // Unmount Ink UI to release terminal control
+      if (inkInstance) {
+        inkInstance.unmount();
+        inkInstance = null;
+      }
+
+      // Clear terminal for clean auth flow
+      clearTerminal();
+
+      // Run the auth logout command as a subprocess
+      await runCliCommand(['auth', 'logout']);
+
+      // Restart Ink UI after command completes
+      startInkUI();
+    } else if (command === '/templates' || command === '/template') {
+      // Unmount Ink UI to release terminal control
+      if (inkInstance) {
+        inkInstance.unmount();
+        inkInstance = null;
+      }
+
+      // Clear terminal for clean templates flow
+      clearTerminal();
+
+      // Run the templates command as a subprocess
+      await runCliCommand(['templates']);
+
+      // Restart Ink UI after command completes
+      startInkUI();
+    } else {
+      throw new Error(`Unrecognized command: ${command}. Type /help for options.`);
+    }
+  };
+
+  const handleExit = (): void => {
+    shouldExit = true;
+    if (inkInstance) {
+      inkInstance.unmount();
+      inkInstance = null;
+    }
+    process.exit(0);
+  };
+
+  const startInkUI = (): void => {
+    // Ensure we don't have multiple instances
+    if (inkInstance) {
+      inkInstance.unmount();
+      inkInstance = null;
     }
 
-    if (raw === '/mcp') {
-      console.log('MCP support coming soon!');
-      prompt();
-      rl.prompt();
-      continue;
-    }
+    inkInstance = render(
+      React.createElement(SessionShell, {
+        onCommand: handleCommand,
+        onExit: handleExit,
+        projectName: specDisplayPath,
+      }),
+      {
+        exitOnCtrlC: true,
+      }
+    );
+  };
 
-    console.log(`Unrecognized command: ${raw}. Type /help for options.`);
-    prompt();
-    rl.prompt();
-  }
-
-  rl.close();
+  // Start the Ink UI (don't clear to preserve main menu)
+  startInkUI();
 }
 
 function findPackageJson(moduleUrl: string): string {
