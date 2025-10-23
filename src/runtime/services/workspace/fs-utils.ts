@@ -26,6 +26,22 @@ export async function ensurePromptFile(filePath: string): Promise<void> {
   }
 }
 
+export async function copyPromptFile(sourcePath: string, targetPath: string): Promise<void> {
+  try {
+    const content = await readFile(sourcePath, 'utf8');
+    await writeFile(targetPath, content, 'utf8');
+    console.log(`[workspace] Copied template file from ${sourcePath} to ${targetPath}`);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      console.warn(`[workspace] Template file not found: ${sourcePath}, creating empty file instead`);
+      await writeFile(targetPath, '', 'utf8');
+    } else {
+      console.error(`[workspace] Error copying template file from ${sourcePath}:`, error);
+      throw error;
+    }
+  }
+}
+
 export function slugify(value: unknown): string {
   return String(value ?? '')
     .toLowerCase()
@@ -46,7 +62,11 @@ export async function ensureSpecificationsTemplate(inputsDir: string): Promise<v
   await writeFile(specPath, template, 'utf8');
 }
 
-export async function mirrorAgentsToJson(agentsDir: string, agents: AgentDefinition[]): Promise<void> {
+export async function mirrorAgentsToJson(
+  agentsDir: string,
+  agents: AgentDefinition[],
+  workspaceRoot: string
+): Promise<void> {
   await ensureDir(agentsDir);
 
   const normalizedAgents = await Promise.all(
@@ -55,8 +75,19 @@ export async function mirrorAgentsToJson(agentsDir: string, agents: AgentDefinit
       const slugBase = slugify(rawId) || 'agent';
       const filename = `${slugBase}.md`;
       const promptFile = path.join(agentsDir, filename);
-      await ensurePromptFile(promptFile);
-      return { ...agent, promptPath: filename };
+
+      // Check if agent has a mirrorPath for template mirroring
+      if (agent.mirrorPath && typeof agent.mirrorPath === 'string') {
+        // Resolve mirrorPath relative to workspace root for cross-platform compatibility
+        const sourcePath = path.resolve(workspaceRoot, agent.mirrorPath);
+        await copyPromptFile(sourcePath, promptFile);
+      } else {
+        await ensurePromptFile(promptFile);
+      }
+
+      // Remove mirrorPath from the saved config as it's only used during initialization
+      const { mirrorPath: _mirrorPath, promptPath: _promptPath, ...cleanAgent } = agent;
+      return cleanAgent;
     }),
   );
 

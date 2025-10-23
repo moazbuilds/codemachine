@@ -52,7 +52,7 @@ export function debugLog(...args: unknown[]): void {
   }
 }
 
-export type AgentDefinition = Record<string, unknown>;
+export type AgentDefinition = Record<string, unknown> & { mirrorPath?: string };
 export type LoadedAgent = AgentDefinition & { id: string; source?: 'main' | 'sub' | 'legacy' | 'workflow' };
 
 export async function loadAgents(
