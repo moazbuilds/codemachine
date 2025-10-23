@@ -88,5 +88,5 @@ export async function bootstrapWorkspace(options?: WorkspaceBootstrapOptions): P
   // Load agents and mirror to JSON (filtered by template's subAgentIds if provided)
   const { subAgents } = await loadAgents(agentRoots, agentIdsToLoad);
   debugLog('Mirroring agents', { agentRoots, agentCount: subAgents.length, filtered: !!agentIdsToLoad });
-  await mirrorAgentsToJson(agentsDir, subAgents);
+  await mirrorAgentsToJson(agentsDir, subAgents, workspaceRoot);
 }
