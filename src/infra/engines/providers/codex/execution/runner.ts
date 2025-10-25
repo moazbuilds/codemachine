@@ -169,8 +169,11 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
             if (onTelemetry) {
               const captured = telemetryCapture.getCaptured();
               if (captured && captured.tokens) {
+                // tokensIn should be TOTAL input tokens (non-cached + cached)
+                // to match the log output format: "13391in/406out (5888 cached)"
+                const totalIn = (captured.tokens.input ?? 0) + (captured.tokens.cached ?? 0);
                 onTelemetry({
-                  tokensIn: captured.tokens.input ?? 0,
+                  tokensIn: totalIn,
                   tokensOut: captured.tokens.output ?? 0,
                   cached: captured.tokens.cached,
                   cost: captured.cost,

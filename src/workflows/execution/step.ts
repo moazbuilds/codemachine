@@ -5,7 +5,6 @@ import type { EngineType } from '../../infra/engines/index.js';
 import { processPromptString } from '../../shared/prompts/index.js';
 import { executeAgent } from '../../agents/runner/runner.js';
 import type { WorkflowUIManager } from '../../ui/index.js';
-import { parseTelemetryChunk } from '../../ui/index.js';
 
 export interface StepExecutorOptions {
   logger: (chunk: string) => void;
@@ -85,13 +84,9 @@ export async function executeStep(
     await runAgentsBuilderStep(cwd);
   }
 
-  // Parse telemetry from final output if UI is enabled (fallback)
-  if (options.ui && options.uniqueAgentId) {
-    const finalTelemetry = parseTelemetryChunk(result.output);
-    if (finalTelemetry) {
-      options.ui.updateAgentTelemetry(options.uniqueAgentId, finalTelemetry);
-    }
-  }
+  // NOTE: Telemetry is already updated via onTelemetry callback during streaming execution.
+  // DO NOT parse from final output - it would match the FIRST telemetry line (early/wrong values)
+  // instead of the LAST telemetry line (final/correct values), causing incorrect UI display.
 
   return result.output;
 }
