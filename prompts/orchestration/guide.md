@@ -4,8 +4,15 @@
 
 ### Single Agent Invocation
 
-Use this command to invoke one agent:
+Use the `run` command to execute agents with enhanced syntax:
 
+```bash
+codemachine run "<agentId> 'PROMPT'"
+# or with enhanced syntax
+codemachine run "agent[input:file.md,tail:100] 'PROMPT'"
+```
+
+**Legacy command (still supported):**
 ```bash
 codemachine agent <agentId> "PROMPT"
 ```
@@ -39,32 +46,59 @@ EOF
 )"
 ```
 
-**Example:**
+**Basic Example:**
 ```bash
-codemachine agent code-generator "Implement the user authentication module"
+codemachine run "code-generator 'Implement the user authentication module'"
+```
+
+**Enhanced Syntax Examples:**
+
+```bash
+# With input files
+codemachine run "system-analyst[input:.codemachine/agents/analyst.md] 'analyze architecture'"
+
+# With tail limiting (return only last 100 lines)
+codemachine run "code-generator[tail:100] 'build feature'"
+
+# Multiple input files (semicolon-separated)
+codemachine run "arch-writer[input:design.md;spec.md;requirements.md]"
+
+# Combined options
+codemachine run "frontend-dev[input:ui-spec.md,tail:50] 'implement dashboard'"
 ```
 
 ### Sequential Execution
 
-When tasks have dependencies, execute agents one after another:
+Execute agents one after another using `&&`:
 
 ```bash
-codemachine agent arch-agent "Design the database schema"
-# Wait for completion, verify output
-codemachine agent code-generator "Generate models based on the schema"
-# Wait for completion, verify output
-codemachine agent test-writer "Write tests for the models"
+codemachine run "arch-agent 'Design database schema' && code-generator 'Generate models' && test-writer 'Write tests'"
+```
+
+**With enhanced syntax:**
+```bash
+codemachine run "db[tail:50] 'setup schema' && backend[input:schema.md,tail:100] 'create models'"
 ```
 
 ### Parallel Execution
 
-When tasks are independent, invoke multiple agents concurrently using `&`:
+Execute multiple agents concurrently using `&`:
 
 ```bash
-codemachine agent code-generator "Implement feature A" &
-codemachine agent code-generator "Implement feature B" &
-codemachine agent test-writer "Write tests for module C" &
-# All run in parallel since they don't depend on each other
+codemachine run "frontend 'Build UI' & backend 'Build API' & db 'Setup schema'"
+```
+
+**With enhanced syntax:**
+```bash
+codemachine run "frontend[input:design.md,tail:100] & backend[input:api-spec.md,tail:100] & db[tail:50]"
+```
+
+### Mixed Execution
+
+Combine sequential and parallel execution:
+
+```bash
+codemachine run "db 'setup' && frontend 'UI' & backend 'API' && test 'e2e'"
 ```
 
 ## Core Rules

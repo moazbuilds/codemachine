@@ -1,9 +1,11 @@
 import type { ExecutionPlan, CommandGroup, AgentCommand, ExecutionMode } from './types';
+import { EnhancedCommandParser } from './enhanced-parser.js';
 
 /**
  * Parse orchestration script into execution plan
  *
  * Syntax:
+ * - Enhanced: agent[input:file.md;file2.md,tail:100,prompt:"text"]
  * - Parallel: agent1 'prompt1' & agent2 'prompt2' & agent3 'prompt3'
  * - Sequential: agent1 'prompt1' && agent2 'prompt2' && agent3 'prompt3'
  * - Mixed: agent1 'p1' && (agent2 'p2' & agent3 'p3') && agent4 'p4'
@@ -14,6 +16,11 @@ import type { ExecutionPlan, CommandGroup, AgentCommand, ExecutionMode } from '.
  * - No mixing in same level
  */
 export class OrchestrationParser {
+  private enhancedParser: EnhancedCommandParser;
+
+  constructor() {
+    this.enhancedParser = new EnhancedCommandParser();
+  }
   /**
    * Parse orchestration script
    */
@@ -129,11 +136,18 @@ export class OrchestrationParser {
   }
 
   /**
-   * Parse a single command: "agent-name 'prompt text'"
+   * Parse a single command: "agent-name 'prompt text'" or enhanced syntax
    */
   private parseCommand(commandStr: string): AgentCommand {
     const trimmed = commandStr.trim();
 
+    // Try enhanced syntax first: agent[options] 'prompt'
+    const enhanced = this.enhancedParser.tryParseEnhanced(trimmed);
+    if (enhanced) {
+      return enhanced;
+    }
+
+    // Fallback to legacy syntax
     // Match: agent-name 'prompt' or agent-name "prompt"
     const singleQuoteMatch = trimmed.match(/^(\S+)\s+'([^']+)'$/);
     const doubleQuoteMatch = trimmed.match(/^(\S+)\s+"([^"]+)"$/);
@@ -161,6 +175,13 @@ export class OrchestrationParser {
       };
     }
 
-    throw new Error(`Invalid command syntax: ${commandStr}\nExpected: agent-name 'prompt' or agent-name "prompt"`);
+    // No prompt - just agent name (allowed now with optional prompt)
+    if (trimmed.match(/^\S+$/)) {
+      return {
+        name: trimmed
+      };
+    }
+
+    throw new Error(`Invalid command syntax: ${commandStr}\nExpected: agent-name 'prompt' or agent[options] 'prompt'`);
   }
 }

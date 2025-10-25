@@ -1,5 +1,3 @@
-import test from "node:test";
-
 export default {
   name: 'Test Workflow',
   steps: [

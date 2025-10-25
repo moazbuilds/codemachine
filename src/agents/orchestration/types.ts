@@ -14,8 +14,17 @@ export interface AgentCommand {
   /** Agent name/ID */
   name: string;
 
-  /** Prompt/instruction for the agent */
-  prompt: string;
+  /** Prompt/instruction for the agent (optional - can use template only) */
+  prompt?: string;
+
+  /** Input file paths to prepend to prompt */
+  input?: string[];
+
+  /** Limit output to last N lines */
+  tail?: number;
+
+  /** Additional options for extensibility */
+  options?: Record<string, unknown>;
 }
 
 /**
@@ -55,6 +64,9 @@ export interface AgentExecutionResult {
 
   /** Error message if failed */
   error?: string;
+
+  /** Number of lines if tail limiting was applied */
+  tailApplied?: number;
 }
 
 /**

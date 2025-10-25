@@ -2,7 +2,7 @@ export default {
   name: 'CodeMachine Workflow',
   steps: [
     resolveStep('git-commit', { executeOnce: true, engine: 'codex', model: 'gpt-5', modelReasoningEffort: 'low' }), // Commit the initial project specification to git
-    resolveStep('arch-agent', { executeOnce: true, engine: 'claude' }), // Define system architecture and technical design decisions
+    resolveStep('arch-agent', { executeOnce: true }), // Define system architecture and technical design decisions
     resolveStep('plan-agent', { executeOnce: true, engine: 'claude', notCompletedFallback: 'plan-fallback' }), // Generate comprehensive iterative development plan with architectural artifacts
     resolveStep('task-breakdown', { executeOnce: true, engine: 'claude', notCompletedFallback: 'task-fallback' }), // Extract and structure tasks from project plan into JSON format
     resolveStep('git-commit', { executeOnce: true, engine: 'cursor' }), // Commit the task breakdown to git
@@ -14,5 +14,5 @@ export default {
     resolveStep('git-commit', { engine: 'cursor' }), // Commit the generated and verified code
     resolveModule('check-task', { engine: 'cursor', loopSteps: 6, loopMaxIterations: 20, loopSkip: ['runtime-prep'] }), // Loop back if tasks are not completed
   ],
-  subAgentIds: [],
+  subAgentIds: ['system-analyst'],
 };
