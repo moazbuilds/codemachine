@@ -80,6 +80,8 @@ export class WorkflowUIState {
   updateAgentStatus(agentId: string, status: AgentStatus): void {
     // Auto-set endTime for terminal statuses to freeze runtime
     const shouldSetEndTime = status === 'completed' || status === 'failed' || status === 'skipped';
+    // Auto-set startTime when agent starts running to ensure accurate individual timer
+    const shouldSetStartTime = status === 'running';
 
     this.state = {
       ...this.state,
@@ -88,6 +90,7 @@ export class WorkflowUIState {
           ? {
               ...agent,
               status,
+              startTime: shouldSetStartTime ? Date.now() : agent.startTime,
               endTime: shouldSetEndTime ? Date.now() : agent.endTime,
             }
           : agent
