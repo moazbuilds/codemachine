@@ -63,6 +63,22 @@ export interface ExecuteAgentOptions {
    * Disable monitoring (for special cases where monitoring is not desired)
    */
   disableMonitoring?: boolean;
+
+  /**
+   * UI manager (for registering monitoring IDs)
+   */
+  ui?: any;
+
+  /**
+   * Unique agent ID for UI (for registering monitoring IDs)
+   */
+  uniqueAgentId?: string;
+
+  /**
+   * Display prompt (for logging/monitoring - shows user's actual request)
+   * If not provided, uses the full execution prompt
+   */
+  displayPrompt?: string;
 }
 
 /**
@@ -122,7 +138,7 @@ export async function executeAgent(
   prompt: string,
   options: ExecuteAgentOptions,
 ): Promise<AgentExecutionOutput> {
-  const { workingDir, projectRoot, engine: engineOverride, model: modelOverride, logger, stderrLogger, onTelemetry, abortSignal, timeout, parentId, disableMonitoring } = options;
+  const { workingDir, projectRoot, engine: engineOverride, model: modelOverride, logger, stderrLogger, onTelemetry, abortSignal, timeout, parentId, disableMonitoring, ui, uniqueAgentId, displayPrompt } = options;
 
   // Load agent config to determine engine and model
   const agentConfig = await loadAgentConfig(agentId, projectRoot ?? workingDir);
@@ -182,11 +198,16 @@ export async function executeAgent(
   if (monitor && loggerService) {
     monitoringAgentId = monitor.register({
       name: agentId,
-      prompt,
+      prompt: displayPrompt || prompt, // Use display prompt for logging if provided
       parentId,
       engineProvider: engineType,
       modelName: model,
     });
+
+    // Register monitoring ID with UI immediately so it can load logs
+    if (ui && uniqueAgentId && monitoringAgentId !== undefined) {
+      ui.registerMonitoringId(uniqueAgentId, monitoringAgentId);
+    }
   }
 
   // Set up memory
@@ -274,9 +295,8 @@ export async function executeAgent(
     // Mark agent as completed
     if (monitor && monitoringAgentId !== undefined) {
       monitor.complete(monitoringAgentId);
-      if (loggerService) {
-        loggerService.closeStream(monitoringAgentId);
-      }
+      // Note: Don't close stream here - workflow may write more messages
+      // Streams will be closed by cleanup handlers or monitoring service shutdown
     }
 
     return {
@@ -287,9 +307,8 @@ export async function executeAgent(
     // Mark agent as failed
     if (monitor && monitoringAgentId !== undefined) {
       monitor.fail(monitoringAgentId, error as Error);
-      if (loggerService) {
-        loggerService.closeStream(monitoringAgentId);
-      }
+      // Note: Don't close stream here - workflow may write more messages
+      // Streams will be closed by cleanup handlers or monitoring service shutdown
     }
     throw error;
   }

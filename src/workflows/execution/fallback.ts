@@ -84,6 +84,7 @@ export async function executeFallbackStep(
       logger: (chunk) => ui?.handleOutputChunk(fallbackAgentId, chunk),
       stderrLogger: (chunk) => ui?.handleOutputChunk(fallbackAgentId, chunk),
       ui,
+      uniqueAgentId: fallbackAgentId,
     });
 
     // Update UI status on success

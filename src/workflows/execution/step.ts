@@ -75,6 +75,8 @@ export async function executeStep(
     disableMonitoring: options.disableMonitoring,
     abortSignal: options.abortSignal,
     timeout,
+    ui: options.ui,
+    uniqueAgentId: options.uniqueAgentId,
   });
 
   // Run special post-execution steps
