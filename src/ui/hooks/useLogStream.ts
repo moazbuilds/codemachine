@@ -26,7 +26,7 @@ export function useLogStream(monitoringAgentId: number | undefined): LogStreamRe
   const [error, setError] = useState<string | null>(null);
   const [fileSize, setFileSize] = useState(0);
   const [agent, setAgent] = useState<AgentRecord | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
+  const [_retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (monitoringAgentId === undefined) {

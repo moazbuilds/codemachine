@@ -56,7 +56,6 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
   const pkg = require(packageJsonPath) as { version: string };
 
   let inkInstance: ReturnType<typeof render> | null = null;
-  let shouldExit = false;
 
   const handleCommand = async (command: string): Promise<void> => {
     if (command === '/start') {

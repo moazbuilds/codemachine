@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, useStdout } from 'ink';
-import { wrapText, calculateOutputWindowContentWidth } from './heightCalculations';
+import { calculateOutputWindowContentWidth } from './heightCalculations';
 
 export interface LineSyntaxHighlightProps {
   line: string;
@@ -15,12 +15,12 @@ export interface LineSyntaxHighlightProps {
 export const LineSyntaxHighlight: React.FC<LineSyntaxHighlightProps> = ({
   line,
   maxWidth,
-  wrap = true
+  wrap: _wrap = true
 }) => {
   const { stdout } = useStdout();
 
   // Calculate available width if not provided
-  const availableWidth = maxWidth || calculateOutputWindowContentWidth(stdout);
+  const _availableWidth = maxWidth || calculateOutputWindowContentWidth(stdout);
 
   // Determine text color based on content
   const getTextColor = (text: string) => {

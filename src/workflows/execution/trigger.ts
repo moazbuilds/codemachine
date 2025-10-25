@@ -28,7 +28,7 @@ export interface TriggerExecutionOptions {
  * This bypasses the workflow and allows triggering any agent, even outside the workflow
  */
 export async function executeTriggerAgent(options: TriggerExecutionOptions): Promise<void> {
-  const { triggerAgentId, cwd, engineType, logger, stderrLogger, sourceAgentId, ui, abortSignal, disableMonitoring } = options;
+  const { triggerAgentId, cwd, engineType, logger: _logger, stderrLogger: _stderrLogger, sourceAgentId, ui, abortSignal, disableMonitoring } = options;
 
   // Initialize monitoring (unless explicitly disabled) - declare outside try for catch block access
   const monitor = !disableMonitoring ? AgentMonitorService.getInstance() : null;

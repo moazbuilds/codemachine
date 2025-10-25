@@ -57,6 +57,7 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
     startTime: 0,
     agents: mainAgents,
     subAgents,
+    executionHistory: [],
     triggeredAgents,
     loopState: null,
     expandedNodes,
@@ -99,7 +100,7 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
 
     const entries: TimelineLayoutEntry[] = [];
     const viewportEnd = clampedOffset + viewportHeight;
-    let startIndex = layout.findIndex((entry) => entry.offset + entry.height > clampedOffset);
+    const startIndex = layout.findIndex((entry) => entry.offset + entry.height > clampedOffset);
 
     if (startIndex === -1) {
       return [];
