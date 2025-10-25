@@ -14,6 +14,7 @@ export interface AgentTimelineProps {
   mainAgents: AgentState[];
   subAgents: Map<string, SubAgentState[]>;
   triggeredAgents: TriggeredAgentState[];
+  uiElements: import('../state/types').UIElement[];
   selectedAgentId: string | null;
   expandedNodes: Set<string>;
   selectedSubAgentId: string | null;
@@ -32,6 +33,7 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
   mainAgents,
   subAgents,
   triggeredAgents,
+  uiElements,
   selectedAgentId,
   expandedNodes,
   selectedSubAgentId,
@@ -60,7 +62,9 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
     subAgents,
     executionHistory: [],
     triggeredAgents,
+    uiElements,
     loopState: null,
+    checkpointState: null,
     expandedNodes,
     showTelemetryView: false,
     selectedAgentId,
@@ -74,6 +78,7 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
     mainAgents,
     subAgents,
     triggeredAgents,
+    uiElements,
     expandedNodes,
     selectedAgentId,
     selectedSubAgentId,
