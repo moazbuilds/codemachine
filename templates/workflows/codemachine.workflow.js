@@ -1,5 +1,5 @@
 export default {
-  name: 'CodeMachine Workflow',
+  name: 'CodeMachine Workflow (Legacy)',
   steps: [
     resolveStep('git-commit', { executeOnce: true, engine: 'codex', model: 'gpt-5', modelReasoningEffort: 'low' }), // Commit the initial project specification to git
     resolveStep('arch-agent', { executeOnce: true }), // Define system architecture and technical design decisions

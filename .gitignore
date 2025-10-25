@@ -16,3 +16,7 @@ package-lock.json
 # Ignore folders starting with .tmp
 .tmp*
 .vscode
+.codemachine/logs
+.codemachine/prompts
+.codemachine/agents
+.codemachine/template.json
