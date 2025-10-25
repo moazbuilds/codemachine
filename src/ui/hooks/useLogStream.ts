@@ -133,9 +133,9 @@ export function useLogStream(monitoringAgentId: number | undefined): LogStreamRe
         setIsLoading(false);
       }
 
-      // If file doesn't exist yet, set up retry polling (every 500ms, max 60 tries = 30 seconds)
+      // If file doesn't exist yet, set up retry polling (every 500ms, max 240 tries = 120 seconds)
       if (!success && mounted) {
-        const MAX_RETRIES = 60;
+        const MAX_RETRIES = 240;
         let currentRetry = 0;
 
         const retryInterval = setInterval(async () => {
@@ -150,7 +150,7 @@ export function useLogStream(monitoringAgentId: number | undefined): LogStreamRe
           if (currentRetry >= MAX_RETRIES) {
             clearInterval(retryInterval);
             setIsConnecting(false);
-            setError("Can't connect to agent after 30 sec");
+            setError("Can't connect to agent after 120 sec");
             setRetryCount(currentRetry);
             return;
           }

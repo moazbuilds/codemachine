@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Box, Text, useStdout } from 'ink';
 import Spinner from 'ink-spinner';
 import type { AgentState, SubAgentState } from '../state/types';
@@ -7,6 +7,15 @@ import { useTerminalResize } from '../hooks/useTerminalResize';
 import { useLogStream } from '../hooks/useLogStream';
 import { LineSyntaxHighlight } from '../utils/lineSyntaxHighlight';
 import { ShimmerText } from './ShimmerText';
+
+// Rotating messages shown while connecting to agent - sound like progress
+const CONNECTING_MESSAGES = [
+  'Initializing agent environment',
+  'Loading agent configuration',
+  'Starting execution engine',
+  'Establishing log stream',
+  'Agent starting up',
+];
 
 export interface OutputWindowProps {
   currentAgent: AgentState | SubAgentState | null;
@@ -44,6 +53,23 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
 
   // Use log stream for all agents (main and sub-agents)
   const { lines: logLines, isLoading, isConnecting, error } = useLogStream(monitoringId);
+
+  // Rotating message state for connecting screen
+  const [messageIndex, setMessageIndex] = useState(0);
+
+  // Rotate through connecting messages every 4 seconds
+  useEffect(() => {
+    if (!isConnecting) {
+      setMessageIndex(0); // Reset when not connecting
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setMessageIndex((prev) => (prev + 1) % CONNECTING_MESSAGES.length);
+    }, 4000); // Change message every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [isConnecting]);
 
   if (!currentAgent) {
     return (
@@ -121,7 +147,7 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
           <Text dimColor>Waiting for agent output...</Text>
         ) : isConnecting ? (
           <Text>
-            <Text color="white"><Spinner type="dots" /></Text> <ShimmerText text="Connecting to agent data" sweepSeconds={2.0} bandHalfWidth={2.5} />
+            <Text color="white"><Spinner type="dots" /></Text> <ShimmerText text={CONNECTING_MESSAGES[messageIndex]} sweepSeconds={2.0} bandHalfWidth={2.5} />
           </Text>
         ) : error ? (
           <Text color="red">Error loading logs: {error}</Text>

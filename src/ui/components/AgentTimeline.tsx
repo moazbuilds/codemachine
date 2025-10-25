@@ -74,6 +74,7 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
     scrollOffset,
     totalSteps: 0,
     workflowStatus: 'running',
+    agentIdMapVersion: 0,
   }), [
     mainAgents,
     subAgents,

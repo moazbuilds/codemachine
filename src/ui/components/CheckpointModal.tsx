@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Box, Text, useInput } from 'ink';
+import React, { useState, useMemo } from 'react';
+import { Box, Text, useInput, useStdout } from 'ink';
 import { ShimmerText } from './ShimmerText';
+import { wrapText } from '../utils/heightCalculations';
 
 export interface CheckpointModalProps {
   reason?: string;
@@ -17,6 +18,7 @@ export const CheckpointModal: React.FC<CheckpointModalProps> = ({
   onContinue,
   onQuit,
 }) => {
+  const { stdout } = useStdout();
   const [selectedButton, setSelectedButton] = useState<'continue' | 'quit'>('continue');
 
   useInput((input, key) => {
@@ -40,7 +42,24 @@ export const CheckpointModal: React.FC<CheckpointModalProps> = ({
     }
   });
 
-  const borderLine = '═'.repeat(80);
+  // Calculate modal width based on terminal size
+  // Leave 8 characters for padding (4 on each side), max 80 chars
+  const terminalWidth = stdout?.columns || 80;
+  const modalWidth = Math.min(terminalWidth - 8, 80);
+
+  const borderLine = '═'.repeat(modalWidth);
+  const separatorLine = '─'.repeat(modalWidth);
+
+  // Wrap text content to fit modal width
+  const wrappedReason = useMemo(
+    () => wrapText(reason || 'Checkpoint triggered - please review workflow state', modalWidth),
+    [reason, modalWidth]
+  );
+
+  const wrappedInfo = useMemo(
+    () => wrapText('Workflow paused — make your changes, then press Continue to resume the session.', modalWidth),
+    [modalWidth]
+  );
 
   return (
     <Box flexDirection="column" padding={2}>
@@ -56,22 +75,26 @@ export const CheckpointModal: React.FC<CheckpointModalProps> = ({
       </Box>
 
       {/* Reason/Instructions */}
-      <Box marginTop={1}>
-        <Text color="yellow">
-          {reason || 'Checkpoint triggered - please review workflow state'}
-        </Text>
+      <Box marginTop={1} flexDirection="column">
+        {wrappedReason.map((line, idx) => (
+          <Text key={idx} color="yellow">
+            {line}
+          </Text>
+        ))}
       </Box>
 
       {/* Info */}
-      <Box marginTop={1}>
-        <Text color="white">
-          Workflow paused — make your changes, then press Continue to resume the session.
-        </Text>
+      <Box marginTop={1} flexDirection="column">
+        {wrappedInfo.map((line, idx) => (
+          <Text key={idx} color="white">
+            {line}
+          </Text>
+        ))}
       </Box>
 
       {/* Separator */}
       <Box marginTop={1}>
-        <Text color="cyan">{'─'.repeat(80)}</Text>
+        <Text color="cyan">{separatorLine}</Text>
       </Box>
 
       {/* Buttons */}
