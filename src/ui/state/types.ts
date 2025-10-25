@@ -144,4 +144,8 @@ export interface WorkflowState {
   // Workflow progress tracking
   totalSteps: number;
   workflowStatus: WorkflowStatus;  // Current execution status
+
+  // Version counter for agent ID mapping changes
+  // Incremented when registerMonitoringId is called to trigger re-renders
+  agentIdMapVersion: number;
 }

@@ -42,6 +42,7 @@ export class WorkflowUIState {
       // Workflow progress tracking
       totalSteps,
       workflowStatus: 'running', // Initialize as running
+      agentIdMapVersion: 0, // Version counter for triggering re-renders on monitoring ID registration
     };
   }
 
@@ -627,6 +628,19 @@ export class WorkflowUIState {
       totalCached: history.reduce((sum, record) => sum + (record.telemetry.cached || 0), 0),
       totalCost: history.reduce((sum, record) => sum + (record.telemetry.cost || 0), 0),
     };
+  }
+
+  /**
+   * Increment agent ID map version to trigger re-renders
+   * Called when registerMonitoringId updates the mapping
+   */
+  incrementAgentIdMapVersion(): void {
+    this.state = {
+      ...this.state,
+      agentIdMapVersion: this.state.agentIdMapVersion + 1,
+    };
+
+    this.notifyListeners();
   }
 
 }
