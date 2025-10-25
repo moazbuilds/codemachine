@@ -20,6 +20,7 @@ import { registry } from '../../infra/engines/index.js';
 import { shouldSkipStep, logSkipDebug, type ActiveLoop } from '../behaviors/skip.js';
 import { handleLoopLogic, createActiveLoop } from '../behaviors/loop/controller.js';
 import { handleTriggerLogic } from '../behaviors/trigger/controller.js';
+import { handleCheckpointLogic } from '../behaviors/checkpoint/controller.js';
 import { executeStep } from './step.js';
 import { executeTriggerAgent } from './trigger.js';
 import { shouldExecuteFallback, executeFallbackStep } from './fallback.js';
@@ -320,6 +321,13 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       // Log completion messages BEFORE loop check (so they're part of current agent's output)
       ui.logMessage(uniqueAgentId, `${step.agentName} has completed their work.`);
       ui.logMessage(uniqueAgentId, '\n' + '═'.repeat(80) + '\n');
+
+      // Check for checkpoint behavior first (to stop workflow if needed)
+      const checkpointResult = await handleCheckpointLogic(step, output, cwd, ui);
+      if (checkpointResult?.shouldStopWorkflow) {
+        workflowShouldStop = true;
+        break;
+      }
 
       const loopResult = await handleLoopLogic(step, index, output, loopCounters, cwd, ui);
 

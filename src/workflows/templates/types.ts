@@ -15,7 +15,12 @@ export interface TriggerModuleBehavior {
   triggerAgentId: string; // Agent ID to trigger
 }
 
-export type ModuleBehavior = LoopModuleBehavior | TriggerModuleBehavior;
+export interface CheckpointModuleBehavior {
+  type: 'checkpoint';
+  action: 'evaluate';
+}
+
+export type ModuleBehavior = LoopModuleBehavior | TriggerModuleBehavior | CheckpointModuleBehavior;
 
 export interface ModuleMetadata {
   id: string;
