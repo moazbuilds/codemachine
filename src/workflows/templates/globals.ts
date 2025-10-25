@@ -1,11 +1,12 @@
-import { resolveFolder, resolveModule, resolveStep } from '../utils/index.js';
+import { resolveFolder, resolveModule, resolveStep, resolveUI } from '../utils/index.js';
 
-type TemplateGlobalProvider = typeof resolveStep | typeof resolveFolder | typeof resolveModule;
+type TemplateGlobalProvider = typeof resolveStep | typeof resolveFolder | typeof resolveModule | typeof resolveUI;
 
 const templateGlobals = {
   resolveStep,
   resolveFolder,
   resolveModule,
+  resolveUI,
 } satisfies Record<string, TemplateGlobalProvider>;
 
 export function ensureTemplateGlobals(): void {

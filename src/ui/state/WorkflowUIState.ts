@@ -28,6 +28,7 @@ export class WorkflowUIState {
       agents: [],
       subAgents: new Map(),
       triggeredAgents: [],
+      uiElements: [],
       executionHistory: [],
       loopState: null,
       checkpointState: null,
@@ -59,6 +60,21 @@ export class WorkflowUIState {
 
     this.notifyListeners();
     return id;
+  }
+
+  addUIElement(text: string, stepIndex: number): void {
+    const uiElement: import('./types').UIElement = {
+      id: `ui-${stepIndex}-${Date.now()}`,
+      text,
+      stepIndex,
+    };
+
+    this.state = {
+      ...this.state,
+      uiElements: [...this.state.uiElements, uiElement],
+    };
+
+    this.notifyListeners();
   }
 
   updateAgentStatus(agentId: string, status: AgentStatus): void {

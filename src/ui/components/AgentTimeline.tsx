@@ -4,6 +4,7 @@ import type { AgentState, SubAgentState, TriggeredAgentState, WorkflowState } fr
 import { MainAgentNode } from './MainAgentNode';
 import { SubAgentSummary } from './SubAgentSummary';
 import { TriggeredAgentList } from './TriggeredAgentList';
+import { UIElementNode } from './UIElementNode';
 import { isAgentSelected } from '../utils/agentSelection';
 import { calculateAgentTimelineHeight } from '../utils/heightCalculations';
 import { useTerminalResize } from '../hooks/useTerminalResize';
@@ -151,6 +152,14 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
               isSelected={isSummarySelected}
               onToggle={() => onToggleExpand(item.parentId)}
             />
+          </Box>
+        );
+      }
+
+      if (item.type === 'ui') {
+        return (
+          <Box key={`ui-${item.id}-${entryIndex}`} flexDirection="column" overflow="hidden">
+            <UIElementNode uiElement={item.uiElement} />
           </Box>
         );
       }

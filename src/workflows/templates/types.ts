@@ -27,7 +27,7 @@ export interface ModuleMetadata {
   behavior?: ModuleBehavior;
 }
 
-export interface WorkflowStep {
+export interface ModuleStep {
   type: 'module';
   agentId: string;
   agentName: string;
@@ -40,13 +40,20 @@ export interface WorkflowStep {
   notCompletedFallback?: string; // Agent ID to run if step is in notCompletedSteps
 }
 
+export interface UIStep {
+  type: 'ui';
+  text: string;
+}
+
+export type WorkflowStep = ModuleStep | UIStep;
+
 export interface WorkflowTemplate {
   name: string;
   steps: WorkflowStep[];
   subAgentIds?: string[];
 }
 
-export type ModuleName = WorkflowStep['agentId'];
+export type ModuleName = ModuleStep['agentId'];
 
 export interface RunWorkflowOptions {
   cwd?: string;
