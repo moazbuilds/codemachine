@@ -65,10 +65,15 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
     return () => clearInterval(interval);
   }, [state.startTime, state.endTime]);
 
-  // Keyboard event handling - disabled when checkpoint modal is active
+  // Keyboard event handling - disabled when other views are active
   useInput((input, key) => {
     // Ignore all workflow keyboard inputs when checkpoint modal is active
     if (state.checkpointState?.active) {
+      return;
+    }
+
+    // Ignore all workflow keyboard inputs when history view or log viewer is open
+    if (showHistory || logViewerAgentId || historyLogViewerMonitoringId) {
       return;
     }
 
