@@ -71,7 +71,15 @@ export interface LoopState {
 /**
  * Workflow execution status
  */
-export type WorkflowStatus = 'running' | 'stopping' | 'completed' | 'stopped';
+export type WorkflowStatus = 'running' | 'stopping' | 'completed' | 'stopped' | 'checkpoint';
+
+/**
+ * Checkpoint state for manual review
+ */
+export interface CheckpointState {
+  active: boolean;
+  reason?: string;
+}
 
 /**
  * Record of a single agent execution (including loop cycles)
@@ -109,6 +117,7 @@ export interface WorkflowState {
   executionHistory: ExecutionRecord[];  // Complete execution history for telemetry
 
   loopState: LoopState | null;
+  checkpointState: CheckpointState | null;
   expandedNodes: Set<string>;
 
   showTelemetryView: boolean;
