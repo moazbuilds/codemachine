@@ -153,8 +153,11 @@ export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeRes
             if (onTelemetry) {
               const captured = telemetryCapture.getCaptured();
               if (captured && captured.tokens) {
+                // tokensIn should be TOTAL input tokens (non-cached + cached)
+                // to match the log output format
+                const totalIn = (captured.tokens.input ?? 0) + (captured.tokens.cached ?? 0);
                 onTelemetry({
-                  tokensIn: captured.tokens.input ?? 0,
+                  tokensIn: totalIn,
                   tokensOut: captured.tokens.output ?? 0,
                   cached: captured.tokens.cached,
                   cost: captured.cost,

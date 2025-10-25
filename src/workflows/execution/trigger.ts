@@ -7,7 +7,6 @@ import { MemoryStore } from '../../agents/index.js';
 import { formatAgentLog } from '../../shared/logging/index.js';
 import { processPromptString } from '../../shared/prompts/index.js';
 import type { WorkflowUIManager } from '../../ui/index.js';
-import { parseTelemetryChunk } from '../../ui/index.js';
 import { AgentMonitorService, AgentLoggerService } from '../../agents/monitoring/index.js';
 
 export interface TriggerExecutionOptions {
@@ -131,13 +130,9 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
       abortSignal,
     });
 
-    // Fallback: parse telemetry from final output if not captured via stream
-    if (ui) {
-      const finalTelemetry = parseTelemetryChunk(totalTriggeredStdout);
-      if (finalTelemetry) {
-        ui.updateAgentTelemetry(triggerAgentId, finalTelemetry);
-      }
-    }
+    // NOTE: Telemetry is already updated via onTelemetry callback during streaming execution.
+    // DO NOT parse from final output - it would match the FIRST telemetry line (early/wrong values)
+    // instead of the LAST telemetry line (final/correct values), causing incorrect UI display.
 
     // Store output in memory
     const triggeredStdout = triggeredResult.stdout || totalTriggeredStdout;
