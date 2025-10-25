@@ -1,7 +1,7 @@
 import * as path from 'node:path';
 import type { EngineType } from '../../infra/engines/index.js';
 import { getEngine, registry } from '../../infra/engines/index.js';
-import { loadAgentConfig, loadAgentTemplate } from '../../agents/execution/index.js';
+import { loadAgentConfig, loadAgentTemplate } from '../../agents/runner/index.js';
 import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
 import { MemoryStore } from '../../agents/index.js';
 import { formatAgentLog } from '../../shared/logging/index.js';

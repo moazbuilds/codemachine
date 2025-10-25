@@ -4,9 +4,9 @@ import type { EngineType } from '../../infra/engines/index.js';
 import { getEngine } from '../../infra/engines/index.js';
 import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
 import { MemoryStore } from '../index.js';
-import { loadAgentConfig, loadAgentTemplate } from './config.js';
-import { processPromptString } from '../../shared/prompts/index.js';
+import { loadAgentConfig } from './config.js';
 import { AgentMonitorService, AgentLoggerService } from '../monitoring/index.js';
+import type { ParsedTelemetry } from '../../infra/engines/core/types.js';
 
 export interface ExecuteAgentOptions {
   /**
@@ -18,7 +18,6 @@ export interface ExecuteAgentOptions {
    * Model to use (overrides agent config)
    */
   model?: string;
-
 
   /**
    * Working directory for execution
@@ -39,6 +38,11 @@ export interface ExecuteAgentOptions {
    * Logger for stderr
    */
   stderrLogger?: (chunk: string) => void;
+
+  /**
+   * Telemetry callback (for UI updates)
+   */
+  onTelemetry?: (telemetry: ParsedTelemetry) => void;
 
   /**
    * Abort signal
@@ -85,7 +89,18 @@ async function ensureEngineAuth(engineType: EngineType): Promise<void> {
 }
 
 /**
- * Executes a sub-agent or CLI agent with the specified prompt
+ * Executes a sub-agent or CLI agent with a pre-built prompt
+ *
+ * This is a low-level execution function that:
+ * - Accepts FINAL, ready-to-use prompts (no template loading or prompt building)
+ * - Handles engine authentication
+ * - Manages monitoring and logging
+ * - Executes the engine
+ * - Stores output in memory
+ *
+ * Prompt building is the caller's responsibility:
+ * - Orchestration layer: builds [INPUT FILES] + [SYSTEM] + [REQUEST]
+ * - Workflow layer: processes templates with processPromptString()
  *
  * This loads agent configuration from:
  * - config/sub.agents.js
@@ -93,18 +108,16 @@ async function ensureEngineAuth(engineType: EngineType): Promise<void> {
  * - .codemachine/agents/agents-config.json
  *
  * Used by:
- * - CLI commands (`codemachine agent ...`)
- * - Sub-agent orchestration
- *
- * NOT used by:
- * - Workflow main agents (they use src/workflows/execution/step.ts)
+ * - Orchestration executor (src/agents/orchestration/executor.ts)
+ * - Workflow step executor (src/workflows/execution/step.ts)
+ * - CLI commands (via orchestration)
  */
 export async function executeAgent(
   agentId: string,
   prompt: string,
   options: ExecuteAgentOptions,
 ): Promise<string> {
-  const { workingDir, projectRoot, engine: engineOverride, model: modelOverride, logger, stderrLogger, abortSignal, timeout, parentId, disableMonitoring } = options;
+  const { workingDir, projectRoot, engine: engineOverride, model: modelOverride, logger, stderrLogger, onTelemetry, abortSignal, timeout, parentId, disableMonitoring } = options;
 
   // Load agent config to determine engine and model
   const agentConfig = await loadAgentConfig(agentId, projectRoot ?? workingDir);
@@ -176,19 +189,15 @@ export async function executeAgent(
   const adapter = new MemoryAdapter(memoryDir);
   const store = new MemoryStore(adapter);
 
-  // Build prompt without memory (write-only)
-  const rawTemplate = await loadAgentTemplate(agentId, projectRoot ?? workingDir);
-  const agentTemplate = await processPromptString(rawTemplate, workingDir);
-  const compositePrompt = `[SYSTEM]\n${agentTemplate}\n\n[REQUEST]\n${prompt}`;
-
   // Get engine and execute
+  // NOTE: Prompt is already complete - no template loading or building here
   const engine = getEngine(engineType);
 
   let totalStdout = '';
 
   try {
     const result = await engine.run({
-      prompt: compositePrompt,
+      prompt, // Already complete and ready to use
       workingDir,
       model,
       modelReasoningEffort,
@@ -237,6 +246,11 @@ export async function executeAgent(
         // Update telemetry in monitoring
         if (monitor && monitoringAgentId !== undefined) {
           monitor.updateTelemetry(monitoringAgentId, telemetry);
+        }
+
+        // Forward to caller's telemetry callback (for UI updates)
+        if (onTelemetry) {
+          onTelemetry(telemetry);
         }
       },
       abortSignal,

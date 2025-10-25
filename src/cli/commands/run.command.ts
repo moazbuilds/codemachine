@@ -1,7 +1,5 @@
 import type { Command } from 'commander';
-import { OrchestrationService, EnhancedCommandParser, InputFileProcessor } from '../../agents/orchestration/index.js';
-import { executeAgent } from '../../agents/execution/index.js';
-import { loadAgentTemplate } from '../../agents/execution/config.js';
+import { CoordinatorService } from '../../agents/coordinator/index.js';
 import { MonitoringCleanup } from '../../agents/monitoring/index.js';
 import chalk from 'chalk';
 
@@ -44,120 +42,17 @@ export async function registerRunCommand(program: Command): Promise<void> {
 
 /**
  * Main script execution logic
+ * Uses CoordinatorService for both single agents and coordination
  */
 async function runScript(script: string, options: RunCommandOptions): Promise<void> {
   const trimmed = script.trim();
 
-  // Smart detection: orchestration vs single agent
-  const isOrchestration = trimmed.includes('&') || trimmed.includes('&&');
-
-  if (isOrchestration) {
-    // Orchestration mode
-    console.log(chalk.bold('\n🎭 Running orchestration...\n'));
-    const orchestrator = OrchestrationService.getInstance();
-    await orchestrator.execute(trimmed, {
-      workingDir: options.dir
-    });
-  } else {
-    // Single agent mode
-    console.log(chalk.bold('\n🤖 Running single agent...\n'));
-    await runSingleAgent(trimmed, options);
-  }
-}
-
-/**
- * Run a single agent with enhanced syntax
- */
-async function runSingleAgent(script: string, options: RunCommandOptions): Promise<void> {
-  // Parse the enhanced command
-  const enhancedParser = new EnhancedCommandParser();
-  const inputProcessor = new InputFileProcessor();
-
-  // Try enhanced parsing
-  let command = enhancedParser.tryParseEnhanced(script);
-
-  // Fallback to simple parsing if not enhanced
-  if (!command) {
-    // Try simple quoted format: agent 'prompt'
-    const quotedMatch = script.match(/^(\S+)\s+(['"])([^\2]+)\2$/);
-    if (quotedMatch) {
-      command = {
-        name: quotedMatch[1],
-        prompt: quotedMatch[3]
-      };
-    } else {
-      // Try unquoted format: agent prompt
-      const spaceIndex = script.indexOf(' ');
-      if (spaceIndex > 0) {
-        command = {
-          name: script.substring(0, spaceIndex),
-          prompt: script.substring(spaceIndex + 1).trim()
-        };
-      } else {
-        // Just agent name (no prompt)
-        command = {
-          name: script
-        };
-      }
-    }
-  }
-
-  console.log(chalk.cyan(`Agent: ${command.name}`));
-  if (command.input && command.input.length > 0) {
-    console.log(chalk.dim(`Input files: ${command.input.join(', ')}`));
-  }
-  if (command.tail) {
-    console.log(chalk.dim(`Tail: ${command.tail} lines`));
-  }
-  console.log(chalk.dim(`Prompt: ${command.prompt || '(using template only)'}\n`));
-
-  // Load input files if specified
-  let inputContent = '';
-  if (command.input && command.input.length > 0) {
-    inputContent = await inputProcessor.loadInputFiles(command.input, options.dir);
-  }
-
-  // Load agent template
-  const template = await loadAgentTemplate(command.name, options.dir);
-
-  // Build composite prompt
-  const compositePrompt = inputProcessor.buildCompositePrompt(
-    inputContent,
-    template,
-    command.prompt
-  );
-
-  // Execute agent
-  // If tail is specified, suppress real-time output to apply tail limiting
-  const suppressOutput = command.tail !== undefined && command.tail > 0;
-
-  const output = await executeAgent(command.name, compositePrompt, {
-    workingDir: options.dir,
-    model: options.model,
-    // Suppress logging when tail is active - we'll show the tail-limited output after
-    logger: suppressOutput ? () => {} : undefined,
-    stderrLogger: suppressOutput ? () => {} : undefined
+  // CoordinatorService handles both single agents and coordination
+  // No need for separate detection - the parser handles both syntaxes
+  const coordinator = CoordinatorService.getInstance();
+  await coordinator.execute(trimmed, {
+    workingDir: options.dir
   });
-
-  // Apply tail limiting if specified
-  let finalOutput = output;
-  if (command.tail && command.tail > 0) {
-    const lines = output.split('\n');
-    if (lines.length > command.tail) {
-      finalOutput = lines.slice(-command.tail).join('\n');
-      console.log(chalk.dim(`\n(Output limited to last ${command.tail} lines of ${lines.length} total)\n`));
-    }
-  }
-
-  // Print output only if we suppressed it earlier (tail mode)
-  // Otherwise it was already streamed during execution
-  if (suppressOutput) {
-    console.log('\n' + chalk.bold('═'.repeat(60)));
-    console.log(chalk.bold('Agent Output'));
-    console.log(chalk.bold('═'.repeat(60)) + '\n');
-    console.log(finalOutput);
-    console.log('\n' + chalk.dim('─'.repeat(60)) + '\n');
-  }
 }
 
 /**

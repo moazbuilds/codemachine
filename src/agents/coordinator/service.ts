@@ -1,11 +1,11 @@
-import { OrchestrationParser } from './parser.js';
-import { OrchestrationExecutor } from './executor.js';
-import type { OrchestrationResult } from './types.js';
+import { CoordinatorParser } from './parser.js';
+import { CoordinationExecutor } from './execution.js';
+import type { CoordinationResult } from './types.js';
 import { AgentMonitorService } from '../monitoring/index.js';
 import * as logger from '../../shared/logging/logger.js';
 import chalk from 'chalk';
 
-export interface OrchestrationOptions {
+export interface CoordinatorOptions {
   /** Working directory for agent execution */
   workingDir: string;
 
@@ -14,43 +14,43 @@ export interface OrchestrationOptions {
 }
 
 /**
- * Main orchestration service
- * Coordinates parsing and execution of multi-agent orchestration
+ * Main coordinator service
+ * Coordinates parsing and execution of multi-agent coordination
  */
-export class OrchestrationService {
-  private static instance: OrchestrationService;
-  private parser: OrchestrationParser;
+export class CoordinatorService {
+  private static instance: CoordinatorService;
+  private parser: CoordinatorParser;
 
   private constructor() {
-    this.parser = new OrchestrationParser();
-    logger.debug('OrchestrationService initialized');
+    this.parser = new CoordinatorParser();
+    logger.debug('CoordinatorService initialized');
   }
 
   /**
    * Get singleton instance
    */
-  static getInstance(): OrchestrationService {
-    if (!OrchestrationService.instance) {
-      OrchestrationService.instance = new OrchestrationService();
+  static getInstance(): CoordinatorService {
+    if (!CoordinatorService.instance) {
+      CoordinatorService.instance = new CoordinatorService();
     }
-    return OrchestrationService.instance;
+    return CoordinatorService.instance;
   }
 
   /**
-   * Execute an orchestration script
+   * Execute a coordination script
    */
-  async execute(script: string, options: OrchestrationOptions): Promise<OrchestrationResult> {
-    console.log(chalk.bold('\n🎭 Starting orchestration...\n'));
+  async execute(script: string, options: CoordinatorOptions): Promise<CoordinationResult> {
+    console.log(chalk.bold('\n🎭 Starting coordination...\n'));
     console.log(chalk.dim(`Script: ${script}\n`));
 
     // Parse the script
     let plan;
     try {
       plan = this.parser.parse(script);
-      logger.debug(`Parsed orchestration plan with ${plan.groups.length} groups`);
+      logger.debug(`Parsed coordination plan with ${plan.groups.length} groups`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      console.error(chalk.red(`\n✗ Failed to parse orchestration script: ${message}\n`));
+      console.error(chalk.red(`\n✗ Failed to parse coordination script: ${message}\n`));
       throw error;
     }
 
@@ -81,16 +81,16 @@ export class OrchestrationService {
       }
     }
 
-    // Don't register orchestration session - it's just a coordinator
+    // Don't register coordination session - it's just a coordinator
     // Spawned agents will be registered directly under the parent workflow agent
     if (contextParentId !== undefined) {
-      console.log(chalk.dim(`Orchestration under parent agent ID: ${contextParentId}\n`));
+      console.log(chalk.dim(`Coordination under parent agent ID: ${contextParentId}\n`));
     } else {
-      console.log(chalk.dim(`Orchestration running as standalone session\n`));
+      console.log(chalk.dim(`Coordination running as standalone session\n`));
     }
 
-    // Create executor - pass parent ID directly (no orchestration session wrapper)
-    const executor = new OrchestrationExecutor({
+    // Create executor - pass parent ID directly (no coordination session wrapper)
+    const executor = new CoordinationExecutor({
       workingDir: options.workingDir,
       parentId: contextParentId, // Agents register directly under workflow agent
       logger: options.logger
@@ -102,7 +102,7 @@ export class OrchestrationService {
       result = await executor.execute(plan);
 
       // No monitoring needed - child agents track themselves
-      // Orchestration success = all children succeeded
+      // Coordination success = all children succeeded
 
       // Print summary
       this.printSummary(result);
@@ -110,7 +110,7 @@ export class OrchestrationService {
       return result;
     } catch (error) {
       // Error is already tracked by the failing child agent
-      console.error(chalk.red(`\n✗ Orchestration failed: ${error}\n`));
+      console.error(chalk.red(`\n✗ Coordination failed: ${error}\n`));
       throw error;
     }
   }
@@ -118,9 +118,9 @@ export class OrchestrationService {
   /**
    * Print execution summary
    */
-  private printSummary(result: OrchestrationResult): void {
+  private printSummary(result: CoordinationResult): void {
     console.log('\n' + chalk.bold('═'.repeat(60)));
-    console.log(chalk.bold('Orchestration Summary'));
+    console.log(chalk.bold('Coordination Summary'));
     console.log(chalk.bold('═'.repeat(60)) + '\n');
 
     const succeeded = result.results.filter(r => r.success).length;

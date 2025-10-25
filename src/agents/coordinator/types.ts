@@ -1,11 +1,11 @@
 /**
- * Types for agent orchestration
+ * Types for agent coordination
  */
 
 /**
- * Execution mode for agents
+ * Coordination mode for agents
  */
-export type ExecutionMode = 'parallel' | 'sequential';
+export type CoordinationMode = 'parallel' | 'sequential';
 
 /**
  * A single agent command to execute
@@ -28,21 +28,21 @@ export interface AgentCommand {
 }
 
 /**
- * A group of agent commands that share the same execution mode
+ * A group of agent commands that share the same coordination mode
  */
 export interface CommandGroup {
-  /** Execution mode for this group */
-  mode: ExecutionMode;
+  /** Coordination mode for this group */
+  mode: CoordinationMode;
 
   /** Commands in this group */
   commands: AgentCommand[];
 }
 
 /**
- * Complete execution plan parsed from orchestration script
+ * Complete coordination plan parsed from coordination script
  */
-export interface ExecutionPlan {
-  /** Groups of commands with their execution modes */
+export interface CoordinationPlan {
+  /** Groups of commands with their coordination modes */
   groups: CommandGroup[];
 }
 
@@ -70,10 +70,10 @@ export interface AgentExecutionResult {
 }
 
 /**
- * Result of orchestrated execution
+ * Result of coordinated execution
  */
-export interface OrchestrationResult {
-  /** Parent agent ID (the orchestration session) - undefined for standalone orchestration */
+export interface CoordinationResult {
+  /** Parent agent ID (the coordination session) - undefined for standalone coordination */
   parentId?: number;
 
   /** Results from all executed agents */
