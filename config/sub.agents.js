@@ -37,13 +37,18 @@ module.exports = [
   {
     id: 'software-architect',
     name: 'Software Architect',
-    description:
-      'Handle software architecture planning, directory structure design, and project organization tasks',
+    description: 'Handle software architecture planning, directory structure design, and project organization tasks',
   },
   {
     id: 'system-analyst',
     name: 'System Analyst',
     description: 'Handle system analysis and requirements gathering tasks',
-    mirrorPath: 'prompts/templates/codemachine/sub-agents/arch-writters/02-system-analyst.md',
   },
+  {
+    id: 'founder-architect',
+    name: 'Founder Architect',
+    description: 'Handle foundational architecture tasks',
+    mirrorPath: 'prompts/templates/dev-codemachine/sub-agents/architecture/01-founder-architect.md'
+
+  }
 ];

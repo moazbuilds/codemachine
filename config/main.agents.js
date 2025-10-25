@@ -91,6 +91,26 @@ module.exports = [
     promptPath: path.join(promptsDir, 'test-workflows', 'test-agent-3.md'),
   },
 
+  // Dev codemachine agents
+  {
+    id: 'init',
+    name: 'Init',
+    description: 'Initializes codemachine development environment (creates branch and updates .gitignore)',
+    promptPath: path.join(promptsDir, 'dev-codemachine', 'main-agents', '00-init.md'),
+  },
+  {
+    id: 'principal-analyst',
+    name: 'Principal Analyst',
+    description: 'Reviews project specifications and identifies critical ambiguities requiring clarification',
+    promptPath: path.join(promptsDir, 'dev-codemachine', 'main-agents', '01-principal-analyst.md'),
+  },
+  {
+    id: 'blueprint-orchestrator',
+    name: 'Blueprint Orchestrator',
+    description: 'Orchestrates the execution of Foundation, Structural-Data, Behavior, and Ops-Docs architects with resilience and resumability',
+    promptPath: path.join(promptsDir, 'dev-codemachine', 'main-agents', '02-blueprint-orchestrator.md'),
+  },
+
   // Folder configurations - applies settings to all agents in the folder
   //{
   //  type: 'folder',

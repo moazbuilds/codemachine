@@ -3,7 +3,7 @@ export default {
   steps: [
     resolveStep('test-agent-1', { engine: 'codex' }),
     resolveStep('test-agent-2', { engine: 'codex' }),
-    resolveUI("❚❚ Review Specs"),
+    resolveUI("❚❚ Human Review"),
     resolveStep('test-agent-3', { engine: 'codex' }),
     resolveModule('auto-loop', { engine: 'codex', loopSteps: 3, loopMaxIterations: 5 }),
   ],
