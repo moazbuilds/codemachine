@@ -26,6 +26,7 @@ module.exports = {
     task_output_format: path.join('prompts', 'templates', 'codemachine', 'output-formats', 'task-breakdown-output.md'),
     context_output_format: path.join('prompts', 'templates', 'codemachine', 'output-formats', 'context-output.md'),
     task_validation_output_format: path.join('prompts', 'templates', 'codemachine', 'output-formats', 'task-validation-output.md'),
+    arch_writer_shared_inputs: path.join('prompts', 'templates', 'codemachine', 'sub-agents', 'arch-writters', '01-shared-inputs.md'),
     // Add codemachine package-level placeholders here
   }
 };

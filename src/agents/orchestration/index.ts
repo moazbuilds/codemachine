@@ -9,6 +9,8 @@
 
 export { OrchestrationService } from './orchestrator.js';
 export { OrchestrationParser } from './parser.js';
+export { EnhancedCommandParser } from './enhanced-parser.js';
+export { InputFileProcessor } from './input-processor.js';
 export { OrchestrationExecutor } from './executor.js';
 export type {
   ExecutionMode,

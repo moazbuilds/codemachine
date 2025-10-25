@@ -1,7 +1,6 @@
 export { registerStartCommand } from './start.command.js';
 export { registerTemplatesCommand, runTemplatesCommand, getAvailableTemplates, selectTemplateByNumber, printAvailableWorkflowTemplatesHeading } from './templates.command.js';
 export { registerAuthCommands } from './auth.command.js';
-export { registerAgentCommand } from './agent.command.js';
+export { registerRunCommand } from './run.command.js';
 export { registerStepCommand } from './step.command.js';
 export { registerAgentsCommand } from './agents/register.js';
-export { registerOrchestrateCommand } from './orchestrate.command.js';
