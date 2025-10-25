@@ -300,6 +300,7 @@ export class CoordinationExecutor {
 
   /**
    * Build composite prompt from input files, agent template, and user prompt
+   * Sections are ordered: [SYSTEM] -> [INPUT FILES] -> [REQUEST]
    * @param inputContent Content from input files
    * @param template Agent template content (already processed)
    * @param userPrompt User-provided prompt (optional)
@@ -308,21 +309,21 @@ export class CoordinationExecutor {
   private buildCompositePrompt(inputContent: string, template: string, userPrompt?: string): string {
     const parts: string[] = [];
 
-    // Add input files section if present
-    if (inputContent && inputContent.trim()) {
-      parts.push('[INPUT FILES]');
-      parts.push(inputContent);
-      parts.push('');
-    }
-
-    // Add agent template
+    // 1. Add agent template (SYSTEM section) first
     if (template && template.trim()) {
       parts.push('[SYSTEM]');
       parts.push(template);
       parts.push('');
     }
 
-    // Add user request if present
+    // 2. Add input files section second
+    if (inputContent && inputContent.trim()) {
+      parts.push('[INPUT FILES]');
+      parts.push(inputContent);
+      parts.push('');
+    }
+
+    // 3. Add user request last
     if (userPrompt && userPrompt.trim()) {
       parts.push('[REQUEST]');
       parts.push(userPrompt);

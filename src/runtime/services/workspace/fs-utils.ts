@@ -65,7 +65,7 @@ export async function ensureSpecificationsTemplate(inputsDir: string): Promise<v
 export async function mirrorAgentsToJson(
   agentsDir: string,
   agents: AgentDefinition[],
-  workspaceRoot: string
+  searchRoots: string[]
 ): Promise<void> {
   await ensureDir(agentsDir);
 
@@ -78,9 +78,25 @@ export async function mirrorAgentsToJson(
 
       // Check if agent has a mirrorPath for template mirroring
       if (agent.mirrorPath && typeof agent.mirrorPath === 'string') {
-        // Resolve mirrorPath relative to workspace root for cross-platform compatibility
-        const sourcePath = path.resolve(workspaceRoot, agent.mirrorPath);
-        await copyPromptFile(sourcePath, promptFile);
+        // Try to resolve mirrorPath against each search root until we find the file
+        let foundSource: string | undefined;
+        for (const root of searchRoots) {
+          const candidatePath = path.resolve(root, agent.mirrorPath);
+          try {
+            await readFile(candidatePath, 'utf8');
+            foundSource = candidatePath;
+            break;
+          } catch {
+            // File not found in this root, try next
+          }
+        }
+
+        if (foundSource) {
+          await copyPromptFile(foundSource, promptFile);
+        } else {
+          console.warn(`[workspace] Template file not found in any search root: ${agent.mirrorPath}`);
+          await ensurePromptFile(promptFile);
+        }
       } else {
         await ensurePromptFile(promptFile);
       }
