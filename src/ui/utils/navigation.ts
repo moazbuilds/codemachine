@@ -1,4 +1,4 @@
-import type { WorkflowState, AgentState, SubAgentState } from '../state/types';
+import type { WorkflowState, AgentState, SubAgentState, UIElement } from '../state/types';
 
 /**
  * Represents a navigable item in the UI
@@ -6,7 +6,8 @@ import type { WorkflowState, AgentState, SubAgentState } from '../state/types';
 export type NavigableItem =
   | { type: 'main'; id: string; agent: AgentState }
   | { type: 'summary'; id: string; parentId: string }
-  | { type: 'sub'; id: string; agent: SubAgentState };
+  | { type: 'sub'; id: string; agent: SubAgentState }
+  | { type: 'ui'; id: string; uiElement: UIElement };
 
 export interface TimelineLayoutEntry {
   item: NavigableItem;
@@ -38,27 +39,57 @@ export interface NavigationSelection {
 
 /**
  * Build a flat list of all navigable items respecting expanded state
- * Order: Main Agent → Summary (if has sub-agents) → Sub-agents (if expanded) → Next Main Agent
+ * Order: Items sorted by stepIndex (agents and UI elements interleaved)
  */
 export function getFlatNavigableList(state: WorkflowState): NavigableItem[] {
   const items: NavigableItem[] = [];
 
+  // Create a combined list of agents and UI elements with their step indices
+  type StepItem =
+    | { stepIndex: number; type: 'agent'; agent: AgentState }
+    | { stepIndex: number; type: 'uiElement'; uiElement: UIElement };
+
+  const stepItems: StepItem[] = [];
+
+  // Add agents
   for (const agent of state.agents) {
-    // Add main agent
-    items.push({ type: 'main', id: agent.id, agent });
+    if (agent.stepIndex !== undefined) {
+      stepItems.push({ stepIndex: agent.stepIndex, type: 'agent', agent });
+    }
+  }
 
-    // Add summary if sub-agents exist
-    const subAgents = state.subAgents.get(agent.id);
-    if (subAgents && subAgents.length > 0) {
-      // Summary uses parent agent ID
-      items.push({ type: 'summary', id: agent.id, parentId: agent.id });
+  // Add UI elements
+  for (const uiElement of state.uiElements) {
+    stepItems.push({ stepIndex: uiElement.stepIndex, type: 'uiElement', uiElement });
+  }
 
-      // Add sub-agents if expanded
-      if (state.expandedNodes.has(agent.id)) {
-        for (const subAgent of subAgents) {
-          items.push({ type: 'sub', id: subAgent.id, agent: subAgent });
+  // Sort by step index
+  stepItems.sort((a, b) => a.stepIndex - b.stepIndex);
+
+  // Build flat navigable list
+  for (const stepItem of stepItems) {
+    if (stepItem.type === 'agent') {
+      const agent = stepItem.agent;
+
+      // Add main agent
+      items.push({ type: 'main', id: agent.id, agent });
+
+      // Add summary if sub-agents exist
+      const subAgents = state.subAgents.get(agent.id);
+      if (subAgents && subAgents.length > 0) {
+        // Summary uses parent agent ID
+        items.push({ type: 'summary', id: agent.id, parentId: agent.id });
+
+        // Add sub-agents if expanded
+        if (state.expandedNodes.has(agent.id)) {
+          for (const subAgent of subAgents) {
+            items.push({ type: 'sub', id: subAgent.id, agent: subAgent });
+          }
         }
       }
+    } else {
+      // Add UI element
+      items.push({ type: 'ui', id: stepItem.uiElement.id, uiElement: stepItem.uiElement });
     }
   }
 

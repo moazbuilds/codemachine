@@ -102,6 +102,15 @@ export interface ExecutionRecord {
 }
 
 /**
+ * UI element for displaying static messages in the timeline
+ */
+export interface UIElement {
+  id: string;
+  text: string;
+  stepIndex: number;  // Position in workflow steps
+}
+
+/**
  * Complete workflow UI state
  */
 export interface WorkflowState {
@@ -114,6 +123,7 @@ export interface WorkflowState {
   agents: AgentState[];
   subAgents: Map<string, SubAgentState[]>;
   triggeredAgents: TriggeredAgentState[];
+  uiElements: UIElement[];  // Static UI elements for checkpoints/messages
   executionHistory: ExecutionRecord[];  // Complete execution history for telemetry
 
   loopState: LoopState | null;
