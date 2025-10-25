@@ -66,7 +66,7 @@ export class CoordinatorParser {
    * Parse parallel commands (separated by &)
    */
   private parseParallel(script: string): CoordinationPlan {
-    const parts = script.split('&').map(p => p.trim());
+    const parts = this.smartSplit(script, '&').map(p => p.trim());
     const commands = parts.map(part => this.parseCommand(part));
 
     return {
@@ -83,7 +83,7 @@ export class CoordinatorParser {
    * Parse sequential commands (separated by &&)
    */
   private parseSequential(script: string): CoordinationPlan {
-    const parts = script.split('&&').map(p => p.trim());
+    const parts = this.smartSplitMultiChar(script, '&&').map(p => p.trim());
     const commands = parts.map(part => this.parseCommand(part));
 
     return {
@@ -107,13 +107,13 @@ export class CoordinatorParser {
    * 3. Sequential: test 'e2e'
    */
   private parseMixed(script: string): CoordinationPlan {
-    // Split by && first
-    const sequentialParts = script.split('&&').map(p => p.trim());
+    // Split by && first (quote-aware)
+    const sequentialParts = this.smartSplitMultiChar(script, '&&').map(p => p.trim());
 
     const groups: CommandGroup[] = sequentialParts.map(part => {
-      // Check if this part has parallel commands
-      if (part.includes('&')) {
-        const parallelParts = part.split('&').map(p => p.trim());
+      // Check if this part has parallel commands (outside of quotes)
+      if (this.containsOutsideQuotes(part, '&')) {
+        const parallelParts = this.smartSplit(part, '&').map(p => p.trim());
         return {
           mode: 'parallel' as CoordinationMode,
           commands: parallelParts.map(p => this.parseCommand(p))
@@ -136,15 +136,22 @@ export class CoordinatorParser {
     const trimmed = commandStr.trim();
 
     // Try enhanced syntax first: agent[options] or agent[options] 'prompt'
-    const enhancedMatch = trimmed.match(/^(\S+)\[([^\]]+)\](?:\s+(['"])(.+?)\3)?$/);
+    // Use a more flexible approach to extract the prompt
+    const enhancedMatch = trimmed.match(/^(\S+)\[([^\]]+)\](?:\s+(.+))?$/);
 
     if (enhancedMatch) {
       const name = enhancedMatch[1];
       const optionsStr = enhancedMatch[2];
-      const trailingPrompt = enhancedMatch[4]; // Captured group 4 is the prompt content
+      const trailingPart = enhancedMatch[3]; // Everything after brackets
 
       // Parse options from brackets
       const options = this.parseOptions(optionsStr);
+
+      // Extract prompt from trailing part if present
+      let trailingPrompt: string | undefined;
+      if (trailingPart) {
+        trailingPrompt = this.extractQuotedString(trailingPart.trim());
+      }
 
       // Build command
       return {
@@ -157,31 +164,19 @@ export class CoordinatorParser {
     }
 
     // Fallback to legacy syntax
-    // Match: agent-name 'prompt' or agent-name "prompt"
-    const singleQuoteMatch = trimmed.match(/^(\S+)\s+'([^']+)'$/);
-    const doubleQuoteMatch = trimmed.match(/^(\S+)\s+"([^"]+)"$/);
-
-    if (singleQuoteMatch) {
-      return {
-        name: singleQuoteMatch[1],
-        prompt: singleQuoteMatch[2]
-      };
-    }
-
-    if (doubleQuoteMatch) {
-      return {
-        name: doubleQuoteMatch[1],
-        prompt: doubleQuoteMatch[2]
-      };
-    }
-
-    // No quotes - treat entire string after first space as prompt
+    // Try to extract quoted string for prompt
     const spaceIndex = trimmed.indexOf(' ');
     if (spaceIndex > 0) {
-      return {
-        name: trimmed.substring(0, spaceIndex),
-        prompt: trimmed.substring(spaceIndex + 1).trim()
-      };
+      const name = trimmed.substring(0, spaceIndex);
+      const rest = trimmed.substring(spaceIndex + 1).trim();
+      const prompt = this.extractQuotedString(rest);
+
+      if (prompt !== null) {
+        return { name, prompt };
+      }
+
+      // No quotes found, treat entire rest as prompt
+      return { name, prompt: rest };
     }
 
     // No prompt - just agent name (allowed now with optional prompt)
@@ -192,6 +187,42 @@ export class CoordinatorParser {
     }
 
     throw new Error(`Invalid command syntax: ${commandStr}\nExpected: agent-name 'prompt' or agent[options] 'prompt'`);
+  }
+
+  /**
+   * Extract a quoted string, handling both single and double quotes
+   * Returns the string content without quotes, or the original string if not quoted
+   * Intelligently distinguishes apostrophes from closing quotes
+   */
+  private extractQuotedString(str: string): string | null {
+    const trimmed = str.trim();
+
+    // Try to find matching quotes
+    if (trimmed.startsWith("'") || trimmed.startsWith('"')) {
+      const quoteChar = trimmed[0];
+      let i = 1;
+
+      // Find matching end quote (must be followed by space/end or preceded by space)
+      while (i < trimmed.length) {
+        if (trimmed[i] === quoteChar && (i === 1 || trimmed[i - 1] !== '\\')) {
+          // Check if this looks like a closing quote
+          const nextChar = i < trimmed.length - 1 ? trimmed[i + 1] : '';
+          const isClosing = i === trimmed.length - 1 || nextChar === ' ' || nextChar === '\t';
+
+          if (isClosing) {
+            // Found matching quote
+            return trimmed.substring(1, i);
+          }
+        }
+        i++;
+      }
+
+      // No matching end quote found, return the string without the opening quote
+      return trimmed.substring(1);
+    }
+
+    // Not quoted, return original
+    return trimmed;
   }
 
   /**
@@ -283,6 +314,7 @@ export class CoordinatorParser {
   /**
    * Smart split that respects quotes
    * Splits by delimiter but keeps quoted strings intact
+   * Distinguishes between apostrophes and quote delimiters
    */
   private smartSplit(str: string, delimiter: string): string[] {
     const result: string[] = [];
@@ -293,14 +325,26 @@ export class CoordinatorParser {
     for (let i = 0; i < str.length; i++) {
       const char = str[i];
 
-      // Toggle quote state
+      // Check if this is a quote character
       if ((char === '"' || char === "'") && (i === 0 || str[i - 1] !== '\\')) {
         if (!inQuotes) {
-          inQuotes = true;
-          quoteChar = char;
+          // Check if this looks like an opening quote (preceded by space/start/delimiter)
+          const prevChar = i > 0 ? str[i - 1] : '';
+          const isOpening = i === 0 || prevChar === ' ' || prevChar === delimiter || prevChar === '\t';
+
+          if (isOpening) {
+            inQuotes = true;
+            quoteChar = char;
+          }
         } else if (char === quoteChar) {
-          inQuotes = false;
-          quoteChar = '';
+          // Check if this looks like a closing quote (followed by space/end/delimiter)
+          const nextChar = i < str.length - 1 ? str[i + 1] : '';
+          const isClosing = i === str.length - 1 || nextChar === ' ' || nextChar === delimiter || nextChar === '\t';
+
+          if (isClosing) {
+            inQuotes = false;
+            quoteChar = '';
+          }
         }
       }
 
@@ -319,5 +363,102 @@ export class CoordinatorParser {
     }
 
     return result;
+  }
+
+  /**
+   * Smart split for multi-character delimiters that respects quotes
+   * Distinguishes between apostrophes and quote delimiters
+   */
+  private smartSplitMultiChar(str: string, delimiter: string): string[] {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    let quoteChar = '';
+
+    for (let i = 0; i < str.length; i++) {
+      const char = str[i];
+
+      // Check if this is a quote character
+      if ((char === '"' || char === "'") && (i === 0 || str[i - 1] !== '\\')) {
+        if (!inQuotes) {
+          // Check if this looks like an opening quote (preceded by space/start)
+          const prevChar = i > 0 ? str[i - 1] : '';
+          const isOpening = i === 0 || prevChar === ' ' || prevChar === '\t';
+
+          if (isOpening) {
+            inQuotes = true;
+            quoteChar = char;
+          }
+        } else if (char === quoteChar) {
+          // Check if this looks like a closing quote (followed by space/end)
+          const nextChar = i < str.length - 1 ? str[i + 1] : '';
+          const isClosing = i === str.length - 1 || nextChar === ' ' || nextChar === '\t';
+
+          if (isClosing) {
+            inQuotes = false;
+            quoteChar = '';
+          }
+        }
+      }
+
+      // Check for multi-char delimiter
+      if (!inQuotes && str.substring(i, i + delimiter.length) === delimiter) {
+        result.push(current);
+        current = '';
+        i += delimiter.length - 1; // Skip the delimiter chars (minus 1 because loop will increment)
+      } else {
+        current += char;
+      }
+    }
+
+    // Add last part
+    if (current) {
+      result.push(current);
+    }
+
+    return result;
+  }
+
+  /**
+   * Check if a string contains a character outside of quotes
+   * Distinguishes between apostrophes and quote delimiters
+   */
+  private containsOutsideQuotes(str: string, searchChar: string): boolean {
+    let inQuotes = false;
+    let quoteChar = '';
+
+    for (let i = 0; i < str.length; i++) {
+      const char = str[i];
+
+      // Check if this is a quote character
+      if ((char === '"' || char === "'") && (i === 0 || str[i - 1] !== '\\')) {
+        if (!inQuotes) {
+          // Check if this looks like an opening quote (preceded by space/start)
+          const prevChar = i > 0 ? str[i - 1] : '';
+          const isOpening = i === 0 || prevChar === ' ' || prevChar === '\t';
+
+          if (isOpening) {
+            inQuotes = true;
+            quoteChar = char;
+          }
+        } else if (char === quoteChar) {
+          // Check if this looks like a closing quote (followed by space/end)
+          const nextChar = i < str.length - 1 ? str[i + 1] : '';
+          const isClosing = i === str.length - 1 || nextChar === ' ' || nextChar === '\t';
+
+          if (isClosing) {
+            inQuotes = false;
+            quoteChar = '';
+          }
+        }
+      }
+
+      // Check if we found the search character outside quotes
+      if (char === searchChar && !inQuotes) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }

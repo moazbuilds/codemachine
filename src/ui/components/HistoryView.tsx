@@ -4,7 +4,7 @@ import { useRegistrySync } from '../hooks/useRegistrySync';
 import type { AgentTreeNode } from '../../agents/monitoring/index.js';
 import type { AgentRecord } from '../../agents/monitoring/types.js';
 import { useCtrlCHandler } from '../hooks/useCtrlCHandler';
-import { formatTokens, formatNumber } from '../utils/formatters';
+import { formatTokens } from '../utils/formatters';
 
 export interface HistoryViewProps {
   onClose: () => void;

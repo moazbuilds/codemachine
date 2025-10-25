@@ -27,7 +27,7 @@ export function useRegistrySync() {
         }
 
         setIsLoading(false);
-      } catch (error) {
+      } catch (_error) {
         // Silent fail - registry might not be initialized yet
         const emptyJson = JSON.stringify([]);
         if (lastTreeJson.current !== emptyJson) {

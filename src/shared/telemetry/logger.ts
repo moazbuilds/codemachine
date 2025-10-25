@@ -1,6 +1,3 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-
 export interface TelemetryData {
   engine: string;
   model?: string;
@@ -20,7 +17,7 @@ export interface TelemetryData {
  * No-op function: Telemetry is now stored in registry.json instead of a separate log file
  * This function is kept for backwards compatibility but does nothing
  */
-export function logTelemetry(data: TelemetryData): void {
+export function logTelemetry(_data: TelemetryData): void {
   // Telemetry data is captured and stored in .codemachine/logs/registry.json
   // No need for a separate telemetry.log file
   if (process.env.LOG_LEVEL === 'debug') {

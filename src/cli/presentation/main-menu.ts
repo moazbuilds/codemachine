@@ -4,7 +4,7 @@ import { dirname, join, parse } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 import updateNotifier from 'update-notifier';
-import { banner, formatKeyValue, palette, divider } from './layout.js';
+import { formatKeyValue, palette, divider } from './layout.js';
 import { getActiveTemplate } from '../../shared/workflows/index.js';
 import { clearTerminal } from '../../shared/utils/terminal.js';
 
@@ -113,7 +113,7 @@ async function renderStatus(): Promise<string> {
 
 
 
-export async function renderMainMenu(specificationPath?: string): Promise<string> {
+export async function renderMainMenu(_specificationPath?: string): Promise<string> {
   // Clear terminal before showing main menu
   clearTerminal();
 

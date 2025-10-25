@@ -7,6 +7,7 @@ export type AgentStatus =
   | 'pending'      // ○ - Not yet started
   | 'running'      // ⠋ - Currently executing
   | 'completed'    // ● - Successfully finished
+  | 'failed'       // ✗ - Failed with error
   | 'skipped'      // ● - Skipped in loop
   | 'retrying';    // ⟳ - Retrying after failure
 

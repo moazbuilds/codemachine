@@ -2,7 +2,6 @@ import type { WorkflowState, AgentStatus, AgentTelemetry, LoopState, SubAgentSta
 import type { EngineType } from '../../infra/engines/index.js';
 import {
   createNewAgent,
-  updateAgentStatusInList,
   updateAgentTelemetryInList,
 } from './stateMutations';
 import {
