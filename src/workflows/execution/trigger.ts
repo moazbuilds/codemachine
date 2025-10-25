@@ -64,6 +64,11 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
         engineProvider: engineType,
         modelName: triggeredModel,
       });
+
+      // Register monitoring ID with UI immediately so it can load logs
+      if (ui && monitoringAgentId !== undefined) {
+        ui.registerMonitoringId(triggerAgentId, monitoringAgentId);
+      }
     }
 
     // Add triggered agent to UI
@@ -157,17 +162,15 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
     // Mark agent as completed in monitoring
     if (monitor && monitoringAgentId !== undefined) {
       monitor.complete(monitoringAgentId);
-      if (loggerService) {
-        loggerService.closeStream(monitoringAgentId);
-      }
+      // Note: Don't close stream here - workflow may write more messages
+      // Streams will be closed by cleanup handlers or monitoring service shutdown
     }
   } catch (triggerError) {
     // Mark agent as failed in monitoring
     if (monitor && monitoringAgentId !== undefined) {
       monitor.fail(monitoringAgentId, triggerError as Error);
-      if (loggerService) {
-        loggerService.closeStream(monitoringAgentId);
-      }
+      // Note: Don't close stream here - workflow may write more messages
+      // Streams will be closed by cleanup handlers or monitoring service shutdown
     }
 
     // Don't update status to failed - let it stay as running/retrying

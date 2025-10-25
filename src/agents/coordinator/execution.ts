@@ -137,6 +137,7 @@ export class CoordinationExecutor {
       const result = await executeAgent(command.name, compositePrompt, {
         workingDir: this.options.workingDir,
         parentId: this.options.parentId,
+        displayPrompt: command.prompt, // Show user's actual request in logs, not full composite
         logger: suppressOutput
           ? () => {} // Silent logger when tail is active
           : this.options.logger

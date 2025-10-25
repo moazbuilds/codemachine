@@ -15,11 +15,10 @@ export interface CheckpointEvaluationResult {
 }
 
 export async function evaluateCheckpointBehavior(options: CheckpointEvaluationOptions): Promise<CheckpointEvaluationResult | null> {
-  const { behavior, cwd } = options;
+  const { cwd } = options;
 
-  if (!behavior || behavior.type !== 'checkpoint' || behavior.action !== 'evaluate') {
-    return null;
-  }
+  // Checkpoint is universal - any agent can write checkpoint to behavior.json
+  // No need to check if step has checkpoint behavior configured
 
   // Check for behavior file
   const behaviorFile = path.join(cwd, '.codemachine', 'memory', 'behavior.json');
