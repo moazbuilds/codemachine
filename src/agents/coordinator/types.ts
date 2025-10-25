@@ -59,6 +59,12 @@ export interface AgentExecutionResult {
   /** Whether execution succeeded */
   success: boolean;
 
+  /** Prompt/instruction used for the agent */
+  prompt?: string;
+
+  /** Input files used (for display purposes) */
+  input?: string[];
+
   /** Output from the agent */
   output?: string;
 

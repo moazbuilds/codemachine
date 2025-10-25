@@ -5,6 +5,7 @@ import { executeAgent } from '../runner/runner.js';
 import { loadAgentTemplate } from '../runner/config.js';
 import { AgentMonitorService } from '../monitoring/index.js';
 import { processPromptString } from '../../shared/prompts/index.js';
+import { resolvePlaceholderPath, loadPlaceholdersConfig } from '../../shared/prompts/config/loader.js';
 import * as logger from '../../shared/logging/logger.js';
 import chalk from 'chalk';
 
@@ -107,12 +108,8 @@ export class CoordinationExecutor {
   private async executeCommand(command: AgentCommand): Promise<AgentExecutionResult> {
     console.log(chalk.bold.cyan(`\n┌─ Agent: ${command.name}`));
     if (command.input && command.input.length > 0) {
-      console.log(chalk.dim(`│  Input files: ${command.input.join(', ')}`));
+      console.log(chalk.dim(`│  Input: ${command.input.join(', ')}`));
     }
-    if (command.tail) {
-      console.log(chalk.dim(`│  Tail: ${command.tail} lines`));
-    }
-    console.log(chalk.dim(`│  Prompt: ${command.prompt || '(using template only)'}`));
     console.log(chalk.dim('└' + '─'.repeat(60) + '\n'));
 
     try {
@@ -137,7 +134,7 @@ export class CoordinationExecutor {
       // Suppress output if tail is specified - we'll show the tail-limited output after
       const suppressOutput = command.tail !== undefined && command.tail > 0;
 
-      const output = await executeAgent(command.name, compositePrompt, {
+      const result = await executeAgent(command.name, compositePrompt, {
         workingDir: this.options.workingDir,
         parentId: this.options.parentId,
         logger: suppressOutput
@@ -147,6 +144,10 @@ export class CoordinationExecutor {
             : undefined,
         stderrLogger: suppressOutput ? () => {} : undefined
       });
+
+      // Extract output and agent ID from result
+      const output = result.output;
+      const monitoringAgentId = result.agentId || 0;
 
       // Apply tail limiting if specified
       let finalOutput = output;
@@ -161,16 +162,6 @@ export class CoordinationExecutor {
         }
       }
 
-      // Get the agent ID from monitoring service
-      const monitor = AgentMonitorService.getInstance();
-      const agents = monitor.queryAgents({
-        name: command.name,
-        parentId: this.options.parentId
-      });
-
-      // Get the most recent one
-      const agent = agents.sort((a, b) => b.id - a.id)[0];
-
       console.log(chalk.green(`\n✓ Agent ${command.name} completed successfully`));
       if (tailApplied) {
         console.log(chalk.dim(`  (Output limited to last ${tailApplied} lines)`));
@@ -179,7 +170,7 @@ export class CoordinationExecutor {
       // Print the tail-limited output if it was suppressed during execution
       if (suppressOutput && finalOutput) {
         console.log('\n' + chalk.bold('═'.repeat(60)));
-        console.log(chalk.bold('Agent Output'));
+        console.log(chalk.bold(`Agent Output: ${command.name} ID:${monitoringAgentId}`));
         console.log(chalk.bold('═'.repeat(60)) + '\n');
         console.log(finalOutput);
         console.log('\n' + chalk.dim('─'.repeat(60)) + '\n');
@@ -187,8 +178,10 @@ export class CoordinationExecutor {
 
       return {
         name: command.name,
-        agentId: agent?.id || 0,
+        agentId: monitoringAgentId,
         success: true,
+        prompt: command.prompt,
+        input: command.input,
         output: finalOutput,
         tailApplied
       };
@@ -213,14 +206,60 @@ export class CoordinationExecutor {
         name: command.name,
         agentId: agent?.id || 0,
         success: false,
+        prompt: command.prompt,
+        input: command.input,
         error: errorMessage
       };
     }
   }
 
   /**
+   * Resolve placeholders in a file path
+   * Supports {placeholder_name} syntax for both userDir and packageDir placeholders
+   * @param filePath File path that may contain {placeholder} syntax
+   * @returns Resolved file path with placeholders replaced
+   */
+  private resolvePlaceholdersInPath(filePath: string): string {
+    // Check if the path contains placeholder syntax: {placeholder_name}
+    const placeholderRegex = /\{([^}]+)\}/g;
+    const matches = Array.from(filePath.matchAll(placeholderRegex));
+
+    if (matches.length === 0) {
+      // No placeholders, return as-is
+      return filePath;
+    }
+
+    const config = loadPlaceholdersConfig();
+    let resolvedPath = filePath;
+
+    // Process each placeholder
+    for (const match of matches) {
+      const fullMatch = match[0]; // e.g., "{specifications}"
+      const placeholderName = match[1]; // e.g., "specifications"
+
+      // Try to resolve the placeholder
+      const resolved = resolvePlaceholderPath(placeholderName, this.options.workingDir, config);
+
+      if (resolved) {
+        // Replace the placeholder with the resolved file path
+        // The baseDir is already handled by resolvePlaceholderPath, so we use the filePath directly
+        const resolvedFilePath = path.isAbsolute(resolved.filePath)
+          ? resolved.filePath
+          : path.resolve(resolved.baseDir, resolved.filePath);
+
+        resolvedPath = resolvedPath.replace(fullMatch, resolvedFilePath);
+        logger.debug(`Resolved placeholder ${fullMatch} to ${resolvedFilePath}`);
+      } else {
+        logger.warn(`Placeholder ${fullMatch} not found in config/placeholders.js, treating as literal path`);
+      }
+    }
+
+    return resolvedPath;
+  }
+
+  /**
    * Load multiple input files and concatenate their contents
-   * @param filePaths Array of file paths (absolute or relative to workingDir)
+   * @param filePaths Array of file paths (absolute, relative to workingDir, or with {placeholder} syntax)
    * @returns Concatenated file contents with separators
    */
   private async loadInputFiles(filePaths: string[]): Promise<string> {
@@ -232,15 +271,19 @@ export class CoordinationExecutor {
 
     for (const filePath of filePaths) {
       try {
-        const resolvedPath = path.isAbsolute(filePath)
-          ? filePath
-          : path.resolve(this.options.workingDir, filePath);
+        // First, resolve any placeholders in the path
+        const pathWithPlaceholdersResolved = this.resolvePlaceholdersInPath(filePath);
 
-        logger.debug(`Loading input file: ${resolvedPath}`);
+        // Then resolve absolute/relative paths
+        const resolvedPath = path.isAbsolute(pathWithPlaceholdersResolved)
+          ? pathWithPlaceholdersResolved
+          : path.resolve(this.options.workingDir, pathWithPlaceholdersResolved);
+
+        logger.debug(`Loading input file: ${resolvedPath} (original: ${filePath})`);
 
         const content = await fs.readFile(resolvedPath, 'utf-8');
 
-        // Add file header and content
+        // Add file header and content (use original path in header for clarity)
         contents.push(`\n=== File: ${filePath} ===\n${content}\n${'='.repeat(60)}\n`);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

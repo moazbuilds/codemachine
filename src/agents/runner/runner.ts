@@ -112,11 +112,16 @@ async function ensureEngineAuth(engineType: EngineType): Promise<void> {
  * - Workflow step executor (src/workflows/execution/step.ts)
  * - CLI commands (via orchestration)
  */
+export interface AgentExecutionOutput {
+  output: string;
+  agentId?: number;
+}
+
 export async function executeAgent(
   agentId: string,
   prompt: string,
   options: ExecuteAgentOptions,
-): Promise<string> {
+): Promise<AgentExecutionOutput> {
   const { workingDir, projectRoot, engine: engineOverride, model: modelOverride, logger, stderrLogger, onTelemetry, abortSignal, timeout, parentId, disableMonitoring } = options;
 
   // Load agent config to determine engine and model
@@ -274,7 +279,10 @@ export async function executeAgent(
       }
     }
 
-    return stdout;
+    return {
+      output: stdout,
+      agentId: monitoringAgentId
+    };
   } catch (error) {
     // Mark agent as failed
     if (monitor && monitoringAgentId !== undefined) {
