@@ -1,16 +1,18 @@
-import type { ExecutionPlan, CommandGroup, AgentCommand, AgentExecutionResult, OrchestrationResult } from './types.js';
-import { executeAgent } from '../execution/runner.js';
-import { loadAgentTemplate } from '../execution/config.js';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import type { CoordinationPlan, CommandGroup, AgentCommand, AgentExecutionResult, CoordinationResult } from './types.js';
+import { executeAgent } from '../runner/runner.js';
+import { loadAgentTemplate } from '../runner/config.js';
 import { AgentMonitorService } from '../monitoring/index.js';
-import { InputFileProcessor } from './input-processor.js';
+import { processPromptString } from '../../shared/prompts/index.js';
 import * as logger from '../../shared/logging/logger.js';
 import chalk from 'chalk';
 
-export interface ExecutorOptions {
+export interface CoordinationExecutorOptions {
   /** Working directory for agent execution */
   workingDir: string;
 
-  /** Parent agent ID (the orchestration session) - optional for standalone orchestration */
+  /** Parent agent ID (the coordination session) - optional for standalone coordination */
   parentId?: number;
 
   /** Optional logger for agent output */
@@ -18,21 +20,20 @@ export interface ExecutorOptions {
 }
 
 /**
- * Executes orchestration plans with parallel/sequential support
+ * Executes coordination plans with parallel/sequential support
+ * Handles file loading, template loading, and prompt building
  */
-export class OrchestrationExecutor {
-  private options: ExecutorOptions;
-  private inputProcessor: InputFileProcessor;
+export class CoordinationExecutor {
+  private options: CoordinationExecutorOptions;
 
-  constructor(options: ExecutorOptions) {
+  constructor(options: CoordinationExecutorOptions) {
     this.options = options;
-    this.inputProcessor = new InputFileProcessor();
   }
 
   /**
-   * Execute the complete orchestration plan
+   * Execute the complete coordination plan
    */
-  async execute(plan: ExecutionPlan): Promise<OrchestrationResult> {
+  async execute(plan: CoordinationPlan): Promise<CoordinationResult> {
     const results: AgentExecutionResult[] = [];
 
     // Execute groups sequentially (even if group itself is parallel)
@@ -118,14 +119,15 @@ export class OrchestrationExecutor {
       // Load input files if specified
       let inputContent = '';
       if (command.input && command.input.length > 0) {
-        inputContent = await this.inputProcessor.loadInputFiles(command.input, this.options.workingDir);
+        inputContent = await this.loadInputFiles(command.input);
       }
 
       // Load agent template
-      const template = await loadAgentTemplate(command.name, this.options.workingDir);
+      const rawTemplate = await loadAgentTemplate(command.name, this.options.workingDir);
+      const template = await processPromptString(rawTemplate, this.options.workingDir);
 
       // Build composite prompt (input files + template + user prompt)
-      const compositePrompt = this.inputProcessor.buildCompositePrompt(
+      const compositePrompt = this.buildCompositePrompt(
         inputContent,
         template,
         command.prompt
@@ -174,6 +176,15 @@ export class OrchestrationExecutor {
         console.log(chalk.dim(`  (Output limited to last ${tailApplied} lines)`));
       }
 
+      // Print the tail-limited output if it was suppressed during execution
+      if (suppressOutput && finalOutput) {
+        console.log('\n' + chalk.bold('═'.repeat(60)));
+        console.log(chalk.bold('Agent Output'));
+        console.log(chalk.bold('═'.repeat(60)) + '\n');
+        console.log(finalOutput);
+        console.log('\n' + chalk.dim('─'.repeat(60)) + '\n');
+      }
+
       return {
         name: command.name,
         agentId: agent?.id || 0,
@@ -205,5 +216,74 @@ export class OrchestrationExecutor {
         error: errorMessage
       };
     }
+  }
+
+  /**
+   * Load multiple input files and concatenate their contents
+   * @param filePaths Array of file paths (absolute or relative to workingDir)
+   * @returns Concatenated file contents with separators
+   */
+  private async loadInputFiles(filePaths: string[]): Promise<string> {
+    if (!filePaths || filePaths.length === 0) {
+      return '';
+    }
+
+    const contents: string[] = [];
+
+    for (const filePath of filePaths) {
+      try {
+        const resolvedPath = path.isAbsolute(filePath)
+          ? filePath
+          : path.resolve(this.options.workingDir, filePath);
+
+        logger.debug(`Loading input file: ${resolvedPath}`);
+
+        const content = await fs.readFile(resolvedPath, 'utf-8');
+
+        // Add file header and content
+        contents.push(`\n=== File: ${filePath} ===\n${content}\n${'='.repeat(60)}\n`);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.warn(`Failed to load input file ${filePath}: ${message}`);
+
+        // Add error marker but continue processing other files
+        contents.push(`\n=== File: ${filePath} (FAILED TO LOAD) ===\nError: ${message}\n${'='.repeat(60)}\n`);
+      }
+    }
+
+    return contents.join('\n');
+  }
+
+  /**
+   * Build composite prompt from input files, agent template, and user prompt
+   * @param inputContent Content from input files
+   * @param template Agent template content (already processed)
+   * @param userPrompt User-provided prompt (optional)
+   * @returns Composite prompt ready for execution
+   */
+  private buildCompositePrompt(inputContent: string, template: string, userPrompt?: string): string {
+    const parts: string[] = [];
+
+    // Add input files section if present
+    if (inputContent && inputContent.trim()) {
+      parts.push('[INPUT FILES]');
+      parts.push(inputContent);
+      parts.push('');
+    }
+
+    // Add agent template
+    if (template && template.trim()) {
+      parts.push('[SYSTEM]');
+      parts.push(template);
+      parts.push('');
+    }
+
+    // Add user request if present
+    if (userPrompt && userPrompt.trim()) {
+      parts.push('[REQUEST]');
+      parts.push(userPrompt);
+    }
+
+    return parts.join('\n');
   }
 }

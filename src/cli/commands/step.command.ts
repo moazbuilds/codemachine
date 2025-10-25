@@ -3,7 +3,7 @@ import * as path from 'node:path';
 
 import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
 import { MemoryStore } from '../../agents/index.js';
-import { loadAgentTemplate, loadAgentConfig } from '../../agents/execution/index.js';
+import { loadAgentTemplate, loadAgentConfig } from '../../agents/runner/index.js';
 import { getEngine } from '../../infra/engines/index.js';
 import type { EngineType } from '../../infra/engines/index.js';
 import {
