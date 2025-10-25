@@ -322,6 +322,14 @@ export class WorkflowUIManager {
       case 'SELECT_SUB_AGENT':
         this.state.selectSubAgent(action.subAgentId);
         break;
+
+      case 'CHECKPOINT_CONTINUE':
+        (process as NodeJS.EventEmitter).emit('checkpoint:continue');
+        break;
+
+      case 'CHECKPOINT_QUIT':
+        (process as NodeJS.EventEmitter).emit('checkpoint:quit');
+        break;
     }
   }
 
@@ -341,6 +349,24 @@ export class WorkflowUIManager {
       this.state.freezeWorkflowRuntime();
     }
     this.state.setWorkflowStatus(status);
+  }
+
+  /**
+   * Set checkpoint state for manual review
+   */
+  setCheckpointState(checkpoint: { active: boolean; reason?: string } | null): void {
+    this.state.setCheckpointState(checkpoint);
+    if (checkpoint && checkpoint.active) {
+      this.setWorkflowStatus('checkpoint');
+    }
+  }
+
+  /**
+   * Clear checkpoint state and resume workflow
+   */
+  clearCheckpointState(): void {
+    this.state.setCheckpointState(null);
+    this.setWorkflowStatus('running');
   }
 
   /**

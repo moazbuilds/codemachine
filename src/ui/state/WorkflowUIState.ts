@@ -1,4 +1,4 @@
-import type { WorkflowState, AgentStatus, AgentTelemetry, LoopState, SubAgentState, WorkflowStatus } from './types';
+import type { WorkflowState, AgentStatus, AgentTelemetry, LoopState, SubAgentState, WorkflowStatus, CheckpointState } from './types';
 import type { EngineType } from '../../infra/engines/index.js';
 import {
   createNewAgent,
@@ -30,6 +30,7 @@ export class WorkflowUIState {
       triggeredAgents: [],
       executionHistory: [],
       loopState: null,
+      checkpointState: null,
       expandedNodes: new Set(),
       showTelemetryView: false,
       selectedAgentId: null,
@@ -478,6 +479,18 @@ export class WorkflowUIState {
     this.state = {
       ...this.state,
       workflowStatus: status,
+    };
+
+    this.notifyListeners();
+  }
+
+  /**
+   * Set checkpoint state for manual review
+   */
+  setCheckpointState(checkpoint: CheckpointState | null): void {
+    this.state = {
+      ...this.state,
+      checkpointState: checkpoint,
     };
 
     this.notifyListeners();

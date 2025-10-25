@@ -8,6 +8,7 @@ import { TelemetryBar } from './TelemetryBar';
 import { HistoryView } from './HistoryView';
 import { StatusFooter } from './StatusFooter';
 import { LogViewer } from './LogViewer';
+import { CheckpointModal } from './CheckpointModal';
 import { formatRuntime } from '../utils/formatters';
 import { getOutputAgent } from '../utils/agentSelection';
 import { useCtrlCHandler } from '../hooks/useCtrlCHandler';
@@ -30,7 +31,9 @@ export type UIAction =
   | { type: 'NAVIGATE_DOWN'; visibleItemCount?: number }
   | { type: 'SET_VISIBLE_COUNT'; count: number }
   | { type: 'SET_SCROLL_OFFSET'; offset: number; visibleItemCount?: number }
-  | { type: 'SELECT_ITEM'; itemId: string; itemType: 'main' | 'summary' | 'sub' };
+  | { type: 'SELECT_ITEM'; itemId: string; itemType: 'main' | 'summary' | 'sub' }
+  | { type: 'CHECKPOINT_CONTINUE' }
+  | { type: 'CHECKPOINT_QUIT' };
 
 /**
  * Main container component for workflow UI
@@ -62,8 +65,13 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
     return () => clearInterval(interval);
   }, [state.startTime, state.endTime]);
 
-  // Keyboard event handling
+  // Keyboard event handling - disabled when checkpoint modal is active
   useInput((input, key) => {
+    // Ignore all workflow keyboard inputs when checkpoint modal is active
+    if (state.checkpointState?.active) {
+      return;
+    }
+
     if (key.ctrl && input === 's') {
       onAction({ type: 'SKIP' });
     } else if (input === 'h') {
@@ -187,6 +195,17 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
     );
   }
 
+  // Checkpoint modal - Full screen replacement when active
+  if (state.checkpointState?.active) {
+    return (
+      <CheckpointModal
+        reason={state.checkpointState.reason}
+        onContinue={() => onAction({ type: 'CHECKPOINT_CONTINUE' })}
+        onQuit={() => onAction({ type: 'CHECKPOINT_QUIT' })}
+      />
+    );
+  }
+
   // Main workflow view
   return (
     <Box flexDirection="column" height="100%" gap={0}>
@@ -208,6 +227,7 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
             mainAgents={state.agents}
             subAgents={state.subAgents}
             triggeredAgents={state.triggeredAgents}
+            uiElements={state.uiElements}
             selectedAgentId={state.selectedAgentId}
             expandedNodes={state.expandedNodes}
             selectedSubAgentId={state.selectedSubAgentId}

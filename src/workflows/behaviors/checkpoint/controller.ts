@@ -22,10 +22,15 @@ export async function handleCheckpointLogic(
 
   if (checkpointDecision?.shouldStopWorkflow) {
     const message = `${step.agentName} triggered a checkpoint` +
-      `${checkpointDecision.reason ? `: ${checkpointDecision.reason}` : ''}; stopping workflow.`;
+      `${checkpointDecision.reason ? `: ${checkpointDecision.reason}` : ''}.`;
 
     if (ui) {
       ui.logMessage(step.agentId, message);
+      // Set checkpoint state for UI modal
+      ui.setCheckpointState({
+        active: true,
+        reason: checkpointDecision.reason,
+      });
     } else {
       console.log(formatAgentLog(step.agentId, message));
     }

@@ -125,6 +125,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
   // Workflow stop flag for Ctrl+C handling
   let workflowShouldStop = false;
+  let stoppedByCheckpointQuit = false;
   const stopListener = () => {
     workflowShouldStop = true;
   };
@@ -322,11 +323,39 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
       ui.logMessage(uniqueAgentId, `${step.agentName} has completed their work.`);
       ui.logMessage(uniqueAgentId, '\n' + '═'.repeat(80) + '\n');
 
-      // Check for checkpoint behavior first (to stop workflow if needed)
+      // Check for checkpoint behavior first (to pause workflow for manual review)
       const checkpointResult = await handleCheckpointLogic(step, output, cwd, ui);
       if (checkpointResult?.shouldStopWorkflow) {
-        workflowShouldStop = true;
-        break;
+        // Wait for user action via events (Continue or Quit)
+        await new Promise<void>((resolve) => {
+          const continueHandler = () => {
+            cleanup();
+            resolve();
+          };
+          const quitHandler = () => {
+            cleanup();
+            workflowShouldStop = true;
+            stoppedByCheckpointQuit = true;
+            resolve();
+          };
+          const cleanup = () => {
+            process.removeListener('checkpoint:continue', continueHandler);
+            process.removeListener('checkpoint:quit', quitHandler);
+          };
+
+          process.once('checkpoint:continue', continueHandler);
+          process.once('checkpoint:quit', quitHandler);
+        });
+
+        // Clear checkpoint state and resume
+        ui.clearCheckpointState();
+
+        if (workflowShouldStop) {
+          // User chose to quit from checkpoint - set status to stopped
+          ui.setWorkflowStatus('stopped');
+          break; // User chose to quit
+        }
+        // Otherwise continue to next step (current step already marked complete via executeOnce)
       }
 
       const loopResult = await handleLoopLogic(step, index, output, loopCounters, cwd, ui);
@@ -394,15 +423,24 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     }
   }
 
-  // Check if workflow was stopped by user (Ctrl+C)
+  // Check if workflow was stopped by user (Ctrl+C or checkpoint quit)
   if (workflowShouldStop) {
-    // Workflow was stopped - status already updated by MonitoringCleanup handler
-    // Keep UI alive to show "Press Ctrl+C again to exit" message
-    // The second Ctrl+C will be handled by MonitoringCleanup's SIGINT handler
-    // Wait indefinitely - the SIGINT handler will call process.exit()
-    await new Promise(() => {
-      // Never resolves - keeps event loop alive until second Ctrl+C exits process
-    });
+    if (stoppedByCheckpointQuit) {
+      // Workflow was stopped by checkpoint quit - status already set to 'stopped'
+      // UI will stay running showing the stopped status
+      // Wait indefinitely - user can press Ctrl+C to exit
+      await new Promise(() => {
+        // Never resolves - keeps event loop alive until Ctrl+C exits process
+      });
+    } else {
+      // Workflow was stopped by Ctrl+C - status already updated by MonitoringCleanup handler
+      // Keep UI alive to show "Press Ctrl+C again to exit" message
+      // The second Ctrl+C will be handled by MonitoringCleanup's SIGINT handler
+      // Wait indefinitely - the SIGINT handler will call process.exit()
+      await new Promise(() => {
+        // Never resolves - keeps event loop alive until second Ctrl+C exits process
+      });
+    }
   }
 
   // Workflow completed successfully
