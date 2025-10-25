@@ -32,68 +32,83 @@ export function validateWorkflowTemplate(value: unknown): ValidationResult {
         modelReasoningEffort?: unknown;
         module?: unknown;
         executeOnce?: unknown;
+        text?: unknown;
       };
 
-      if (candidate.type !== 'module') {
-        errors.push(`Step[${index}].type must be 'module'`);
-      }
-      if (typeof candidate.agentId !== 'string') {
-        errors.push(`Step[${index}].agentId must be a string`);
-      }
-      if (typeof candidate.agentName !== 'string') {
-        errors.push(`Step[${index}].agentName must be a string`);
-      }
-      if (typeof candidate.promptPath !== 'string') {
-        errors.push(`Step[${index}].promptPath must be a string`);
+      // Validate step type
+      if (candidate.type !== 'module' && candidate.type !== 'ui') {
+        errors.push(`Step[${index}].type must be 'module' or 'ui'`);
       }
 
-      if (candidate.model !== undefined && typeof candidate.model !== 'string') {
-        errors.push(`Step[${index}].model must be a string`);
-      }
-
-      if (candidate.modelReasoningEffort !== undefined) {
-        const mre = candidate.modelReasoningEffort;
-        if (mre !== 'low' && mre !== 'medium' && mre !== 'high') {
-          errors.push(
-            `Step[${index}].modelReasoningEffort must be one of 'low'|'medium'|'high' (got '${String(mre)}')`,
-          );
+      // Validate UI step
+      if (candidate.type === 'ui') {
+        if (typeof candidate.text !== 'string' || (candidate.text as string).trim().length === 0) {
+          errors.push(`Step[${index}].text must be a non-empty string`);
         }
+        // UI steps don't need other validation
+        return;
       }
 
-      if (candidate.executeOnce !== undefined && typeof candidate.executeOnce !== 'boolean') {
-        errors.push(`Step[${index}].executeOnce must be a boolean`);
-      }
+      // Validate module step
+      if (candidate.type === 'module') {
+        if (typeof candidate.agentId !== 'string') {
+          errors.push(`Step[${index}].agentId must be a string`);
+        }
+        if (typeof candidate.agentName !== 'string') {
+          errors.push(`Step[${index}].agentName must be a string`);
+        }
+        if (typeof candidate.promptPath !== 'string') {
+          errors.push(`Step[${index}].promptPath must be a string`);
+        }
 
-      if (candidate.module !== undefined) {
-        if (!candidate.module || typeof candidate.module !== 'object') {
-          errors.push(`Step[${index}].module must be an object`);
-        } else {
-          const moduleMeta = candidate.module as { id?: unknown; behavior?: unknown };
-          if (typeof moduleMeta.id !== 'string') {
-            errors.push(`Step[${index}].module.id must be a string`);
+        if (candidate.model !== undefined && typeof candidate.model !== 'string') {
+          errors.push(`Step[${index}].model must be a string`);
+        }
+
+        if (candidate.modelReasoningEffort !== undefined) {
+          const mre = candidate.modelReasoningEffort;
+          if (mre !== 'low' && mre !== 'medium' && mre !== 'high') {
+            errors.push(
+              `Step[${index}].modelReasoningEffort must be one of 'low'|'medium'|'high' (got '${String(mre)}')`,
+            );
           }
-          if (moduleMeta.behavior !== undefined) {
-            if (!moduleMeta.behavior || typeof moduleMeta.behavior !== 'object') {
-              errors.push(`Step[${index}].module.behavior must be an object`);
-            } else {
-              const behavior = moduleMeta.behavior as {
-                type?: unknown;
-                action?: unknown;
-                steps?: unknown;
-                trigger?: unknown;
-                maxIterations?: unknown;
-              };
-              if (behavior.type !== 'loop' || behavior.action !== 'stepBack') {
-                errors.push(`Step[${index}].module.behavior must be { type: 'loop', action: 'stepBack', ... }`);
-              }
-              if (typeof behavior.steps !== 'number' || behavior.steps <= 0) {
-                errors.push(`Step[${index}].module.behavior.steps must be a positive number`);
-              }
-              if (behavior.trigger !== undefined && typeof behavior.trigger !== 'string') {
-                errors.push(`Step[${index}].module.behavior.trigger must be a string if provided`);
-              }
-              if (behavior.maxIterations !== undefined && typeof behavior.maxIterations !== 'number') {
-                errors.push(`Step[${index}].module.behavior.maxIterations must be a number`);
+        }
+
+        if (candidate.executeOnce !== undefined && typeof candidate.executeOnce !== 'boolean') {
+          errors.push(`Step[${index}].executeOnce must be a boolean`);
+        }
+
+        if (candidate.module !== undefined) {
+          if (!candidate.module || typeof candidate.module !== 'object') {
+            errors.push(`Step[${index}].module must be an object`);
+          } else {
+            const moduleMeta = candidate.module as { id?: unknown; behavior?: unknown };
+            if (typeof moduleMeta.id !== 'string') {
+              errors.push(`Step[${index}].module.id must be a string`);
+            }
+            if (moduleMeta.behavior !== undefined) {
+              if (!moduleMeta.behavior || typeof moduleMeta.behavior !== 'object') {
+                errors.push(`Step[${index}].module.behavior must be an object`);
+              } else {
+                const behavior = moduleMeta.behavior as {
+                  type?: unknown;
+                  action?: unknown;
+                  steps?: unknown;
+                  trigger?: unknown;
+                  maxIterations?: unknown;
+                };
+                if (behavior.type !== 'loop' || behavior.action !== 'stepBack') {
+                  errors.push(`Step[${index}].module.behavior must be { type: 'loop', action: 'stepBack', ... }`);
+                }
+                if (typeof behavior.steps !== 'number' || behavior.steps <= 0) {
+                  errors.push(`Step[${index}].module.behavior.steps must be a positive number`);
+                }
+                if (behavior.trigger !== undefined && typeof behavior.trigger !== 'string') {
+                  errors.push(`Step[${index}].module.behavior.trigger must be a string if provided`);
+                }
+                if (behavior.maxIterations !== undefined && typeof behavior.maxIterations !== 'number') {
+                  errors.push(`Step[${index}].module.behavior.maxIterations must be a number`);
+                }
               }
             }
           }

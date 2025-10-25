@@ -110,6 +110,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         agent.stepIndex = stepIndex;
         agent.totalSteps = template.steps.filter(s => s.type === 'module').length;
       }
+    } else if (step.type === 'ui') {
+      // Pre-populate UI elements
+      ui.addUIElement(step.text, stepIndex);
     }
   });
 
@@ -140,6 +143,12 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     }
 
     const step = template.steps[index];
+
+    // UI elements are pre-populated and don't need execution
+    if (step.type === 'ui') {
+      continue;
+    }
+
     if (step.type !== 'module') {
       continue;
     }

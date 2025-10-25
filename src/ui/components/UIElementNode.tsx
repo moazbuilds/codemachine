@@ -8,22 +8,16 @@ export interface UIElementNodeProps {
 
 /**
  * Display a UI element (static message) in the timeline
- * Shows text with decorative separators: ________ ❚❚ Text ______
+ * Shows text with subtle gray separators: ──── Text ────
  */
 export const UIElementNode: React.FC<UIElementNodeProps> = ({ uiElement }) => {
-  const separatorLength = 8;
-  const separator = '_'.repeat(separatorLength);
+  const separatorLength = 4;
+  const separator = '─'.repeat(separatorLength);
 
   return (
     <Box paddingX={1}>
-      <Text>
-        <Text dimColor>{separator}</Text>
-        {' '}
-        <Text bold color="cyan">❚❚</Text>
-        {' '}
-        <Text bold color="yellow">{uiElement.text}</Text>
-        {' '}
-        <Text dimColor>{separator}</Text>
+      <Text dimColor>
+        {separator} {uiElement.text} {separator}
       </Text>
     </Box>
   );

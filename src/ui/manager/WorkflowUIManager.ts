@@ -188,6 +188,17 @@ export class WorkflowUIManager {
   }
 
   /**
+   * Add a UI element to the timeline
+   */
+  addUIElement(text: string, stepIndex: number): void {
+    this.state.addUIElement(text, stepIndex);
+
+    if (this.fallbackMode) {
+      console.log(`UI: ${text}`);
+    }
+  }
+
+  /**
    * Update agent status
    */
   updateAgentStatus(agentId: string, status: AgentStatus): void {
