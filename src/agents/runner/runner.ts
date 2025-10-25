@@ -115,7 +115,7 @@ async function ensureEngineAuth(engineType: EngineType): Promise<void> {
  * - Stores output in memory
  *
  * Prompt building is the caller's responsibility:
- * - Orchestration layer: builds [INPUT FILES] + [SYSTEM] + [REQUEST]
+ * - Orchestration layer: builds [SYSTEM] + [INPUT FILES] + [REQUEST]
  * - Workflow layer: processes templates with processPromptString()
  *
  * This loads agent configuration from:

@@ -54,16 +54,32 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
   const [savedHistoryScrollOffset, setSavedHistoryScrollOffset] = useState<number | undefined>(undefined);
   const [savedHistorySelectedIndex, setSavedHistorySelectedIndex] = useState<number | undefined>(undefined);
 
+  // Track checkpoint freeze time to pause the timer
+  const [checkpointFreezeTime, setCheckpointFreezeTime] = useState<number | undefined>(undefined);
+
   useCtrlCHandler();
 
-  // Update runtime every second (or freeze if endTime is set)
+  // Track when checkpoint becomes active/inactive and freeze/unfreeze timer
+  useEffect(() => {
+    if (state.checkpointState?.active && !checkpointFreezeTime) {
+      // Checkpoint just became active - freeze the timer at current time
+      setCheckpointFreezeTime(Date.now());
+    } else if (!state.checkpointState?.active && checkpointFreezeTime) {
+      // Checkpoint just closed - unfreeze timer
+      setCheckpointFreezeTime(undefined);
+    }
+  }, [state.checkpointState?.active, checkpointFreezeTime]);
+
+  // Update runtime every second (or freeze if endTime or checkpoint is set)
   useEffect(() => {
     const interval = setInterval(() => {
-      setRuntime(formatRuntime(state.startTime, state.endTime));
+      // Use checkpoint freeze time if active, otherwise use workflow endTime
+      const effectiveEndTime = checkpointFreezeTime ?? state.endTime;
+      setRuntime(formatRuntime(state.startTime, effectiveEndTime));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [state.startTime, state.endTime]);
+  }, [state.startTime, state.endTime, checkpointFreezeTime]);
 
   // Keyboard event handling - disabled when other views are active
   useInput((input, key) => {
