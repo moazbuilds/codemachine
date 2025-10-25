@@ -137,6 +137,16 @@ export class CoordinatorService {
       const icon = r.success ? chalk.green('✓') : chalk.red('✗');
       const status = r.success ? chalk.green('Completed') : chalk.red('Failed');
       console.log(`  ${index + 1}. ${icon} ${chalk.bold(r.name)} - ${status} (ID: ${r.agentId})`);
+      if (r.input && r.input.length > 0) {
+        console.log(`     ${chalk.dim('Input:')} ${r.input.join(', ')}`);
+      }
+      if (r.prompt) {
+        // Truncate long prompts for display
+        const displayPrompt = r.prompt.length > 80
+          ? r.prompt.substring(0, 77) + '...'
+          : r.prompt;
+        console.log(`     ${chalk.dim('Prompt:')} ${displayPrompt}`);
+      }
       if (r.error) {
         console.log(`     ${chalk.red('Error:')} ${r.error}`);
       }

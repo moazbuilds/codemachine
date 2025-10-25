@@ -87,7 +87,23 @@ agent[input:file1.md;file2.md;file3.md]
 
 # Absolute or relative paths
 agent[input:/absolute/path.md;relative/path.md]
+
+# Using placeholders from config/placeholders.js
+agent[input:{specifications}]  # userDir placeholder
+agent[input:{orchestration_guide}]  # packageDir placeholder
+
+# Mix placeholders with regular paths
+agent[input:{specifications};requirements.md;{context}]
+
+# Placeholders in combined options
+agent[input:{specifications};design.md,tail:100] 'analyze architecture'
 ```
+
+**Placeholder Support:**
+- Use `{placeholder_name}` syntax to reference paths defined in `config/placeholders.js`
+- Supports both `userDir` (project-relative) and `packageDir` (codemachine-relative) scopes
+- Placeholders are resolved before path resolution
+- If a placeholder is not found in config, it's treated as a literal path (with a warning)
 
 Input files are prepended to the agent's prompt in the following structure:
 
@@ -179,7 +195,14 @@ codemachine run "code-generator 'Implement user authentication'"
 ### Agent with Context Files
 
 ```bash
+# Using regular file paths
 codemachine run "system-analyst[input:requirements.md;design.md] 'create system architecture'"
+
+# Using placeholders from config/placeholders.js
+codemachine run "system-analyst[input:{specifications};{architecture}] 'analyze current architecture'"
+
+# Using packageDir placeholders (from codemachine package)
+codemachine run "planner[input:{orchestration_guide}] 'create execution plan'"
 ```
 
 ### Limited Output

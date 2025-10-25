@@ -85,11 +85,11 @@ export async function executeStep(
 
   // Parse telemetry from final output if UI is enabled (fallback)
   if (options.ui && options.uniqueAgentId) {
-    const finalTelemetry = parseTelemetryChunk(result);
+    const finalTelemetry = parseTelemetryChunk(result.output);
     if (finalTelemetry) {
       options.ui.updateAgentTelemetry(options.uniqueAgentId, finalTelemetry);
     }
   }
 
-  return result;
+  return result.output;
 }
