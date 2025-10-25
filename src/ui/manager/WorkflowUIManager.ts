@@ -433,6 +433,11 @@ export class WorkflowUIManager {
    */
   registerMonitoringId(uiAgentId: string, monitoringAgentId: number): void {
     this.agentIdMap.set(uiAgentId, monitoringAgentId);
+
+    // Trigger state update to force re-render
+    // This ensures OutputWindow can immediately get the monitoring ID
+    // Fixes race condition where UI shows "Waiting for agent output..." forever
+    this.state.incrementAgentIdMapVersion();
   }
 
   /**
