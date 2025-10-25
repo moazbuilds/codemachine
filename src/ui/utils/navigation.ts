@@ -38,10 +38,11 @@ export interface NavigationSelection {
 }
 
 /**
- * Build a flat list of all navigable items respecting expanded state
+ * Build a complete list of all timeline items including UI elements
+ * Used for rendering the timeline (not for navigation)
  * Order: Items sorted by stepIndex (agents and UI elements interleaved)
  */
-export function getFlatNavigableList(state: WorkflowState): NavigableItem[] {
+function getFullItemsList(state: WorkflowState): NavigableItem[] {
   const items: NavigableItem[] = [];
 
   // Create a combined list of agents and UI elements with their step indices
@@ -66,7 +67,7 @@ export function getFlatNavigableList(state: WorkflowState): NavigableItem[] {
   // Sort by step index
   stepItems.sort((a, b) => a.stepIndex - b.stepIndex);
 
-  // Build flat navigable list
+  // Build complete list (includes UI elements for rendering)
   for (const stepItem of stepItems) {
     if (stepItem.type === 'agent') {
       const agent = stepItem.agent;
@@ -97,10 +98,22 @@ export function getFlatNavigableList(state: WorkflowState): NavigableItem[] {
 }
 
 /**
+ * Build a flat list of navigable items (excludes UI elements)
+ * Used for keyboard navigation - UI separators cannot be selected
+ * Order: Items sorted by stepIndex (agents only)
+ */
+export function getFlatNavigableList(state: WorkflowState): NavigableItem[] {
+  const fullList = getFullItemsList(state);
+  // Filter out UI elements - they're visual only, not selectable
+  return fullList.filter(item => item.type !== 'ui');
+}
+
+/**
  * Build layout metadata for the timeline to support scrolling calculations.
+ * Includes all items (agents, subagents, and UI elements) for rendering.
  */
 export function getTimelineLayout(state: WorkflowState): TimelineLayoutEntry[] {
-  const items = getFlatNavigableList(state);
+  const items = getFullItemsList(state);  // Use full list to include UI elements in timeline
   const layout: TimelineLayoutEntry[] = [];
   let offset = 0;
 
