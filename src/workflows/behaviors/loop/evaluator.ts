@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { ModuleBehavior } from '../../templates/index.js';
+import type { BehaviorAction } from '../types.js';
 
 export interface LoopEvaluationOptions {
   behavior?: ModuleBehavior;
@@ -13,12 +14,6 @@ export interface LoopEvaluationResult {
   shouldRepeat: boolean;
   stepsBack: number;
   reason?: string;
-}
-
-export interface BehaviorAction {
-  action: 'loop' | 'stop' | 'continue' | 'trigger';
-  reason?: string;
-  triggerAgentId?: string; // Required when action is 'trigger'
 }
 
 export async function evaluateLoopBehavior(options: LoopEvaluationOptions): Promise<LoopEvaluationResult | null> {
@@ -68,14 +63,6 @@ export async function evaluateLoopBehavior(options: LoopEvaluationOptions): Prom
     };
   }
 
-  if (behaviorAction.action === 'stop') {
-    return {
-      shouldRepeat: false,
-      stepsBack: behavior.steps,
-      reason: behaviorAction.reason,
-    };
-  }
-
-  // 'continue' or unknown action = no special behavior
+  // 'continue', 'checkpoint', 'trigger', or unknown action = no special behavior
   return null;
 }

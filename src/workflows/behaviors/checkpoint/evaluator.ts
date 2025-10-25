@@ -3,22 +3,21 @@ import * as path from 'node:path';
 import type { ModuleBehavior } from '../../templates/index.js';
 import type { BehaviorAction } from '../types.js';
 
-export interface TriggerEvaluationOptions {
+export interface CheckpointEvaluationOptions {
   behavior?: ModuleBehavior;
   output: string;
   cwd: string;
 }
 
-export interface TriggerEvaluationResult {
-  shouldTrigger: boolean;
-  triggerAgentId?: string;
+export interface CheckpointEvaluationResult {
+  shouldStopWorkflow: boolean;
   reason?: string;
 }
 
-export async function evaluateTriggerBehavior(options: TriggerEvaluationOptions): Promise<TriggerEvaluationResult | null> {
+export async function evaluateCheckpointBehavior(options: CheckpointEvaluationOptions): Promise<CheckpointEvaluationResult | null> {
   const { behavior, cwd } = options;
 
-  if (!behavior || behavior.type !== 'trigger' || behavior.action !== 'mainAgentCall') {
+  if (!behavior || behavior.type !== 'checkpoint' || behavior.action !== 'evaluate') {
     return null;
   }
 
@@ -39,22 +38,14 @@ export async function evaluateTriggerBehavior(options: TriggerEvaluationOptions)
     return null;
   }
 
-  // Handle trigger action
-  if (behaviorAction.action === 'trigger') {
-    const targetAgentId = behaviorAction.triggerAgentId || behavior.triggerAgentId;
-
-    if (!targetAgentId) {
-      console.error('Trigger action requires triggerAgentId in behavior.json or module configuration');
-      return null;
-    }
-
+  // Handle checkpoint action
+  if (behaviorAction.action === 'checkpoint') {
     return {
-      shouldTrigger: true,
-      triggerAgentId: targetAgentId,
+      shouldStopWorkflow: true,
       reason: behaviorAction.reason,
     };
   }
 
-  // 'continue', 'loop', 'checkpoint', or unknown action = no trigger behavior
+  // 'continue', 'loop', 'trigger', or unknown action = no checkpoint behavior
   return null;
 }
