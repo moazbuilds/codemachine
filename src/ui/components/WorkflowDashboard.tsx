@@ -165,6 +165,10 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
   leftPanelWidth = Math.min(Math.max(30, leftPanelWidth), terminalWidth - 40);
   const rightPanelWidth = terminalWidth - leftPanelWidth;
 
+  // Pre-calculate panel-constrained heights (subtract horizontal separators above/below panels)
+  const PANEL_SEPARATOR_LINES = 2;
+  const timelineAvailableHeight = Math.max(4, mainContentHeight - PANEL_SEPARATOR_LINES);
+
   // Log viewer from history view (highest priority)
   if (historyLogViewerMonitoringId !== null) {
     return (
@@ -242,7 +246,7 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
         paddingTop={0}
       >
         {/* Workflow Steps - Dynamic width */}
-        <Box width={leftPanelWidth} flexDirection="column">
+        <Box width={leftPanelWidth} flexDirection="column" height="100%">
           <Text color="cyan">{'─'.repeat(leftPanelWidth)}</Text>
           <AgentTimeline
             mainAgents={state.agents}
@@ -254,6 +258,7 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
             selectedSubAgentId={state.selectedSubAgentId}
             selectedItemType={state.selectedItemType}
             scrollOffset={state.scrollOffset}
+            availableHeight={timelineAvailableHeight}
             onToggleExpand={(agentId) => onAction({ type: 'TOGGLE_EXPAND', agentId })}
             onVisibleCountChange={(count) => onAction({ type: 'SET_VISIBLE_COUNT', count })}
             onScrollOffsetChange={(offset, count) =>
@@ -264,7 +269,7 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
         </Box>
 
         {/* Agent Output - Takes remaining space with constrained height */}
-        <Box flexGrow={1} flexDirection="column">
+        <Box flexGrow={1} flexDirection="column" height="100%">
           <Text color="cyan">{'─'.repeat(rightPanelWidth)}</Text>
           <OutputWindow
             currentAgent={currentAgent}
