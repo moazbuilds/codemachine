@@ -3,7 +3,7 @@ import { Box, Text, useStdout } from 'ink';
 import type { AgentState, SubAgentState, TriggeredAgentState, WorkflowState } from '../state/types';
 import { MainAgentNode } from './MainAgentNode';
 import { SubAgentSummary } from './SubAgentSummary';
-import { TriggeredAgentList } from './TriggeredAgentList';
+import { TriggeredAgentList, MAX_TRIGGERED_AGENTS_DISPLAYED } from './TriggeredAgentList';
 import { UIElementNode } from './UIElementNode';
 import { isAgentSelected } from '../utils/agentSelection';
 import { calculateAgentTimelineHeight } from '../utils/heightCalculations';
@@ -23,6 +23,23 @@ export interface AgentTimelineProps {
   onToggleExpand: (agentId: string) => void;
   onVisibleCountChange?: (count: number) => void;
   onScrollOffsetChange?: (offset: number, visibleCount: number) => void;
+  availableHeight?: number;
+}
+
+const TIMELINE_HEADER_HEIGHT = 2; // Header text + padding
+const MIN_VIEWPORT_HEIGHT = 1;
+
+function getTriggeredListHeight(triggeredAgents: TriggeredAgentState[]): number {
+  if (!triggeredAgents.length) {
+    return 0;
+  }
+
+  const displayed = Math.min(triggeredAgents.length, MAX_TRIGGERED_AGENTS_DISPLAYED);
+  const overflowLine = triggeredAgents.length > MAX_TRIGGERED_AGENTS_DISPLAYED ? 1 : 0;
+  const marginTop = 1;
+  const headerLine = 1;
+
+  return marginTop + headerLine + displayed + overflowLine;
 }
 
 /**
@@ -42,12 +59,20 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
   onToggleExpand,
   onVisibleCountChange,
   onScrollOffsetChange,
+  availableHeight,
 }) => {
   const { stdout } = useStdout();
   useTerminalResize();
 
-  const rawHeight = calculateAgentTimelineHeight(stdout);
-  const viewportHeight = Math.max(1, rawHeight);
+  const componentHeight = Math.max(
+    TIMELINE_HEADER_HEIGHT + MIN_VIEWPORT_HEIGHT,
+    availableHeight ?? calculateAgentTimelineHeight(stdout)
+  );
+  const triggeredListHeight = getTriggeredListHeight(triggeredAgents);
+  const viewportHeight = Math.max(
+    MIN_VIEWPORT_HEIGHT,
+    componentHeight - TIMELINE_HEADER_HEIGHT - triggeredListHeight
+  );
 
   useEffect(() => {
     onVisibleCountChange?.(viewportHeight);
@@ -199,7 +224,7 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
   const headerSuffix = showRange ? ` (${rangeStart}-${rangeEnd} of ${totalItems})` : '';
 
   return (
-    <Box flexDirection="column" width="100%" height="100%">
+    <Box flexDirection="column" width="100%" height={componentHeight}>
       <Box paddingX={1} paddingBottom={1}>
         <Text bold underline>
           Workflow Pipeline{headerSuffix}

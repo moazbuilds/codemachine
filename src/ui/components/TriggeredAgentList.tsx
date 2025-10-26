@@ -6,6 +6,8 @@ import { getStatusIcon, getStatusColor } from '../utils/statusIcons';
 import { formatTokens } from '../utils/formatters';
 import { calculateDuration } from '../utils/calculateDuration';
 
+export const MAX_TRIGGERED_AGENTS_DISPLAYED = 5;
+
 export interface TriggeredAgentListProps {
   triggeredAgents: TriggeredAgentState[];
 }
@@ -21,9 +23,8 @@ export const TriggeredAgentList: React.FC<TriggeredAgentListProps> = ({
     return null;
   }
 
-  const MAX_DISPLAY = 5;
-  const displayAgents = triggeredAgents.slice(0, MAX_DISPLAY);
-  const remaining = triggeredAgents.length - MAX_DISPLAY;
+  const displayAgents = triggeredAgents.slice(0, MAX_TRIGGERED_AGENTS_DISPLAYED);
+  const remaining = triggeredAgents.length - MAX_TRIGGERED_AGENTS_DISPLAYED;
 
   return (
     <Box flexDirection="column" paddingX={1} marginTop={1}>
