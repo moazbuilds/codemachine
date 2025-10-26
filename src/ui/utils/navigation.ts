@@ -9,6 +9,14 @@ export type NavigableItem =
   | { type: 'sub'; id: string; agent: SubAgentState }
   | { type: 'ui'; id: string; uiElement: UIElement };
 
+/**
+ * Represents a selectable item (excludes UI elements)
+ */
+export type SelectableItem =
+  | { type: 'main'; id: string; agent: AgentState }
+  | { type: 'summary'; id: string; parentId: string }
+  | { type: 'sub'; id: string; agent: SubAgentState };
+
 export interface TimelineLayoutEntry {
   item: NavigableItem;
   height: number;
@@ -102,10 +110,10 @@ function getFullItemsList(state: WorkflowState): NavigableItem[] {
  * Used for keyboard navigation - UI separators cannot be selected
  * Order: Items sorted by stepIndex (agents only)
  */
-export function getFlatNavigableList(state: WorkflowState): NavigableItem[] {
+export function getFlatNavigableList(state: WorkflowState): SelectableItem[] {
   const fullList = getFullItemsList(state);
   // Filter out UI elements - they're visual only, not selectable
-  return fullList.filter(item => item.type !== 'ui');
+  return fullList.filter(item => item.type !== 'ui') as SelectableItem[];
 }
 
 /**
@@ -144,7 +152,7 @@ export function getTotalTimelineHeight(state: WorkflowState): number {
 export function getNextNavigableItem(
   current: NavigationSelection,
   state: WorkflowState
-): NavigableItem | null {
+): SelectableItem | null {
   const items = getFlatNavigableList(state);
 
   if (items.length === 0) {
@@ -177,7 +185,7 @@ export function getNextNavigableItem(
 export function getPreviousNavigableItem(
   current: NavigationSelection,
   state: WorkflowState
-): NavigableItem | null {
+): SelectableItem | null {
   const items = getFlatNavigableList(state);
 
   if (items.length === 0) {

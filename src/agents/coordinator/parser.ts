@@ -148,7 +148,7 @@ export class CoordinatorParser {
       const options = this.parseOptions(optionsStr);
 
       // Extract prompt from trailing part if present
-      let trailingPrompt: string | undefined;
+      let trailingPrompt: string | null | undefined;
       if (trailingPart) {
         trailingPrompt = this.extractQuotedString(trailingPart.trim());
       }

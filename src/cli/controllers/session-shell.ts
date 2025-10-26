@@ -144,7 +144,6 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
   };
 
   const handleExit = (): void => {
-    shouldExit = true;
     if (inkInstance) {
       inkInstance.unmount();
       inkInstance = null;

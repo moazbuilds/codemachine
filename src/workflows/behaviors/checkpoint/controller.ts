@@ -1,4 +1,5 @@
 import type { WorkflowStep } from '../../templates/index.js';
+import { isModuleStep } from '../../templates/types.js';
 import { evaluateCheckpointBehavior } from './evaluator.js';
 import { formatAgentLog } from '../../../shared/logging/index.js';
 import type { WorkflowUIManager } from '../../../ui/index.js';
@@ -14,6 +15,11 @@ export async function handleCheckpointLogic(
   cwd: string,
   ui?: WorkflowUIManager,
 ): Promise<CheckpointDecision | null> {
+  // Only module steps can have checkpoint behavior
+  if (!isModuleStep(step)) {
+    return null;
+  }
+
   const checkpointDecision = await evaluateCheckpointBehavior({
     behavior: step.module?.behavior,
     output,

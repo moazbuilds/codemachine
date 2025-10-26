@@ -63,6 +63,14 @@ export async function evaluateLoopBehavior(options: LoopEvaluationOptions): Prom
     };
   }
 
+  if (behaviorAction.action === 'stop') {
+    return {
+      shouldRepeat: false,
+      stepsBack: behavior.steps,
+      reason: behaviorAction.reason,
+    };
+  }
+
   // 'continue', 'checkpoint', 'trigger', or unknown action = no special behavior
   return null;
 }
