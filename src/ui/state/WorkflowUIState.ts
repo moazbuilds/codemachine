@@ -331,7 +331,7 @@ export class WorkflowUIState {
     const sanitized = Number.isFinite(count) ? Math.max(1, Math.floor(count)) : 1;
 
     if (sanitized === this.state.visibleItemCount) {
-      const adjustedState = this.adjustScroll(this.state, { visibleCount: sanitized });
+      const adjustedState = this.adjustScroll(this.state, { visibleCount: sanitized, ensureSelectedVisible: false });
       if (adjustedState !== this.state) {
         this.state = adjustedState;
         this.notifyListeners();
@@ -344,7 +344,7 @@ export class WorkflowUIState {
       visibleItemCount: sanitized,
     };
 
-    const adjustedState = this.adjustScroll(updatedState, { visibleCount: sanitized });
+    const adjustedState = this.adjustScroll(updatedState, { visibleCount: sanitized, ensureSelectedVisible: false });
 
     if (adjustedState !== this.state) {
       this.state = adjustedState;
