@@ -1,6 +1,7 @@
 import * as path from 'node:path';
 import { readFile, mkdir } from 'node:fs/promises';
 import type { WorkflowStep } from '../templates/index.js';
+import { isModuleStep } from '../templates/types.js';
 import type { EngineType } from '../../infra/engines/index.js';
 import { processPromptString } from '../../shared/prompts/index.js';
 import { executeAgent } from '../../agents/runner/runner.js';
@@ -42,6 +43,11 @@ export async function executeStep(
   cwd: string,
   options: StepExecutorOptions,
 ): Promise<string> {
+  // Only module steps can be executed
+  if (!isModuleStep(step)) {
+    throw new Error('Only module steps can be executed');
+  }
+
   // Load and process the prompt template
   const promptPath = path.isAbsolute(step.promptPath)
     ? step.promptPath

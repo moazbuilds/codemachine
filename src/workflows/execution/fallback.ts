@@ -1,4 +1,5 @@
 import type { WorkflowStep } from '../templates/index.js';
+import { isModuleStep } from '../templates/types.js';
 import { formatAgentLog } from '../../shared/logging/index.js';
 import { executeStep } from './step.js';
 import { mainAgents } from '../utils/config.js';
@@ -19,7 +20,7 @@ export function shouldExecuteFallback(
   stepIndex: number,
   notCompletedSteps: number[],
 ): boolean {
-  return notCompletedSteps.includes(stepIndex) && !!step.notCompletedFallback;
+  return isModuleStep(step) && notCompletedSteps.includes(stepIndex) && !!step.notCompletedFallback;
 }
 
 /**
@@ -34,6 +35,11 @@ export async function executeFallbackStep(
   ui?: WorkflowUIManager,
   uniqueParentAgentId?: string,
 ): Promise<void> {
+  // Only module steps can have fallback agents
+  if (!isModuleStep(step)) {
+    throw new Error('Only module steps can have fallback agents');
+  }
+
   if (!step.notCompletedFallback) {
     throw new Error('No fallback agent defined for this step');
   }
@@ -81,8 +87,8 @@ export async function executeFallbackStep(
 
   try {
     await executeStep(fallbackStep, cwd, {
-      logger: (chunk) => ui?.handleOutputChunk(fallbackAgentId, chunk),
-      stderrLogger: (chunk) => ui?.handleOutputChunk(fallbackAgentId, chunk),
+      logger: () => {}, // No-op: UI reads from log files
+      stderrLogger: () => {}, // No-op: UI reads from log files
       ui,
       uniqueAgentId: fallbackAgentId,
     });

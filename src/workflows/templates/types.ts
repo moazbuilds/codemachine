@@ -47,6 +47,13 @@ export interface UIStep {
 
 export type WorkflowStep = ModuleStep | UIStep;
 
+/**
+ * Type guard to check if a step is a ModuleStep
+ */
+export function isModuleStep(step: WorkflowStep): step is ModuleStep {
+  return step.type === 'module';
+}
+
 export interface WorkflowTemplate {
   name: string;
   steps: WorkflowStep[];

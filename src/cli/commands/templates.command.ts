@@ -7,6 +7,7 @@ import { loadWorkflowModule, isWorkflowTemplate, WorkflowTemplate } from '../../
 import { hasTemplateChanged, setActiveTemplate } from '../../shared/workflows/index.js';
 import { bootstrapWorkspace } from '../../runtime/services/workspace/index.js';
 import { selectFromMenu, type SelectionChoice } from '../presentation/selection-menu.js';
+import { isModuleStep } from '../../workflows/templates/types.js';
 
 const packageRoot = (() => {
   const moduleDir = path.dirname(fileURLToPath(import.meta.url));
@@ -39,7 +40,11 @@ async function handleTemplateSelectionSuccess(template: WorkflowTemplate, templa
   console.log(`\nSteps:`);
 
   template.steps.forEach((step, index) => {
-    console.log(`  ${index + 1}. ${step.agentName} [${step.agentId}]`);
+    if (isModuleStep(step)) {
+      console.log(`  ${index + 1}. ${step.agentName} [${step.agentId}]`);
+    } else {
+      console.log(`  ${index + 1}. [UI Element]`);
+    }
   });
 
   // Check if template changed and regenerate agents folder

@@ -214,7 +214,7 @@ export const AgentTimeline: React.FC<AgentTimelineProps> = ({
   ]);
 
   const renderedRows = useMemo(
-    () => timelineRows.filter((node) => node !== null && node !== false && node !== undefined) as React.ReactNode[],
+    () => timelineRows.filter((node) => node !== null && node !== undefined) as React.ReactNode[],
     [timelineRows]
   );
   const hasVisibleRows = renderedRows.length > 0;

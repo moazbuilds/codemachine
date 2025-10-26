@@ -1,4 +1,5 @@
 import type { WorkflowStep } from '../templates/index.js';
+import { isModuleStep } from '../templates/types.js';
 import { formatAgentLog } from '../../shared/logging/index.js';
 import type { WorkflowUIManager } from '../../ui/index.js';
 
@@ -14,6 +15,11 @@ export function shouldSkipStep(
   ui?: WorkflowUIManager,
   uniqueAgentId?: string,
 ): { skip: boolean; reason?: string } {
+  // UI steps can't be skipped
+  if (!isModuleStep(step)) {
+    return { skip: false };
+  }
+
   // Use provided unique agent ID or fall back to step.agentId
   const agentId = uniqueAgentId ?? step.agentId;
 
@@ -33,6 +39,10 @@ export function shouldSkipStep(
 }
 
 export function logSkipDebug(step: WorkflowStep, activeLoop: ActiveLoop | null): void {
+  if (!isModuleStep(step)) {
+    return;
+  }
+
   if (process.env.CODEMACHINE_DEBUG_LOOPS === '1' && activeLoop) {
     console.log(
       formatAgentLog(

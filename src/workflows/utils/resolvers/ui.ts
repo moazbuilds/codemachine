@@ -1,4 +1,4 @@
-import type { UIStep } from '../types.js';
+import type { UIStep } from '../../templates/types.js';
 
 export function resolveUI(text: string): UIStep {
   return {

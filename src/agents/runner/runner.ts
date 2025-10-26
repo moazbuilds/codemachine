@@ -8,6 +8,13 @@ import { loadAgentConfig } from './config.js';
 import { AgentMonitorService, AgentLoggerService } from '../monitoring/index.js';
 import type { ParsedTelemetry } from '../../infra/engines/core/types.js';
 
+/**
+ * Minimal UI interface for agent execution
+ */
+export interface AgentExecutionUI {
+  registerMonitoringId(uiAgentId: string, monitoringAgentId: number): void;
+}
+
 export interface ExecuteAgentOptions {
   /**
    * Engine to use (overrides agent config)
@@ -67,7 +74,7 @@ export interface ExecuteAgentOptions {
   /**
    * UI manager (for registering monitoring IDs)
    */
-  ui?: any;
+  ui?: AgentExecutionUI;
 
   /**
    * Unique agent ID for UI (for registering monitoring IDs)

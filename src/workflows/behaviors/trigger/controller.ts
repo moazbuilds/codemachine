@@ -1,4 +1,5 @@
 import type { WorkflowStep } from '../../templates/index.js';
+import { isModuleStep } from '../../templates/types.js';
 import { evaluateTriggerBehavior } from './evaluator.js';
 import { formatAgentLog } from '../../../shared/logging/index.js';
 import type { WorkflowUIManager } from '../../../ui/index.js';
@@ -15,6 +16,11 @@ export async function handleTriggerLogic(
   cwd: string,
   ui?: WorkflowUIManager,
 ): Promise<TriggerDecision | null> {
+  // Only module steps can have trigger behavior
+  if (!isModuleStep(step)) {
+    return null;
+  }
+
   const triggerDecision = await evaluateTriggerBehavior({
     behavior: step.module?.behavior,
     output,
