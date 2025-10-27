@@ -14,10 +14,13 @@ import {
 
 /**
  * Workflow UI State Manager with immutable updates and observer pattern
+ * Includes notification throttling to prevent UI freezing during rapid updates
  */
 export class WorkflowUIState {
   private state: WorkflowState;
   private listeners: Set<() => void> = new Set();
+  private pendingNotification: NodeJS.Timeout | null = null;
+  private notificationThrottleMs: number = 16; // ~60 FPS max update rate
 
   constructor(workflowName: string, totalSteps: number = 0) {
     this.state = {
@@ -407,6 +410,26 @@ export class WorkflowUIState {
   }
 
   private notifyListeners(): void {
+    // Throttle notifications to prevent UI freezing during rapid updates
+    // Multiple updates within 16ms are batched into a single notification
+    if (this.pendingNotification) {
+      return; // Already scheduled, skip duplicate
+    }
+
+    this.pendingNotification = setTimeout(() => {
+      this.pendingNotification = null;
+      this.listeners.forEach(listener => listener());
+    }, this.notificationThrottleMs);
+  }
+
+  /**
+   * Force immediate notification (for critical updates that can't wait)
+   */
+  private notifyListenersImmediate(): void {
+    if (this.pendingNotification) {
+      clearTimeout(this.pendingNotification);
+      this.pendingNotification = null;
+    }
     this.listeners.forEach(listener => listener());
   }
 
@@ -421,6 +444,12 @@ export class WorkflowUIState {
     if (next) {
       const viewport = visibleItemCount ?? this.state.visibleItemCount;
       this.selectItem(next.id, next.type, viewport);
+      // Use immediate notification for navigation (user expects instant feedback)
+      if (this.pendingNotification) {
+        clearTimeout(this.pendingNotification);
+        this.pendingNotification = null;
+        this.notifyListenersImmediate();
+      }
     }
   }
 
@@ -435,6 +464,12 @@ export class WorkflowUIState {
     if (prev) {
       const viewport = visibleItemCount ?? this.state.visibleItemCount;
       this.selectItem(prev.id, prev.type, viewport);
+      // Use immediate notification for navigation (user expects instant feedback)
+      if (this.pendingNotification) {
+        clearTimeout(this.pendingNotification);
+        this.pendingNotification = null;
+        this.notifyListenersImmediate();
+      }
     }
   }
 

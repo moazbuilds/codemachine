@@ -27,11 +27,11 @@ export class AgentRegistry {
 
   /**
    * Reload data from disk (for multi-process safety)
-   * Synchronous for backwards compatibility, reads from cache immediately
+   * Non-blocking: reads from cache immediately, refreshes asynchronously in background
    */
   reload(): void {
-    this.data = this.load();
-    // Also trigger async reload in background to refresh cache
+    // Don't block - just trigger async reload in background
+    // Reads from in-memory cache (this.data) immediately
     this.reloadAsync().catch(err => logger.warn(`Background reload failed: ${err}`));
   }
 

@@ -189,11 +189,12 @@ export function useLogStream(monitoringAgentId: number | undefined): LogStreamRe
         clearInterval(pollInterval);
       }
 
-      // 1000ms polling (reduced from 500ms for better performance)
-      // Reliable across all filesystems without redundant file watching
+      // 1000ms polling with random offset to prevent thundering herd
+      // Stagger polls across agents to avoid simultaneous file I/O
+      const pollDelay = 1000 + Math.random() * 200;
       pollInterval = setInterval(() => {
         updateLogs(logPath);
-      }, 1000);
+      }, pollDelay);
     }
 
     initialize();
