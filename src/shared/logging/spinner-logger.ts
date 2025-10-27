@@ -10,7 +10,20 @@ export interface SpinnerState {
   workflowStartTime: number;
 }
 
+/**
+ * Check if Ink UI is active by detecting if stdout is in raw mode
+ * When Ink is running, it takes control of the terminal
+ */
+function isInkUIActive(): boolean {
+  // Check if stdout is a TTY and in raw mode (Ink uses raw mode)
+  return Boolean(process.stdout.isTTY && (process.stdin as any).isRaw);
+}
+
 function clearStatusLine(): void {
+  // Don't interfere with Ink's rendering
+  if (isInkUIActive()) {
+    return;
+  }
   readline.clearLine(process.stdout, 0);
   readline.cursorTo(process.stdout, 0);
 }
@@ -73,6 +86,11 @@ export function startSpinner(
   };
 
   spinnerState.interval = setInterval(() => {
+    // Don't render spinner if Ink UI is active (prevents stdout conflicts)
+    if (isInkUIActive()) {
+      return;
+    }
+
     const now = Date.now();
     const timeSinceLastOutput = now - spinnerState.lastOutputTime;
     const timeSinceLastClear = now - spinnerState.lastClearTime;

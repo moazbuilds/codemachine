@@ -481,10 +481,8 @@ export class WorkflowUIManager {
           mainAgent.id      // Override parentId to flatten hierarchy
         );
 
-        // Update UI state for each sub-agent
-        for (const subAgent of subAgents) {
-          this.addSubAgent(mainAgent.id, subAgent);
-        }
+        // Batch update all sub-agents at once (single re-render instead of N re-renders)
+        this.state.batchAddSubAgents(mainAgent.id, subAgents);
       }
     } catch (_error) {
       // Silently ignore sync errors to prevent UI crashes
@@ -499,12 +497,12 @@ export class WorkflowUIManager {
     // Initial sync
     this.syncSubAgentsFromRegistry();
 
-    // Poll every 500ms
+    // Poll every 1000ms (reduced from 500ms for better performance)
     this.syncInterval = setInterval(() => {
       if (!this.fallbackMode) {
         this.syncSubAgentsFromRegistry();
       }
-    }, 500);
+    }, 1000);
   }
 
   /**

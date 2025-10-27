@@ -233,6 +233,42 @@ export class WorkflowUIState {
   }
 
   /**
+   * Batch add/update multiple sub-agents for a parent
+   * More efficient than individual addSubAgent calls - triggers only one re-render
+   */
+  batchAddSubAgents(parentId: string, subAgents: SubAgentState[]): void {
+    if (subAgents.length === 0) {
+      return; // No-op if empty
+    }
+
+    const newSubAgents = new Map(this.state.subAgents);
+    const parentSubAgents = newSubAgents.get(parentId) || [];
+
+    // Process all sub-agents
+    for (const subAgent of subAgents) {
+      const existingIndex = parentSubAgents.findIndex(sa => sa.id === subAgent.id);
+
+      if (existingIndex >= 0) {
+        // Update existing sub-agent
+        parentSubAgents[existingIndex] = subAgent;
+      } else {
+        // Add new sub-agent
+        parentSubAgents.push(subAgent);
+      }
+    }
+
+    newSubAgents.set(parentId, parentSubAgents);
+
+    this.state = {
+      ...this.state,
+      subAgents: newSubAgents,
+    };
+
+    // Single notification after all updates
+    this.notifyListeners();
+  }
+
+  /**
    * Update status of a sub-agent
    */
   updateSubAgentStatus(subAgentId: string, status: AgentStatus): void {
