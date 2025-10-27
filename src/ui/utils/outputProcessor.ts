@@ -1,4 +1,5 @@
 import { parseTelemetryChunk, ParsedTelemetry } from './telemetryParser';
+import { SYMBOL_BULLET, SYMBOL_NEST, parseMarker } from '../../shared/formatters/outputMarkers.js';
 
 export type OutputChunkType = 'text' | 'tool' | 'thinking' | 'telemetry' | 'error';
 
@@ -23,22 +24,31 @@ export function processOutputChunk(chunk: string): ProcessedChunk {
 
   const trimmed = chunk.trim();
 
-  // Detect tool usage (look for emoji indicators)
-  if (
-    trimmed.includes('🔧 TOOL') ||
-    trimmed.includes('🔧 COMMAND') ||
-    trimmed.includes('✅ TOOL')
-  ) {
-    const toolMatch = trimmed.match(/(?:🔧|✅)\s+(?:TOOL|COMMAND)(?:\s+(?:STARTED|COMPLETED))?:\s*(.+)/);
+  // Parse color marker if present
+  const { color, text } = parseMarker(trimmed);
+
+  // Detect tool/command usage (new format with bullet symbol)
+  if (text.includes(`${SYMBOL_BULLET} Command:`)) {
+    const commandMatch = text.match(/● Command:\s*(.+)/);
     return {
       type: 'tool',
       content: trimmed,
-      toolName: toolMatch ? toolMatch[1] : undefined,
+      toolName: commandMatch ? commandMatch[1] : undefined,
     };
   }
 
-  // Detect thinking blocks
-  if (trimmed.includes('🧠 THINKING')) {
+  // Detect nested results (new format with nest symbol)
+  if (text.includes(SYMBOL_NEST)) {
+    // Results are errors if they have red color marker
+    const isError = color === 'red';
+    return {
+      type: isError ? 'error' : 'tool',
+      content: trimmed,
+    };
+  }
+
+  // Detect thinking blocks (new format)
+  if (text.includes(`${SYMBOL_BULLET} Thinking:`)) {
     return {
       type: 'thinking',
       content: trimmed,
@@ -46,7 +56,7 @@ export function processOutputChunk(chunk: string): ProcessedChunk {
   }
 
   // Detect telemetry
-  const telemetry = parseTelemetryChunk(trimmed);
+  const telemetry = parseTelemetryChunk(text);
   if (telemetry) {
     return {
       type: 'telemetry',
@@ -55,8 +65,8 @@ export function processOutputChunk(chunk: string): ProcessedChunk {
     };
   }
 
-  // Detect errors
-  if (trimmed.includes('ERROR') || trimmed.includes('✗')) {
+  // Detect errors (fallback for non-nested errors)
+  if (text.includes('ERROR') || text.includes('✗') || color === 'red') {
     return {
       type: 'error',
       content: trimmed,

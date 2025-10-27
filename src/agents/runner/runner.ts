@@ -7,6 +7,7 @@ import { MemoryStore } from '../index.js';
 import { loadAgentConfig } from './config.js';
 import { AgentMonitorService, AgentLoggerService } from '../monitoring/index.js';
 import type { ParsedTelemetry } from '../../infra/engines/core/types.js';
+import { formatForLogFile } from '../../shared/formatters/logFileFormatter.js';
 
 /**
  * Cache for engine authentication status with TTL (shared across all subagents)
@@ -282,11 +283,14 @@ export async function executeAgent(
       onData: (chunk) => {
         totalStdout += chunk;
 
-        // Dual-stream: write to log file AND original logger
+        // Dual-stream: write to log file (with status text) AND original logger (with colors)
         if (loggerService && monitoringAgentId !== undefined) {
-          loggerService.write(monitoringAgentId, chunk);
+          // Transform color markers to status text for log file readability
+          const logChunk = formatForLogFile(chunk);
+          loggerService.write(monitoringAgentId, logChunk);
         }
 
+        // Keep original format with color markers for UI display
         if (logger) {
           logger(chunk);
         } else {
@@ -298,9 +302,10 @@ export async function executeAgent(
         }
       },
       onErrorData: (chunk) => {
-        // Also log stderr to file
+        // Also log stderr to file (with status text transformation)
         if (loggerService && monitoringAgentId !== undefined) {
-          loggerService.write(monitoringAgentId, `[STDERR] ${chunk}`);
+          const logChunk = formatForLogFile(chunk);
+          loggerService.write(monitoringAgentId, `[STDERR] ${logChunk}`);
         }
 
         if (stderrLogger) {

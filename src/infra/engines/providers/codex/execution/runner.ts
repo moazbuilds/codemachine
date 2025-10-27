@@ -7,6 +7,7 @@ import { metadata } from '../metadata.js';
 import { expandHomeDir } from '../../../../../shared/utils/index.js';
 import { createTelemetryCapture } from '../../../../../shared/telemetry/index.js';
 import type { ParsedTelemetry } from '../../../core/types.js';
+import { formatThinking, formatCommand, formatResult, formatMessage } from '../../../../../shared/formatters/outputMarkers.js';
 
 export interface RunCodexOptions {
   prompt: string;
@@ -37,29 +38,35 @@ function formatCodexStreamJsonLine(line: string): string | null {
 
     // Handle reasoning items (thinking)
     if (json.type === 'item.completed' && json.item?.type === 'reasoning') {
-      return `🧠 THINKING: ${json.item.text}`;
+      return formatThinking(json.item.text);
     }
 
     // Handle command execution
     if (json.type === 'item.started' && json.item?.type === 'command_execution') {
-      return `🔧 COMMAND: ${json.item.command}`;
+      // Don't show on start - will show with final color on completion
+      return null;
     }
 
     if (json.type === 'item.completed' && json.item?.type === 'command_execution') {
       const exitCode = json.item.exit_code ?? 0;
+      const command = json.item.command;
+
       if (exitCode === 0) {
-        const preview = json.item.aggregated_output
-          ? json.item.aggregated_output.substring(0, 100) + '...'
-          : '';
-        return `✅ COMMAND RESULT: ${preview}`;
+        const output = json.item.aggregated_output?.trim() || '';
+        const preview = output
+          ? (output.length > 100 ? output.substring(0, 100) + '...' : output)
+          : 'empty';
+        // Show command in green with nested result
+        return formatCommand(command, 'success') + '\n' + formatResult(preview, false);
       } else {
-        return `❌ COMMAND FAILED: Exit code ${exitCode}`;
+        // Show command in red with nested error
+        return formatCommand(command, 'error') + '\n' + formatResult(`Exit code ${exitCode}`, true);
       }
     }
 
     // Handle agent messages
     if (json.type === 'item.completed' && json.item?.type === 'agent_message') {
-      return `💬 MESSAGE: ${json.item.text}`;
+      return formatMessage(json.item.text);
     }
 
     // Handle turn/thread lifecycle events (skip these)
