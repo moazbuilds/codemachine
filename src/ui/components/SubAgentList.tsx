@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Text } from 'ink';
-import Spinner from 'ink-spinner';
+import { SharedSpinner } from '../contexts/SpinnerContext';
 import type { SubAgentState } from '../state/types';
 import { getStatusIcon, getStatusColor } from '../utils/statusIcons';
 import { formatTokens } from '../utils/formatters';
@@ -79,7 +79,7 @@ export const SubAgentList: React.FC<SubAgentListProps> = ({
               {!isSelected && '  '}
               {agent.status === 'running' ? (
                 <Text color="white">
-                  <Spinner type="dots" />
+                  <SharedSpinner />
                 </Text>
               ) : (
                 <Text color={color}>{getStatusIcon(agent.status)}</Text>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import Spinner from 'ink-spinner';
+import { SharedSpinner } from '../contexts/SpinnerContext';
 import type { AgentState } from '../state/types';
 import { getStatusIcon, getStatusColor } from '../utils/statusIcons';
 import { formatTokens } from '../utils/formatters';
@@ -46,7 +46,7 @@ export const MainAgentNode: React.FC<MainAgentNodeProps> = ({ agent, isSelected 
       {!isSelected && '  '}
       {agent.status === 'running' ? (
         <Text color="white">
-          <Spinner type="dots" />
+          <SharedSpinner />
         </Text>
       ) : (
         <Text color={color}>{getStatusIcon(agent.status)}</Text>

@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Text } from 'ink';
 import chalk from 'chalk';
+import { getFrameScheduler } from '../utils/frameScheduler';
 
 // Track process start time
 const PROCESS_START = Date.now();
@@ -45,42 +46,39 @@ export interface ShimmerTextProps {
   sweepSeconds?: number;
   bandHalfWidth?: number;
   padding?: number;
+  isVisible?: boolean; // Pause animation when not visible
 }
 
 /**
  * Animated shimmer text component
  * Creates a smooth wave effect sweeping across the text
+ * Uses unified frame scheduler for optimal performance
  */
 export const ShimmerText: React.FC<ShimmerTextProps> = ({
   text,
   sweepSeconds = 2.0,
   bandHalfWidth = 5.0,
   padding = 10,
+  isVisible = true, // Default to visible
 }) => {
   const [animationFrame, setAnimationFrame] = useState(0);
-  const lastUpdateTime = useRef(0);
-  const frameSkipThreshold = 1000 / 45; // Update at most 45 times per second (smoother than forcing 60)
 
-  // Optimized animation loop with frame skipping to prevent rendering overload
+  // Use unified frame scheduler with MEDIUM priority (adaptive frame skipping)
   useEffect(() => {
-    let animationId: NodeJS.Timeout;
+    // Don't animate if not visible
+    if (!isVisible) {
+      return;
+    }
 
-    const animate = () => {
-      const now = Date.now();
-      const timeSinceLastUpdate = now - lastUpdateTime.current;
+    const scheduler = getFrameScheduler();
 
-      // Only update if enough time has passed (prevents Ink rendering overload)
-      if (timeSinceLastUpdate >= frameSkipThreshold) {
-        lastUpdateTime.current = now;
-        setAnimationFrame((f) => f + 1);
-      }
-    };
+    // Subscribe with medium priority - will skip frames when CPU is stressed
+    const unsubscribe = scheduler.subscribe((globalFrame) => {
+      setAnimationFrame(globalFrame);
+    }, 'medium');
 
-    // Use 60 FPS interval but skip frames if Ink is slow
-    animationId = setInterval(animate, 1000 / 60);
-
-    return () => clearInterval(animationId);
-  }, [frameSkipThreshold]);
+    return unsubscribe;
+  }, [isVisible]);
 
   const chars = useMemo(() => text.split(''), [text]);
 

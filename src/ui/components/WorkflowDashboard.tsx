@@ -13,6 +13,7 @@ import { formatRuntime } from '../utils/formatters';
 import { getOutputAgent } from '../utils/agentSelection';
 import { useCtrlCHandler } from '../hooks/useCtrlCHandler';
 import { calculateMainContentHeight } from '../utils/heightCalculations';
+import { SpinnerProvider } from '../contexts/SpinnerContext';
 
 export interface WorkflowDashboardProps {
   state: WorkflowState;
@@ -233,64 +234,66 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
 
   // Main workflow view
   return (
-    <Box flexDirection="column" height="100%" gap={0}>
-      <BrandingHeader
-        version={state.version}
-        currentDir={process.cwd()}
-      />
+    <SpinnerProvider>
+      <Box flexDirection="column" height="100%" gap={0}>
+        <BrandingHeader
+          version={state.version}
+          currentDir={process.cwd()}
+        />
 
-      {/* Main content area with explicit height constraint */}
-      <Box
-        height={mainContentHeight}
-        flexDirection="row"
-        paddingTop={0}
-      >
-        {/* Workflow Steps - Dynamic width */}
-        <Box width={leftPanelWidth} flexDirection="column" height="100%">
-          <Text color="cyan">{'─'.repeat(leftPanelWidth)}</Text>
-          <AgentTimeline
-            mainAgents={state.agents}
-            subAgents={state.subAgents}
-            triggeredAgents={state.triggeredAgents}
-            uiElements={state.uiElements}
-            selectedAgentId={state.selectedAgentId}
-            expandedNodes={state.expandedNodes}
-            selectedSubAgentId={state.selectedSubAgentId}
-            selectedItemType={state.selectedItemType}
-            scrollOffset={state.scrollOffset}
-            availableHeight={timelineAvailableHeight}
-            onToggleExpand={(agentId) => onAction({ type: 'TOGGLE_EXPAND', agentId })}
-            onVisibleCountChange={(count) => onAction({ type: 'SET_VISIBLE_COUNT', count })}
-            onScrollOffsetChange={(offset, count) =>
-              onAction({ type: 'SET_SCROLL_OFFSET', offset, visibleItemCount: count })
-            }
-          />
-          <Text color="cyan">{'─'.repeat(leftPanelWidth)}</Text>
+        {/* Main content area with explicit height constraint */}
+        <Box
+          height={mainContentHeight}
+          flexDirection="row"
+          paddingTop={0}
+        >
+          {/* Workflow Steps - Dynamic width */}
+          <Box width={leftPanelWidth} flexDirection="column" height="100%">
+            <Text color="cyan">{'─'.repeat(leftPanelWidth)}</Text>
+            <AgentTimeline
+              mainAgents={state.agents}
+              subAgents={state.subAgents}
+              triggeredAgents={state.triggeredAgents}
+              uiElements={state.uiElements}
+              selectedAgentId={state.selectedAgentId}
+              expandedNodes={state.expandedNodes}
+              selectedSubAgentId={state.selectedSubAgentId}
+              selectedItemType={state.selectedItemType}
+              scrollOffset={state.scrollOffset}
+              availableHeight={timelineAvailableHeight}
+              onToggleExpand={(agentId) => onAction({ type: 'TOGGLE_EXPAND', agentId })}
+              onVisibleCountChange={(count) => onAction({ type: 'SET_VISIBLE_COUNT', count })}
+              onScrollOffsetChange={(offset, count) =>
+                onAction({ type: 'SET_SCROLL_OFFSET', offset, visibleItemCount: count })
+              }
+            />
+            <Text color="cyan">{'─'.repeat(leftPanelWidth)}</Text>
+          </Box>
+
+          {/* Agent Output - Takes remaining space with constrained height */}
+          <Box flexGrow={1} flexDirection="column" height="100%">
+            <Text color="cyan">{'─'.repeat(rightPanelWidth)}</Text>
+            <OutputWindow
+              currentAgent={currentAgent}
+              getMonitoringId={getMonitoringId}
+            />
+            <Text color="cyan">{'─'.repeat(rightPanelWidth)}</Text>
+          </Box>
         </Box>
 
-        {/* Agent Output - Takes remaining space with constrained height */}
-        <Box flexGrow={1} flexDirection="column" height="100%">
-          <Text color="cyan">{'─'.repeat(rightPanelWidth)}</Text>
-          <OutputWindow
-            currentAgent={currentAgent}
-            getMonitoringId={getMonitoringId}
-          />
-          <Text color="cyan">{'─'.repeat(rightPanelWidth)}</Text>
-        </Box>
+        <TelemetryBar
+          workflowName={state.workflowName}
+          runtime={runtime}
+          status={state.workflowStatus}
+          total={{
+            tokensIn: cumulativeStats.totalTokensIn,
+            tokensOut: cumulativeStats.totalTokensOut,
+            cached: cumulativeStats.totalCached,
+          }}
+        />
+
+        <StatusFooter />
       </Box>
-
-      <TelemetryBar
-        workflowName={state.workflowName}
-        runtime={runtime}
-        status={state.workflowStatus}
-        total={{
-          tokensIn: cumulativeStats.totalTokensIn,
-          tokensOut: cumulativeStats.totalTokensOut,
-          cached: cumulativeStats.totalCached,
-        }}
-      />
-
-      <StatusFooter />
-    </Box>
+    </SpinnerProvider>
   );
 };
