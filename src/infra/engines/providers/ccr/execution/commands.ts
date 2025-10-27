@@ -52,6 +52,9 @@ export function buildCcrExecCommand(options: CcrCommandOptions): CcrCommand {
     '--output-format',
     'stream-json',
     '--verbose',
+    '--dangerously-skip-permissions',
+    '--permission-mode',
+    'bypassPermissions',
   ];
 
   // Add model if specified and valid
