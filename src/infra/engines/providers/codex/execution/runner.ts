@@ -43,8 +43,8 @@ function formatCodexStreamJsonLine(line: string): string | null {
 
     // Handle command execution
     if (json.type === 'item.started' && json.item?.type === 'command_execution') {
-      // Don't show on start - will show with final color on completion
-      return null;
+      const command = json.item.command ?? 'command';
+      return formatCommand(command, 'started');
     }
 
     if (json.type === 'item.completed' && json.item?.type === 'command_execution') {

@@ -1,3 +1,5 @@
+import { parseMarker } from '../../shared/formatters/outputMarkers.js';
+
 /**
  * UI Component Dimensions (in terminal lines/columns)
  */
@@ -97,8 +99,12 @@ export function calculateOutputWindowContentWidth(stdout: NodeJS.WriteStream | n
 export function wrapText(text: string, maxWidth: number, maxLines?: number): string[] {
   if (maxWidth <= 0 || !text) return [''];
 
+  const { color, text: stripped } = parseMarker(text);
+  const markerPrefix = color ? `[${color.toUpperCase()}]` : '';
+  const content = stripped;
+
   const lines: string[] = [];
-  const words = text.split(' ');
+  const words = content.split(' ');
   let currentLine = '';
 
   for (const word of words) {
@@ -125,6 +131,8 @@ export function wrapText(text: string, maxWidth: number, maxLines?: number): str
     lines.push(currentLine);
   }
 
+  const applyMarker = (line: string) => (markerPrefix ? `${markerPrefix}${line}` : line);
+
   // Apply maxLines truncation if specified
   if (maxLines && lines.length > maxLines) {
     const truncated = lines.slice(0, maxLines - 1);
@@ -134,10 +142,10 @@ export function wrapText(text: string, maxWidth: number, maxLines?: number): str
     } else {
       truncated.push(lastLine + '...');
     }
-    return truncated;
+    return truncated.map(applyMarker);
   }
 
-  return lines;
+  return lines.map(applyMarker);
 }
 
 /**
