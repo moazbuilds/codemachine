@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Box, Text, useStdout } from 'ink';
-import Spinner from 'ink-spinner';
+import { SharedSpinner } from '../contexts/SpinnerContext';
 import type { AgentState, SubAgentState } from '../state/types';
 import { calculateOutputWindowHeight, calculateOutputWindowContentWidth, wrapText } from '../utils/heightCalculations';
 import { useTerminalResize } from '../hooks/useTerminalResize';
@@ -147,7 +147,7 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
           <Text dimColor>Waiting for agent output...</Text>
         ) : isConnecting ? (
           <Text>
-            <Text color="white"><Spinner type="dots" /></Text> <ShimmerText text={CONNECTING_MESSAGES[messageIndex]} sweepSeconds={2.0} bandHalfWidth={2.5} />
+            <Text color="white"><SharedSpinner /></Text> <ShimmerText text={CONNECTING_MESSAGES[messageIndex]} sweepSeconds={2.0} bandHalfWidth={2.5} isVisible={true} />
           </Text>
         ) : error ? (
           <Text color="red">Error loading logs: {error}</Text>
