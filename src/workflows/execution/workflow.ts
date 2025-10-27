@@ -27,6 +27,56 @@ import { shouldExecuteFallback, executeFallbackStep } from './fallback.js';
 import { WorkflowUIManager } from '../../ui/index.js';
 import { MonitoringCleanup } from '../../agents/monitoring/index.js';
 
+/**
+ * Cache for engine authentication status with TTL
+ * Prevents repeated auth checks (which can take 10-30 seconds)
+ */
+class EngineAuthCache {
+  private cache: Map<string, { isAuthenticated: boolean; timestamp: number }> = new Map();
+  private ttlMs: number = 5 * 60 * 1000; // 5 minutes TTL
+
+  /**
+   * Check if engine is authenticated (with caching)
+   */
+  async isAuthenticated(engineId: string, checkFn: () => Promise<boolean>): Promise<boolean> {
+    const cached = this.cache.get(engineId);
+    const now = Date.now();
+
+    // Return cached value if still valid
+    if (cached && (now - cached.timestamp) < this.ttlMs) {
+      return cached.isAuthenticated;
+    }
+
+    // Cache miss or expired - perform actual check
+    const result = await checkFn();
+
+    // Cache the result
+    this.cache.set(engineId, {
+      isAuthenticated: result,
+      timestamp: now
+    });
+
+    return result;
+  }
+
+  /**
+   * Invalidate cache for specific engine
+   */
+  invalidate(engineId: string): void {
+    this.cache.delete(engineId);
+  }
+
+  /**
+   * Clear entire cache
+   */
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
+// Global auth cache instance
+const authCache = new EngineAuthCache();
+
 export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<void> {
   // Set up cleanup handlers for graceful shutdown
   MonitoringCleanup.setup();
@@ -189,7 +239,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
       // If an override is provided but not authenticated, log and fall back
       const overrideEngine = registry.get(engineType);
-      const isOverrideAuthed = overrideEngine ? await overrideEngine.auth.isAuthenticated() : false;
+      const isOverrideAuthed = overrideEngine
+        ? await authCache.isAuthenticated(overrideEngine.metadata.id, () => overrideEngine.auth.isAuthenticated())
+        : false;
       if (!isOverrideAuthed) {
         const pretty = overrideEngine?.metadata.name ?? engineType;
         console.error(
@@ -199,11 +251,15 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
           ),
         );
 
-        // Find first authenticated engine by order
+        // Find first authenticated engine by order (with caching)
         const engines = registry.getAll();
         let fallbackEngine = null as typeof overrideEngine | null;
         for (const eng of engines) {
-          if (await eng.auth.isAuthenticated()) {
+          const isAuth = await authCache.isAuthenticated(
+            eng.metadata.id,
+            () => eng.auth.isAuthenticated()
+          );
+          if (isAuth) {
             fallbackEngine = eng;
             break;
           }
@@ -225,12 +281,15 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         }
       }
     } else {
-      // Fallback: find first authenticated engine by order
+      // Fallback: find first authenticated engine by order (with caching)
       const engines = registry.getAll();
       let foundEngine = null;
 
       for (const engine of engines) {
-        const isAuth = await engine.auth.isAuthenticated();
+        const isAuth = await authCache.isAuthenticated(
+          engine.metadata.id,
+          () => engine.auth.isAuthenticated()
+        );
         if (isAuth) {
           foundEngine = engine;
           break;

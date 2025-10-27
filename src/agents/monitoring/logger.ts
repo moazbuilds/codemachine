@@ -51,10 +51,15 @@ export class AgentLoggerService {
     const stream = createWriteStream(agent.logPath, { flags: 'a', encoding: 'utf-8' });
     this.activeStreams.set(agentId, stream);
 
-    // Write header
+    // Write header with truncated prompt (full prompt only in debug mode)
+    const isDebugMode = process.env.DEBUG === '1' || process.env.DEBUG === 'true' || process.env.NODE_ENV === 'development';
+    const promptToLog = isDebugMode || agent.prompt.length <= 500
+      ? agent.prompt
+      : `${agent.prompt.substring(0, 500)}...\n\n[Prompt truncated. Run with DEBUG=1 to see full prompt]`;
+
     stream.write(`=== Agent ${agentId} (${agent.name}) Log ===\n`);
     stream.write(`Started: ${agent.startTime}\n`);
-    stream.write(`Prompt: ${agent.prompt}\n`);
+    stream.write(`Prompt: ${promptToLog}\n`);
     stream.write(`${'='.repeat(60)}\n\n`);
 
     // Acquire lock asynchronously in background (after file is created)

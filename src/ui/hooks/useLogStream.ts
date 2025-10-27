@@ -189,22 +189,11 @@ export function useLogStream(monitoringAgentId: number | undefined): LogStreamRe
         clearInterval(pollInterval);
       }
 
-      // Primary: 500ms polling (reliable across all filesystems)
+      // 1000ms polling (reduced from 500ms for better performance)
+      // Reliable across all filesystems without redundant file watching
       pollInterval = setInterval(() => {
         updateLogs(logPath);
-      }, 500);
-
-      // Secondary: fs.watch for immediate updates (when available)
-      try {
-        fileWatcher = watchLogFile(logPath, (newLines) => {
-          if (mounted) {
-            setLines(newLines);
-            setFileSize(getFileSize(logPath));
-          }
-        });
-      } catch {
-        // Ignore fs.watch errors - polling will handle updates
-      }
+      }, 1000);
     }
 
     initialize();

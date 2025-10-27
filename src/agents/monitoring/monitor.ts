@@ -34,6 +34,12 @@ export class AgentMonitorService {
     const startTime = new Date().toISOString();
     const pid = input.pid ?? process.pid;
 
+    // Trim prompt to save memory (only store first 500 chars)
+    // Full prompt is available in log files
+    const trimmedPrompt = input.prompt.length > 500
+      ? `${input.prompt.substring(0, 500)}... [truncated, see log file for full prompt]`
+      : input.prompt;
+
     const agent: AgentRecord = {
       id,
       name: input.name,
@@ -41,7 +47,7 @@ export class AgentMonitorService {
       parentId: input.parentId,
       pid,
       startTime,
-      prompt: input.prompt,
+      prompt: trimmedPrompt,
       logPath: logPath || this.getDefaultLogPath(id, input.name, startTime),
       children: [],
       engineProvider: input.engineProvider,

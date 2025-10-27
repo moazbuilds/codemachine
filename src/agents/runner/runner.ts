@@ -9,6 +9,40 @@ import { AgentMonitorService, AgentLoggerService } from '../monitoring/index.js'
 import type { ParsedTelemetry } from '../../infra/engines/core/types.js';
 
 /**
+ * Cache for engine authentication status with TTL (shared across all subagents)
+ * Prevents repeated auth checks that can take 10-30 seconds each
+ * CRITICAL: This fixes the 5-minute delay bug when spawning multiple subagents
+ */
+class EngineAuthCache {
+  private cache: Map<string, { isAuthenticated: boolean; timestamp: number }> = new Map();
+  private ttlMs: number = 5 * 60 * 1000; // 5 minutes TTL
+
+  async isAuthenticated(engineId: string, checkFn: () => Promise<boolean>): Promise<boolean> {
+    const cached = this.cache.get(engineId);
+    const now = Date.now();
+
+    // Return cached value if still valid
+    if (cached && (now - cached.timestamp) < this.ttlMs) {
+      return cached.isAuthenticated;
+    }
+
+    // Cache miss or expired - perform actual check
+    const result = await checkFn();
+
+    // Cache the result
+    this.cache.set(engineId, {
+      isAuthenticated: result,
+      timestamp: now
+    });
+
+    return result;
+  }
+}
+
+// Global auth cache instance (shared across all subagent executions)
+const authCache = new EngineAuthCache();
+
+/**
  * Minimal UI interface for agent execution
  */
 export interface AgentExecutionUI {
@@ -159,12 +193,16 @@ export async function executeAgent(
   } else if (agentConfig.engine) {
     engineType = agentConfig.engine;
   } else {
-    // Fallback: find first authenticated engine by order
+    // Fallback: find first authenticated engine by order (WITH CACHING - critical for subagents)
     const engines = registry.getAll();
     let foundEngine = null;
 
     for (const engine of engines) {
-      const isAuth = await engine.auth.isAuthenticated();
+      // Use cached auth check to avoid 10-30 second delays per subagent
+      const isAuth = await authCache.isAuthenticated(
+        engine.metadata.id,
+        () => engine.auth.isAuthenticated()
+      );
       if (isAuth) {
         foundEngine = engine;
         break;

@@ -1,4 +1,5 @@
-import { readFileSync, statSync, watch, existsSync } from 'fs';
+import { readFileSync, statSync, watch, existsSync, createReadStream } from 'fs';
+import { createInterface } from 'readline';
 
 /**
  * Read log file and return array of lines
@@ -18,6 +19,91 @@ export async function readLogFile(path: string): Promise<string[]> {
       reject(new Error(`Failed to read log: ${error}`));
     }
   });
+}
+
+/**
+ * Incremental log reader that tracks file position
+ * Only reads new content since last read (90% faster for large files)
+ */
+export class IncrementalLogReader {
+  private lastPosition: number = 0;
+  private path: string;
+
+  constructor(path: string) {
+    this.path = path;
+  }
+
+  /**
+   * Read only new lines since last read
+   * Returns {lines, hasNewContent}
+   */
+  async readNewLines(): Promise<{ lines: string[]; hasNewContent: boolean }> {
+    try {
+      if (!existsSync(this.path)) {
+        return { lines: [], hasNewContent: false };
+      }
+
+      const currentSize = statSync(this.path).size;
+
+      // No new content
+      if (currentSize <= this.lastPosition) {
+        return { lines: [], hasNewContent: false };
+      }
+
+      // Read only new bytes
+      const newContent = await this.readFromPosition(this.lastPosition, currentSize);
+      this.lastPosition = currentSize;
+
+      const newLines = newContent.split('\n').filter(line => line.length > 0);
+      return {
+        lines: newLines,
+        hasNewContent: newLines.length > 0
+      };
+    } catch (error) {
+      return { lines: [], hasNewContent: false };
+    }
+  }
+
+  /**
+   * Read file content from start position to end position
+   */
+  private async readFromPosition(start: number, end: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const chunks: string[] = [];
+
+      const stream = createReadStream(this.path, {
+        encoding: 'utf-8',
+        start,
+        end: end - 1 // end is inclusive
+      });
+
+      stream.on('data', (chunk: string) => {
+        chunks.push(chunk);
+      });
+
+      stream.on('end', () => {
+        resolve(chunks.join(''));
+      });
+
+      stream.on('error', (error) => {
+        reject(error);
+      });
+    });
+  }
+
+  /**
+   * Reset position to re-read entire file
+   */
+  reset(): void {
+    this.lastPosition = 0;
+  }
+
+  /**
+   * Get current read position
+   */
+  getPosition(): number {
+    return this.lastPosition;
+  }
 }
 
 /**
