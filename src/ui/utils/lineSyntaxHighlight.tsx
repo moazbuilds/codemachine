@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text, useStdout } from 'ink';
 import { calculateOutputWindowContentWidth } from './heightCalculations';
+import { parseMarker } from '../../shared/formatters/outputMarkers.js';
 
 export interface LineSyntaxHighlightProps {
   line: string;
@@ -22,13 +23,23 @@ export const LineSyntaxHighlight: React.FC<LineSyntaxHighlightProps> = ({
   // Calculate available width if not provided
   const _availableWidth = maxWidth || calculateOutputWindowContentWidth(stdout);
 
-  // Determine text color based on content
-  const getTextColor = (text: string) => {
-    if (text.includes('🔧 TOOL')) return 'cyan';
-    if (text.includes('🧠 THINKING')) return 'magenta';
+  // Parse color marker and get text without marker
+  const { color: markerColor, text } = parseMarker(line);
+
+  // Determine text color based on marker or content
+  const getTextColor = (parsedColor: 'gray' | 'green' | 'red' | 'orange' | null, text: string): string | undefined => {
+    // If there's a color marker, use it
+    if (parsedColor) {
+      // Use hex color for orange since Ink supports it
+      if (parsedColor === 'orange') {
+        return '#FF8C00'; // Dark orange hex color
+      }
+      return parsedColor;
+    }
+
+    // Fallback to legacy detection for backwards compatibility
     if (text.includes('⏱️') || text.includes('Tokens:')) return 'yellow';
     if (text.includes('ERROR') || text.includes('✗') || text.includes('Error:')) return 'red';
-    if (text.includes('✅') || text.includes('●')) return 'green';
     return undefined;
   };
 
@@ -36,9 +47,9 @@ export const LineSyntaxHighlight: React.FC<LineSyntaxHighlightProps> = ({
     return text.startsWith('===');
   };
 
-  // For short lines, just apply syntax highlighting
-  const color = getTextColor(line);
-  const bold = getBold(line);
+  // Apply syntax highlighting
+  const color = getTextColor(markerColor, text);
+  const bold = getBold(text);
 
-  return <Text color={color} bold={bold}>{line}</Text>;
+  return <Text color={color} bold={bold}>{text}</Text>;
 };

@@ -7,6 +7,7 @@ import { metadata } from '../metadata.js';
 import { expandHomeDir } from '../../../../../shared/utils/index.js';
 import { createTelemetryCapture } from '../../../../../shared/telemetry/index.js';
 import type { ParsedTelemetry } from '../../../core/types.js';
+import { formatThinking, formatCommand, formatResult } from '../../../../../shared/formatters/outputMarkers.js';
 
 export interface RunClaudeOptions {
   prompt: string;
@@ -27,6 +28,9 @@ export interface RunClaudeResult {
 
 const ANSI_ESCAPE_SEQUENCE = new RegExp(String.raw`\u001B\[[0-9;?]*[ -/]*[@-~]`, 'g');
 
+// Track tool names for associating with results
+const toolNameMap = new Map<string, string>();
+
 /**
  * Formats a Claude stream-json line for display
  */
@@ -37,24 +41,46 @@ function formatStreamJsonLine(line: string): string | null {
     if (json.type === 'assistant' && json.message?.content) {
       for (const content of json.message.content) {
         if (content.type === 'text') {
-          return `💬 TEXT: ${content.text}`;
+          return content.text;
         } else if (content.type === 'thinking') {
-          return `🧠 THINKING: ${content.text}`;
+          return formatThinking(content.text);
         } else if (content.type === 'tool_use') {
-          const argKeys = Object.keys(content.input || {}).join(', ');
-          return `🔧 TOOL: ${content.name} | Args: ${argKeys}`;
+          // Track tool name for later use with result
+          if (content.id && content.name) {
+            toolNameMap.set(content.id, content.name);
+          }
+          // Don't show on start - will show with final color when result arrives
+          return null;
         }
       }
     } else if (json.type === 'user' && json.message?.content) {
       for (const content of json.message.content) {
         if (content.type === 'tool_result') {
+          // Get tool name from map
+          const toolName = content.tool_use_id ? toolNameMap.get(content.tool_use_id) : undefined;
+          const commandName = toolName || 'tool';
+
+          // Clean up the map entry
+          if (content.tool_use_id) {
+            toolNameMap.delete(content.tool_use_id);
+          }
+
+          let preview: string;
           if (content.is_error) {
-            return `❌ ERROR: ${content.content}`;
+            preview = typeof content.content === 'string' ? content.content : JSON.stringify(content.content);
+            // Show command in red with nested error
+            return formatCommand(commandName, 'error') + '\n' + formatResult(preview, true);
           } else {
-            const preview = typeof content.content === 'string'
-              ? content.content.substring(0, 100) + '...'
-              : JSON.stringify(content.content);
-            return `✅ RESULT: ${preview}`;
+            if (typeof content.content === 'string') {
+              const trimmed = content.content.trim();
+              preview = trimmed
+                ? (trimmed.length > 100 ? trimmed.substring(0, 100) + '...' : trimmed)
+                : 'empty';
+            } else {
+              preview = JSON.stringify(content.content);
+            }
+            // Show command in green with nested result
+            return formatCommand(commandName, 'success') + '\n' + formatResult(preview, false);
           }
         }
       }
