@@ -34,6 +34,9 @@ describe('CCR Engine Runner', () => {
       '--output-format',
       'stream-json',
       '--verbose',
+      '--dangerously-skip-permissions',
+      '--permission-mode',
+      'bypassPermissions',
     ]);
     expect(callOptions?.cwd).toBe(workingDir);
     expect(callOptions?.env).toMatchObject({
@@ -65,6 +68,9 @@ describe('CCR Engine Runner', () => {
       '--output-format',
       'stream-json',
       '--verbose',
+      '--dangerously-skip-permissions',
+      '--permission-mode',
+      'bypassPermissions',
       '--model',
       'sonnet',
     ]);

@@ -16,6 +16,9 @@ describe('CCR Command Builder', () => {
         '--output-format',
         'stream-json',
         '--verbose',
+        '--dangerously-skip-permissions',
+        '--permission-mode',
+        'bypassPermissions',
       ],
     });
   });
@@ -33,6 +36,9 @@ describe('CCR Command Builder', () => {
         '--output-format',
         'stream-json',
         '--verbose',
+        '--dangerously-skip-permissions',
+        '--permission-mode',
+        'bypassPermissions',
         '--model',
         'sonnet',
       ],
@@ -52,6 +58,9 @@ describe('CCR Command Builder', () => {
         '--output-format',
         'stream-json',
         '--verbose',
+        '--dangerously-skip-permissions',
+        '--permission-mode',
+        'bypassPermissions',
         '--model',
         'opus',
       ],
@@ -71,6 +80,9 @@ describe('CCR Command Builder', () => {
         '--output-format',
         'stream-json',
         '--verbose',
+        '--dangerously-skip-permissions',
+        '--permission-mode',
+        'bypassPermissions',
       ],
     });
   });
@@ -88,6 +100,9 @@ describe('CCR Command Builder', () => {
         '--output-format',
         'stream-json',
         '--verbose',
+        '--dangerously-skip-permissions',
+        '--permission-mode',
+        'bypassPermissions',
       ],
     });
   });
