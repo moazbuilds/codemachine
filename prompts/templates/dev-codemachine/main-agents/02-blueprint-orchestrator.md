@@ -31,7 +31,7 @@ Before initiating **and before retrying** any part of the "Master Command," you 
         - `01_Blueprint_Foundation.md` → skip `founder-architect`
         - `02_System_Structure_and_Data.md` → skip `structural-data-architect`
         - `03_Behavior_and_Communication.md` → skip `behavior-architect`
-        - `04_Operational_Architecture.md` OR `05_Rationale_and_Future.md` → skip `operational-architect`
+        - `04_Operational_Architecture.md` and `05_Rationale_and_Future.md` → skip `operational-architect`
         - `architecture_manifest.json` → skip `file-assembler`
     *   Remove completed agents from the "Master Command" to prevent re-running completed work.
 
