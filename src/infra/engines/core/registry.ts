@@ -9,6 +9,7 @@ import { isEngineModule } from './base.js';
 import codexEngine from '../providers/codex/index.js';
 import claudeEngine from '../providers/claude/index.js';
 import cursorEngine from '../providers/cursor/index.js';
+import ccrEngine from '../providers/ccr/index.js';
 
 /**
  * Engine Registry - Singleton that manages all available engines
@@ -32,6 +33,7 @@ class EngineRegistry {
       codexEngine,
       claudeEngine,
       cursorEngine,
+      ccrEngine,
       // Add new engines here
     ];
 
