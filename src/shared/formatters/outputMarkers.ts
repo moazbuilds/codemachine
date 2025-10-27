@@ -15,6 +15,15 @@ export const SYMBOL_NEST = '⎿';
 
 // Color marker regex for parsing
 const COLOR_MARKER_REGEX = /^\[(GRAY|GREEN|RED|ORANGE)\]/;
+// Status marker regex for log file variants (no color processor applied)
+const STATUS_MARKER_REGEX = /^\[(THINKING|SUCCESS|ERROR|RUNNING)\]/;
+
+const STATUS_TO_COLOR: Record<string, 'gray' | 'green' | 'red' | 'orange'> = {
+  THINKING: 'orange',
+  SUCCESS: 'green',
+  ERROR: 'red',
+  RUNNING: 'gray',
+};
 
 /**
  * Add a color marker to text
@@ -27,7 +36,7 @@ export function addMarker(color: 'GRAY' | 'GREEN' | 'RED' | 'ORANGE', text: stri
  * Strip color marker from text
  */
 export function stripMarker(text: string): string {
-  return text.replace(COLOR_MARKER_REGEX, '');
+  return text.replace(COLOR_MARKER_REGEX, '').replace(STATUS_MARKER_REGEX, '');
 }
 
 /**
@@ -41,6 +50,15 @@ export function parseMarker(text: string): { color: 'gray' | 'green' | 'red' | '
     const textWithoutMarker = text.replace(COLOR_MARKER_REGEX, '');
     return { color, text: textWithoutMarker };
   }
+
+  const statusMatch = text.match(STATUS_MARKER_REGEX);
+  if (statusMatch) {
+    const status = statusMatch[1];
+    const color = STATUS_TO_COLOR[status] ?? null;
+    const textWithoutMarker = text.replace(STATUS_MARKER_REGEX, '');
+    return { color, text: textWithoutMarker };
+  }
+
   return { color: null, text };
 }
 
@@ -67,7 +85,14 @@ export function formatCommand(
  */
 export function formatResult(result: string, isError: boolean = false): string {
   const color = isError ? 'RED' : 'GREEN';
-  return addMarker(color, `${SYMBOL_NEST} ${result}`);
+  const lines = result.split('\n');
+  const formattedLines = lines.map((line) => {
+    if (!line) {
+      return addMarker(color, `${SYMBOL_NEST}`);
+    }
+    return addMarker(color, `${SYMBOL_NEST} ${line}`);
+  });
+  return formattedLines.join('\n');
 }
 
 /**

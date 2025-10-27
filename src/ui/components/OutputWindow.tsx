@@ -7,6 +7,7 @@ import { useTerminalResize } from '../hooks/useTerminalResize';
 import { useLogStream } from '../hooks/useLogStream';
 import { LineSyntaxHighlight } from '../utils/lineSyntaxHighlight';
 import { ShimmerText } from './ShimmerText';
+import { parseMarker } from '../../shared/formatters/outputMarkers.js';
 
 // Rotating messages shown while connecting to agent - sound like progress
 const CONNECTING_MESSAGES = [
@@ -16,6 +17,8 @@ const CONNECTING_MESSAGES = [
   'Establishing log stream',
   'Agent starting up',
 ];
+
+const COMMAND_PREFIX = '● Command: ';
 
 export interface OutputWindowProps {
   currentAgent: AgentState | SubAgentState | null;
@@ -84,11 +87,58 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
   // Use log lines for all agents
   const sourceLines = logLines;
 
+  // Normalize command lines so in-flight commands update in place when finished
+  const normalizedLines = useMemo(() => {
+    const normalized: string[] = [];
+    const pending: Array<{ command: string; index: number }> = [];
+
+    for (const line of sourceLines) {
+      if (!line) {
+        normalized.push(line);
+        continue;
+      }
+
+      const { color, text } = parseMarker(line);
+
+      if (text.startsWith(COMMAND_PREFIX)) {
+        const commandText = text.slice(COMMAND_PREFIX.length);
+
+        if (color === 'gray') {
+          pending.push({ command: commandText, index: normalized.length });
+          normalized.push(line);
+          continue;
+        }
+
+        if (color === 'green' || color === 'red') {
+          let matchedIndex = -1;
+          for (let i = pending.length - 1; i >= 0; i--) {
+            if (pending[i].command === commandText) {
+              matchedIndex = pending[i].index;
+              pending.splice(i, 1);
+              break;
+            }
+          }
+
+          if (matchedIndex >= 0) {
+            normalized[matchedIndex] = line;
+          } else {
+            normalized.push(line);
+          }
+          continue;
+        }
+      }
+
+      normalized.push(line);
+    }
+
+    return normalized;
+  }, [sourceLines]);
+
   // Process lines for wrapping and truncation
   const processedLines = useMemo(() => {
-    const lines = sourceLines.length > effectiveMaxLines
-      ? sourceLines.slice(sourceLines.length - effectiveMaxLines)
-      : sourceLines;
+    const lines = normalizedLines.length > effectiveMaxLines
+      ? normalizedLines.slice(normalizedLines.length - effectiveMaxLines)
+      : normalizedLines;
 
     // Process each line for wrapping/truncation
     const processed: string[] = [];
@@ -108,7 +158,7 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
     }
 
     return processed;
-  }, [sourceLines, effectiveMaxLines, calculatedWidth]);
+  }, [normalizedLines, effectiveMaxLines, calculatedWidth]);
 
   // Prepare output lines as React nodes
   const outputNodes = useMemo(

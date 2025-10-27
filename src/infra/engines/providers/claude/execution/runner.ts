@@ -49,8 +49,8 @@ function formatStreamJsonLine(line: string): string | null {
           if (content.id && content.name) {
             toolNameMap.set(content.id, content.name);
           }
-          // Don't show on start - will show with final color when result arrives
-          return null;
+          const commandName = content.name || 'tool';
+          return formatCommand(commandName, 'started');
         }
       }
     } else if (json.type === 'user' && json.message?.content) {
