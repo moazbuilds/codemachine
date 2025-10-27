@@ -13,20 +13,53 @@ Your primary task is to execute the following command structure. This workflow i
 
 **Master Command:**
 ```bash
-codemachine run "founder-architect[input:specifications,tail:3] && Structural-Data-Architect[input:specifications;Foundation,tail:3] & Behavior_Architect[input:specifications;Foundation,tail:3] & Ops_Docs_Architect[input:specifications;Foundation,tail:3] && File_Assembler && git-commit"
+codemachine run "founder-architect[tail:3] && structural-data-architect[tail:3] & behavior-architect[tail:3] & operational-architect[tail:3] && file-assembler[tail:3]"
 ```
 
 <br>
 
 **3. Resilience Protocol (Pre-Execution Check)**
 
-Before initiating **and before retrying** any part of the "Master Command," you MUST perform the following file system check to ensure resumability:
+Before initiating **and before retrying** any part of the "Master Command," you MUST perform the following steps to ensure resumability:
 
-1.  **Execute Initial Check:** Run the command `ls .codemachine/artifacts/architecture`.
-
-2.  **Analyze and Modify:**
+1.  **Create Architecture Directory:** From the project root directory, run the command `mkdir -p .codemachine/artifacts/architecture` to create the architecture artifacts directory. Ensure you are in the main project folder before executing this command.
+2.  **Execute Initial Check:** Run the command `ls .codemachine/artifacts/architecture`.
+3.  **Adjust Shell Timeout:** Set your shell tool's timeout parameter to 30 minutes (1800000 milliseconds) to accommodate the parallel execution of multiple architect agents. This is a critical constraint to prevent premature termination.
+4.  **Analyze and Modify:** Based on the artifacts present, determine which agents to skip:
     *   If the directory is empty, proceed with the full "Master Command."
-    *   If the directory contains artifacts from any of the architect agents, you MUST remove that agent from the "Master Command" to prevent re-running completed work.
+    *   Check for completed agents by matching files to agents:
+        - `01_Blueprint_Foundation.md` → skip `founder-architect`
+        - `02_System_Structure_and_Data.md` → skip `structural-data-architect`
+        - `03_Behavior_and_Communication.md` → skip `behavior-architect`
+        - `04_Operational_Architecture.md` OR `05_Rationale_and_Future.md` → skip `operational-architect`
+        - `architecture_manifest.json` → skip `file-assembler`
+    *   Remove completed agents from the "Master Command" to prevent re-running completed work.
+
+**CRITICAL CONSTRAINT - Agent Selection Format:**
+
+When modifying the Master Command to remove or select agents, you MUST use ONLY this exact format. DO NOT use any other syntax or method.
+
+**Example 1:** If `founder-architect` has already completed (artifact exists), remove it:
+```bash
+codemachine run "structural-data-architect[tail:3] & behavior-architect[tail:3] & operational-architect[tail:3] && file-assembler[tail:3]"
+```
+
+**Example 2:** If `founder-architect` and `structural-data-architect` have completed:
+```bash
+codemachine run "behavior-architect[tail:3] & operational-architect[tail:3] && file-assembler[tail:3]"
+```
+
+**Example 3:** If only `file-assembler` needs to run:
+```bash
+codemachine run "file-assembler[tail:3]"
+```
+
+**Rules for modification:**
+- Remove the entire agent segment including `[tail:3]`
+- Adjust `&&` and `&` operators appropriately to maintain valid syntax
+- `&&` means sequential (wait for previous to complete)
+- `&` means parallel (run simultaneously)
+- Always keep `[tail:3]` for monitoring each agent
 
 <br>
 
@@ -65,7 +98,6 @@ Your primary directive is successful execution. If anomalies occur, you must fol
         ```
 
 *   **Specific Edge Cases:**
-    *   **`git-commit` Failure:** If the `git-commit` step fails, **do not retry**. Escalate immediately using the report format above, providing the error summary from the git command. This is often due to configuration or a lack of changes, which requires user action.
     *   **File System Errors:** If any `ls` command or file system check returns a permission error or other system-level failure, **STOP** immediately and escalate. Report the system error you received.
 
 <br>

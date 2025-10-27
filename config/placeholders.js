@@ -7,6 +7,7 @@ module.exports = {
     specifications: path.join('.codemachine', 'inputs', 'specifications.md'),
     architecture: path.join('.codemachine', 'artifacts', 'architecture', '*.md'),
     architecture_manifest_json: path.join('.codemachine', 'artifacts', 'architecture', 'architecture_manifest.json'),
+    foundation: path.join('.codemachine', 'artifacts', 'architecture', '01_Blueprint_Foundation.md'),
     plan: path.join('.codemachine', 'artifacts', 'plan', '*.md'),
     plan_manifest_json: path.join('.codemachine', 'artifacts', 'plan', 'plan_manifest.json'),
     plan_fallback: path.join('.codemachine', 'prompts', 'plan_fallback.md'),
@@ -26,7 +27,10 @@ module.exports = {
     task_output_format: path.join('prompts', 'templates', 'codemachine', 'output-formats', 'task-breakdown-output.md'),
     context_output_format: path.join('prompts', 'templates', 'codemachine', 'output-formats', 'context-output.md'),
     task_validation_output_format: path.join('prompts', 'templates', 'codemachine', 'output-formats', 'task-validation-output.md'),
-    arch_writer_shared_inputs: path.join('prompts', 'templates', 'codemachine', 'sub-agents', 'arch-writters', '01-shared-inputs.md'),
+    // dev.codemachine
+    smart_anchor: path.join('prompts', 'templates', 'dev-codemachine', 'sub-agents', 'shared-instructions', 'smart-anchor.md'),
+    command_constraints: path.join('prompts', 'templates', 'dev-codemachine', 'sub-agents', 'shared-instructions', 'command-constraints.md'),
+    atomic_generation: path.join('prompts', 'templates', 'dev-codemachine', 'sub-agents', 'shared-instructions', 'atomic-generation.md'),
     // Add codemachine package-level placeholders here
   }
 };
