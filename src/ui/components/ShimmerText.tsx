@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Text } from 'ink';
 import chalk from 'chalk';
 
@@ -7,6 +7,11 @@ const PROCESS_START = Date.now();
 
 function elapsedSinceStart(): number {
   return (Date.now() - PROCESS_START) / 1000;
+}
+
+// Easing function for smoother motion
+function easeInOutSine(x: number): number {
+  return -(Math.cos(Math.PI * x) - 1) / 2;
 }
 
 // Color blending utility
@@ -52,70 +57,92 @@ export const ShimmerText: React.FC<ShimmerTextProps> = ({
   bandHalfWidth = 5.0,
   padding = 10,
 }) => {
-  const [, setTick] = useState(0);
+  const [animationFrame, setAnimationFrame] = useState(0);
+  const lastUpdateTime = useRef(0);
+  const frameSkipThreshold = 1000 / 45; // Update at most 45 times per second (smoother than forcing 60)
 
-  // Force re-render on animation frame
+  // Optimized animation loop with frame skipping to prevent rendering overload
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTick((t) => t + 1);
-    }, 1000 / 30); // 30 FPS
+    let animationId: NodeJS.Timeout;
 
-    return () => clearInterval(interval);
-  }, []);
+    const animate = () => {
+      const now = Date.now();
+      const timeSinceLastUpdate = now - lastUpdateTime.current;
 
-  const chars = text.split('');
+      // Only update if enough time has passed (prevents Ink rendering overload)
+      if (timeSinceLastUpdate >= frameSkipThreshold) {
+        lastUpdateTime.current = now;
+        setAnimationFrame((f) => f + 1);
+      }
+    };
+
+    // Use 60 FPS interval but skip frames if Ink is slow
+    animationId = setInterval(animate, 1000 / 60);
+
+    return () => clearInterval(animationId);
+  }, [frameSkipThreshold]);
+
+  const chars = useMemo(() => text.split(''), [text]);
+
   if (chars.length === 0) {
     return null;
   }
 
-  const period = chars.length + padding * 2;
-  const elapsed = elapsedSinceStart();
-  const posF = ((elapsed % sweepSeconds) / sweepSeconds) * period;
-  const pos = Math.floor(posF);
+  // Memoize expensive calculations
+  const styledChars = useMemo(() => {
+    const period = chars.length + padding * 2;
+    const elapsed = elapsedSinceStart();
 
-  const trueColor = hasTrueColor();
-  const baseColor = getDefaultFg();
-  const highlightColor = getDefaultBg();
+    // Apply easing for smoother acceleration/deceleration
+    const progress = (elapsed % sweepSeconds) / sweepSeconds;
+    const easedProgress = easeInOutSine(progress);
+    const pos = easedProgress * period;
 
-  const styledChars = chars.map((ch, i) => {
-    const iPos = i + padding;
-    const dist = Math.abs(iPos - pos);
+    const trueColor = hasTrueColor();
+    const baseColor = getDefaultFg();
+    const highlightColor = getDefaultBg();
 
-    let t: number;
-    if (dist <= bandHalfWidth) {
-      const x = Math.PI * (dist / bandHalfWidth);
-      t = 0.5 * (1.0 + Math.cos(x));
-    } else {
-      t = 0.0;
-    }
+    return chars.map((ch, i) => {
+      const iPos = i + padding;
+      // Calculate distance using floating-point position for smooth interpolation
+      const dist = Math.abs(iPos - pos);
 
-    if (trueColor) {
-      const highlight = Math.max(0, Math.min(1, t));
-      const [r, g, b] = blend(highlightColor, baseColor, highlight * 0.9);
-      return (
-        <Text key={i} bold color={`#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`}>
-          {ch}
-        </Text>
-      );
-    } else {
-      // Fallback styling without true color
-      if (t < 0.2) {
-        return (
-          <Text key={i} dimColor>
-            {ch}
-          </Text>
-        );
-      } else if (t < 0.6) {
-        return <Text key={i}>{ch}</Text>;
+      let t: number;
+      if (dist <= bandHalfWidth) {
+        const x = Math.PI * (dist / bandHalfWidth);
+        t = 0.5 * (1.0 + Math.cos(x));
       } else {
+        t = 0.0;
+      }
+
+      if (trueColor) {
+        const highlight = Math.max(0, Math.min(1, t));
+        const [r, g, b] = blend(highlightColor, baseColor, highlight * 0.9);
         return (
-          <Text key={i} bold>
+          <Text key={i} bold color={`#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`}>
             {ch}
           </Text>
         );
+      } else {
+        // Fallback styling without true color
+        if (t < 0.2) {
+          return (
+            <Text key={i} dimColor>
+              {ch}
+            </Text>
+          );
+        } else if (t < 0.6) {
+          return <Text key={i}>{ch}</Text>;
+        } else {
+          return (
+            <Text key={i} bold>
+              {ch}
+            </Text>
+          );
+        }
       }
-    }
-  });
+    });
+  }, [animationFrame, chars, padding, sweepSeconds, bandHalfWidth]);
 
   return <>{styledChars}</>;
 };

@@ -497,12 +497,14 @@ export class WorkflowUIManager {
     // Initial sync
     this.syncSubAgentsFromRegistry();
 
-    // Poll every 1000ms (reduced from 500ms for better performance)
+    // Poll every 1000ms with random offset to prevent thundering herd
+    // Stagger syncs to avoid simultaneous registry reloads
+    const syncDelay = 1000 + Math.random() * 200;
     this.syncInterval = setInterval(() => {
       if (!this.fallbackMode) {
         this.syncSubAgentsFromRegistry();
       }
-    }, 1000);
+    }, syncDelay);
   }
 
   /**
