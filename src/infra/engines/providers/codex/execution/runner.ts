@@ -7,7 +7,7 @@ import { metadata } from '../metadata.js';
 import { expandHomeDir } from '../../../../../shared/utils/index.js';
 import { createTelemetryCapture } from '../../../../../shared/telemetry/index.js';
 import type { ParsedTelemetry } from '../../../core/types.js';
-import { formatThinking, formatCommand, formatResult, formatMessage } from '../../../../../shared/formatters/outputMarkers.js';
+import { formatThinking, formatCommand, formatResult, formatMessage, formatStatus } from '../../../../../shared/formatters/outputMarkers.js';
 
 export interface RunCodexOptions {
   prompt: string;
@@ -69,8 +69,13 @@ function formatCodexStreamJsonLine(line: string): string | null {
       return formatMessage(json.item.text);
     }
 
-    // Handle turn/thread lifecycle events (skip these)
+    // Handle turn/thread lifecycle events
     if (json.type === 'thread.started' || json.type === 'turn.started' || json.type === 'turn.completed') {
+      // Show status message when turn starts
+      if (json.type === 'turn.started') {
+        return formatStatus('Codex is analyzing your request...');
+      }
+
       // Show usage info at turn completion
       if (json.type === 'turn.completed' && json.usage) {
         const { input_tokens, cached_input_tokens, output_tokens } = json.usage;

@@ -8,13 +8,14 @@ export const COLOR_GRAY = '[GRAY]';
 export const COLOR_GREEN = '[GREEN]';
 export const COLOR_RED = '[RED]';
 export const COLOR_ORANGE = '[ORANGE]';
+export const COLOR_CYAN = '[CYAN]';
 
 // Symbol constants
 export const SYMBOL_BULLET = '●';
 export const SYMBOL_NEST = '⎿';
 
 // Color marker regex for parsing
-const COLOR_MARKER_REGEX = /^\[(GRAY|GREEN|RED|ORANGE)\]/;
+const COLOR_MARKER_REGEX = /^\[(GRAY|GREEN|RED|ORANGE|CYAN)\]/;
 // Status marker regex for log file variants (no color processor applied)
 const STATUS_MARKER_REGEX = /^\[(THINKING|SUCCESS|ERROR|RUNNING)\]/;
 
@@ -28,7 +29,7 @@ const STATUS_TO_COLOR: Record<string, 'gray' | 'green' | 'red' | 'orange'> = {
 /**
  * Add a color marker to text
  */
-export function addMarker(color: 'GRAY' | 'GREEN' | 'RED' | 'ORANGE', text: string): string {
+export function addMarker(color: 'GRAY' | 'GREEN' | 'RED' | 'ORANGE' | 'CYAN', text: string): string {
   return `[${color}]${text}`;
 }
 
@@ -43,10 +44,10 @@ export function stripMarker(text: string): string {
  * Parse color marker from text
  * Returns the color and text without marker
  */
-export function parseMarker(text: string): { color: 'gray' | 'green' | 'red' | 'orange' | null; text: string } {
+export function parseMarker(text: string): { color: 'gray' | 'green' | 'red' | 'orange' | 'cyan' | null; text: string } {
   const match = text.match(COLOR_MARKER_REGEX);
   if (match) {
-    const color = match[1].toLowerCase() as 'gray' | 'green' | 'red' | 'orange';
+    const color = match[1].toLowerCase() as 'gray' | 'green' | 'red' | 'orange' | 'cyan';
     const textWithoutMarker = text.replace(COLOR_MARKER_REGEX, '');
     return { color, text: textWithoutMarker };
   }
@@ -100,4 +101,11 @@ export function formatResult(result: string, isError: boolean = false): string {
  */
 export function formatMessage(text: string): string {
   return addMarker('GRAY', `${SYMBOL_BULLET} Message: ${text}`);
+}
+
+/**
+ * Format status output (cyan color for informational messages)
+ */
+export function formatStatus(text: string): string {
+  return addMarker('CYAN', `${SYMBOL_BULLET} ${text}`);
 }
