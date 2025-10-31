@@ -37,7 +37,7 @@ export class AgentMonitorService {
     // Trim prompt to save memory (only store first 500 chars)
     // Full prompt is available in log files
     const trimmedPrompt = input.prompt.length > 500
-      ? `${input.prompt.substring(0, 500)}... [truncated, see log file for full prompt]`
+      ? `${input.prompt.substring(0, 500)}...`
       : input.prompt;
 
     const agent: AgentRecord = {

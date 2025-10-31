@@ -11,6 +11,7 @@ import {
   getTimelineLayout,
   calculateScrollOffset,
 } from '../utils/navigation';
+import packageJson from '../../../package.json' assert { type: 'json' };
 
 /**
  * Workflow UI State Manager with immutable updates and observer pattern
@@ -25,8 +26,8 @@ export class WorkflowUIState {
   constructor(workflowName: string, totalSteps: number = 0) {
     this.state = {
       workflowName,
-      version: '0.3.1',
-      packageName: 'codemachine',
+      version: packageJson.version,
+      packageName: packageJson.name,
       startTime: Date.now(),
       agents: [],
       subAgents: new Map(),

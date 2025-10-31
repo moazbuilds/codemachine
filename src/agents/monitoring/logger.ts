@@ -55,12 +55,20 @@ export class AgentLoggerService {
     const isDebugMode = process.env.DEBUG === '1' || process.env.DEBUG === 'true' || process.env.NODE_ENV === 'development';
     const promptToLog = isDebugMode || agent.prompt.length <= 500
       ? agent.prompt
-      : `${agent.prompt.substring(0, 500)}...\n\n[Prompt truncated. Run with DEBUG=1 to see full prompt]`;
+      : `${agent.prompt.substring(0, 500)}...`;
 
-    stream.write(`=== Agent ${agentId} (${agent.name}) Log ===\n`);
-    stream.write(`Started: ${agent.startTime}\n`);
-    stream.write(`Prompt: ${promptToLog}\n`);
-    stream.write(`${'='.repeat(60)}\n\n`);
+    // Format timestamp for better readability (remove T and milliseconds)
+    const formattedTime = agent.startTime.replace('T', ' ').replace(/\.\d{3}Z$/, '');
+
+    // Box-style header
+    const boxWidth = 64;
+    const headerText = `Agent ${agentId}: ${agent.name}`;
+    const dashCount = Math.max(0, boxWidth - headerText.length - 3); // -3 for "╭─ "
+
+    stream.write(`╭─ ${headerText} ${'─'.repeat(dashCount)}\n`);
+    stream.write(`   Started: ${formattedTime}\n`);
+    stream.write(`   Prompt: ${promptToLog}\n`);
+    stream.write(`╰${'─'.repeat(boxWidth - 1)}\n\n`);
 
     // Acquire lock asynchronously in background (after file is created)
     this.lockService.acquireLock(agent.logPath).catch(error => {
