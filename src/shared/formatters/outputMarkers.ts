@@ -34,10 +34,15 @@ export function addMarker(color: 'GRAY' | 'GREEN' | 'RED' | 'ORANGE' | 'CYAN', t
 }
 
 /**
- * Strip color marker from text
+ * Strip color marker and bold marker from text
  */
 export function stripMarker(text: string): string {
-  return text.replace(COLOR_MARKER_REGEX, '').replace(STATUS_MARKER_REGEX, '');
+  let result = text.replace(COLOR_MARKER_REGEX, '').replace(STATUS_MARKER_REGEX, '');
+  // Strip bold markers (===)
+  if (result.startsWith('===')) {
+    result = result.substring(3);
+  }
+  return result;
 }
 
 /**

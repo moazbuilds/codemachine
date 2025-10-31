@@ -23,6 +23,9 @@ export function formatForLogFile(text: string): string {
     result = result.replace(new RegExp(colorMarker.replace(/[[\]]/g, '\\$&'), 'g'), statusText);
   }
 
+  // Strip bold markers (===) for log files
+  result = result.replace(/^===/gm, '');
+
   return result;
 }
 
@@ -36,6 +39,9 @@ export function stripColorMarkers(text: string): string {
   for (const colorMarker of Object.keys(STATUS_MAP)) {
     result = result.replace(new RegExp(colorMarker.replace(/[[\]]/g, '\\$&'), 'g'), '');
   }
+
+  // Strip bold markers (===)
+  result = result.replace(/^===/gm, '');
 
   return result;
 }

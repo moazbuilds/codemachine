@@ -47,9 +47,18 @@ export const LineSyntaxHighlight: React.FC<LineSyntaxHighlightProps> = ({
     return text.startsWith('===');
   };
 
+  // Strip bold markers (===) from text if present
+  const stripBoldMarker = (text: string) => {
+    if (text.startsWith('===')) {
+      return text.substring(3);
+    }
+    return text;
+  };
+
   // Apply syntax highlighting
   const color = getTextColor(markerColor, text);
   const bold = getBold(text);
+  const displayText = stripBoldMarker(text);
 
-  return <Text color={color} bold={bold}>{text}</Text>;
+  return <Text color={color} bold={bold}>{displayText}</Text>;
 };
