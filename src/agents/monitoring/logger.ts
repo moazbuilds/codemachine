@@ -1,6 +1,7 @@
 import { createWriteStream, existsSync, mkdirSync, readFileSync, statSync, createReadStream } from 'fs';
 import { dirname } from 'path';
 import type { WriteStream } from 'fs';
+import chalk from 'chalk';
 import * as logger from '../../shared/logging/logger.js';
 import { AgentMonitorService } from './monitor.js';
 import { LogLockService } from './logLock.js';
@@ -51,24 +52,28 @@ export class AgentLoggerService {
     const stream = createWriteStream(agent.logPath, { flags: 'a', encoding: 'utf-8' });
     this.activeStreams.set(agentId, stream);
 
-    // Write header with truncated prompt (full prompt only in debug mode)
+    // Write header with first line of prompt (full prompt only in debug mode)
     const isDebugMode = process.env.DEBUG === '1' || process.env.DEBUG === 'true' || process.env.NODE_ENV === 'development';
-    const promptToLog = isDebugMode || agent.prompt.length <= 500
+    const firstLine = agent.prompt.split('\n')[0];
+    const promptToLog = isDebugMode
       ? agent.prompt
-      : `${agent.prompt.substring(0, 500)}...`;
+      : firstLine;
 
     // Format timestamp for better readability (remove T and milliseconds)
     const formattedTime = agent.startTime.replace('T', ' ').replace(/\.\d{3}Z$/, '');
 
     // Box-style header
     const boxWidth = 64;
-    const headerText = `Agent ${agentId}: ${agent.name}`;
-    const dashCount = Math.max(0, boxWidth - headerText.length - 3); // -3 for "╭─ "
+    const headerText = chalk.bold(`Agent ${agentId}: ${agent.name}`);
+    const dashCount = Math.max(0, boxWidth - headerText.length - 3); // -3 for "╭─ " (accounting for ANSI codes)
+    // Note: chalk adds ANSI codes that don't count toward visible length, so we need to compensate
+    const visibleHeaderLength = `Agent ${agentId}: ${agent.name}`.length;
+    const adjustedDashCount = Math.max(0, boxWidth - visibleHeaderLength - 3);
 
-    stream.write(`╭─ ${headerText} ${'─'.repeat(dashCount)}\n`);
-    stream.write(`   Started: ${formattedTime}\n`);
-    stream.write(`   Prompt: ${promptToLog}\n`);
-    stream.write(`╰${'─'.repeat(boxWidth - 1)}\n\n`);
+    stream.write(chalk.cyan(`╭─ ${headerText} ${'─'.repeat(adjustedDashCount)}\n`));
+    stream.write(chalk.cyan(`   Started: ${formattedTime}\n`));
+    stream.write(chalk.cyan(`   Prompt: ${promptToLog}\n`));
+    stream.write(chalk.cyan(`╰${'─'.repeat(boxWidth - 1)}\n\n`));
 
     // Acquire lock asynchronously in background (after file is created)
     this.lockService.acquireLock(agent.logPath).catch(error => {
