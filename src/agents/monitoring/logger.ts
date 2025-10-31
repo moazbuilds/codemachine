@@ -1,10 +1,10 @@
 import { createWriteStream, existsSync, mkdirSync, readFileSync, statSync, createReadStream } from 'fs';
 import { dirname } from 'path';
 import type { WriteStream } from 'fs';
-import chalk from 'chalk';
 import * as logger from '../../shared/logging/logger.js';
 import { AgentMonitorService } from './monitor.js';
 import { LogLockService } from './logLock.js';
+import { addMarker } from '../../shared/formatters/outputMarkers.js';
 
 /**
  * Manages log file I/O for agents
@@ -64,16 +64,14 @@ export class AgentLoggerService {
 
     // Box-style header
     const boxWidth = 64;
-    const headerText = chalk.bold(`Agent ${agentId}: ${agent.name}`);
-    const dashCount = Math.max(0, boxWidth - headerText.length - 3); // -3 for "╭─ " (accounting for ANSI codes)
-    // Note: chalk adds ANSI codes that don't count toward visible length, so we need to compensate
-    const visibleHeaderLength = `Agent ${agentId}: ${agent.name}`.length;
-    const adjustedDashCount = Math.max(0, boxWidth - visibleHeaderLength - 3);
+    const headerText = `Agent ${agentId}: ${agent.name}`;
+    const dashCount = Math.max(0, boxWidth - headerText.length - 3); // -3 for "╭─ "
 
-    stream.write(chalk.cyan(`╭─ ${headerText} ${'─'.repeat(adjustedDashCount)}\n`));
-    stream.write(chalk.cyan(`   Started: ${formattedTime}\n`));
-    stream.write(chalk.cyan(`   Prompt: ${promptToLog}\n`));
-    stream.write(chalk.cyan(`╰${'─'.repeat(boxWidth - 1)}\n\n`));
+    // Use === prefix for bold styling (detected by getBold in lineSyntaxHighlight.tsx)
+    stream.write(addMarker('CYAN', `===╭─ ${headerText} ${'─'.repeat(dashCount)}\n`));
+    stream.write(addMarker('CYAN', `   Started: ${formattedTime}\n`));
+    stream.write(addMarker('CYAN', `   Prompt: ${promptToLog}\n`));
+    stream.write(addMarker('CYAN', `╰${'─'.repeat(boxWidth - 1)}\n\n`));
 
     // Acquire lock asynchronously in background (after file is created)
     this.lockService.acquireLock(agent.logPath).catch(error => {
