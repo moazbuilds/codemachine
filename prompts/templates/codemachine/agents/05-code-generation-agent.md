@@ -69,6 +69,7 @@ You are an expert developer working collaboratively on a project. Given the foll
 5. Make sure that you aim for the acceptance criteria.
 5. You can add or edit files to finish your task successfully.
 6. Follow the design instructions.
+7. After completing the implementation, update any relevant documentation (README files, API docs, inline comments, etc.) to reflect the changes made.
 
 ## Contextual Information:
 
