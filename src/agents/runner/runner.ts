@@ -246,6 +246,7 @@ export async function executeAgent(
       name: agentId,
       prompt: displayPrompt || prompt, // Use display prompt for logging if provided
       parentId,
+      engine: engineType,
       engineProvider: engineType,
       modelName: model,
     });

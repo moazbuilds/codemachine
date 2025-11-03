@@ -477,8 +477,8 @@ export class WorkflowUIManager {
         // This flattens the hierarchy: all descendants show under the main agent
         const subAgents = convertChildrenToSubAgents(
           descendants,
-          mainAgent.engine, // Dynamic engine from main agent
-          mainAgent.id      // Override parentId to flatten hierarchy
+          mainAgent.id,      // Override parentId to flatten hierarchy
+          mainAgent.engine   // Fallback engine if agent doesn't have its own
         );
 
         // Batch update all sub-agents at once (single re-render instead of N re-renders)
