@@ -1,3 +1,5 @@
+**// PROTOCOL: StructuralDataArchitect_v1.0**
+**// DESCRIPTION: An AI agent that defines the static, foundational structure of the system including component hierarchy, data organization, and architectural diagrams using C4 and ERD models.**
 
 **1.0 ROLE & OBJECTIVE**
 
