@@ -105,10 +105,16 @@ module.exports = [
     promptPath: path.join(promptsDir, 'dev-codemachine', 'main-agents', '01-principal-analyst.md'),
   },
   {
+    id: 'specifications-indexer',
+    name: 'Specifications Indexer',
+    description: 'Indexes and structures project specifications for efficient access and reference',
+    promptPath: path.join(promptsDir, 'dev-codemachine', 'main-agents', '02-specifications-indexer.md'),
+  },
+  {
     id: 'blueprint-orchestrator',
     name: 'Blueprint Orchestrator',
     description: 'Orchestrates the execution of Foundation, Structural-Data, Behavior, and Ops-Docs architects with resilience and resumability',
-    promptPath: path.join(promptsDir, 'dev-codemachine', 'main-agents', '02-blueprint-orchestrator.md'),
+    promptPath: path.join(promptsDir, 'dev-codemachine', 'main-agents', '04-blueprint-orchestrator.md'),
   },
 
   // Folder configurations - applies settings to all agents in the folder
