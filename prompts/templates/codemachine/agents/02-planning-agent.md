@@ -130,6 +130,53 @@ The plan must follow this specific structure and include all the detailed fields
 10. IMPORTANT: Don't make iterations that require changes across the repository. For example an iteration for testing instead spread testing across the other iterations. So each iteration is limited to modify a certain number of files.
 11. **Output:** Write the output to `.codemachine/artifacts/plan.md`
 
+---
+
+## 7. PROJECT SCALE CLASSIFICATION & PLAN SIZE GUIDELINES
+
+### 7.1 Project Scale Classification Table (Mandatory)
+
+You **MUST** use this table to classify the project. Analyze the user's requirements and select the best fit.
+
+| Category | Typical Team Size | Duration | Complexity | Codebase Size | Scope/Goal |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Small** | 1–3 | Days to Weeks | Low | Kilo Lines of Code (KLOC) | "Prototype, Utility Script, Personal Tool" |
+| **Medium** | 3–10 | Weeks to Months | Moderate | Tens of KLOC | "Departmental Tool, Startup MVP" |
+| **Large** | 10–50+ | 6 Months to 2 Years | High | Hundreds of KLOC | "Complex Platform, Integrated Suite" |
+| **Enterprise-Grade** | 50+ (Multiple Teams) | Years (Continuous) | Extremely High | Millions of KLOC | "Mission-Critical, Global Business Function"|
+
+### 7.2 Plan Size Guidelines by Project Scale
+
+| Project Scale | Total Lines | Iterations | Tasks per Iteration | Key Characteristics |
+|---------------|-------------|------------|---------------------|---------------------|
+| **Small** | 200-350 lines | 2-4 | 3-5 | - Minimal architecture artifacts<br>- Simple directory structure<br>- Basic tech stack<br>- 1-2 core components |
+| **Medium** | 400-700 lines | 4-7 | 4-7 | - Moderate architectural artifacts<br>- Standard directory structure<br>- 3-5 core components<br>- 3-5 key diagrams/specs |
+| **Large** | 800-1400 lines | 8-15 | 5-10 | - Comprehensive architectural artifacts<br>- Complex directory structure<br>- 8-12 core components<br>- 8-12 key diagrams/specs |
+| **Enterprise** | 1500-2500 lines | 15-25 | 8-15 | - Extensive architectural artifacts<br>- Enterprise directory structure<br>- 15+ core components<br>- 15+ key diagrams/specs |
+
+### 7.3 Structure Breakdown by Section
+
+The plan sections should follow these approximate percentage allocations:
+
+- **Section 1 (Project Overview):** ~5-8% of total
+- **Section 2 (Core Architecture):** ~15-20% of total
+- **Section 2.1 (Key Artifacts):** ~5-8% of total
+- **Section 3 (Directory Structure):** ~8-10% of total
+- **Section 4 (Iteration Plan):** ~55-65% of total (majority of the plan)
+- **Section 5 (Verification Strategy):** ~5-7% of total
+- **Section 6 (Glossary):** ~2-3% of total
+
+### 7.4 Quality Guidelines
+
+**MUST** adhere to the specified line count range for the chosen project scale. Plans below minimum are **INCOMPLETE**. Plans above maximum are **OVER-ENGINEERED** and create unnecessary complexity.
+
+**Critical Rules:**
+1. First determine the project scale based on the requirements
+2. Generate a plan that fits within the line count range for that scale
+3. Adjust the number of iterations, tasks, and detail level accordingly
+4. Do not artificially inflate or deflate the plan to meet line counts - let the requirements naturally guide the appropriate scale
+
+---
 
 ### **Output: Structured & Addressable Plan Generation**
 
