@@ -43,6 +43,7 @@ export class AgentMonitorService {
     const agent: AgentRecord = {
       id,
       name: input.name,
+      engine: input.engine,
       status: 'running',
       parentId: input.parentId,
       pid,

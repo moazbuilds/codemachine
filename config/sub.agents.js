@@ -50,34 +50,34 @@ module.exports = [
     id: 'founder-architect',
     name: 'Founder Architect',
     description: 'Handle foundational architecture tasks',
-    engine: 'codex',
+    engine: 'claude',
     mirrorPath: 'prompts/templates/dev-codemachine/sub-agents/architecture/01-founder-architect.md'
   },
   {
     id: 'structural-data-architect',
     name: 'Structural & Data Architect',
-    engine: 'codex',
+    engine: 'claude',
     description: 'Define the static structure of the system, components hierarchy, and data organization',
     mirrorPath: 'prompts/templates/dev-codemachine/sub-agents/architecture/02-structural-data-architect.md'
   },
   {
     id: 'behavior-architect',
     name: 'Behavior & Communication Architect',
-    engine: 'codex',
+    engine: 'claude',
     description: 'Define dynamic interactions, data flows, and communication patterns between components',
     mirrorPath: 'prompts/templates/dev-codemachine/sub-agents/architecture/03-behavior-architect.md'
   },
   {
     id: 'operational-architect',
     name: 'Operational & Documentation Architect',
-    engine: 'codex',
+    engine: 'claude',
     description: 'Handle deployment, operations, security, and documentation architecture',
     mirrorPath: 'prompts/templates/dev-codemachine/sub-agents/architecture/04-operational-architect.md'
   },
   {
     id: 'file-assembler',
     name: 'File Assembler',
-    engine: 'codex',
+    engine: 'claude',
     description: 'Execute commands and create manifest files from architecture outputs',
     mirrorPath: 'prompts/templates/dev-codemachine/sub-agents/architecture/05-file-assembler.md'
   }

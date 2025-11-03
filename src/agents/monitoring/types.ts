@@ -1,4 +1,5 @@
 import type { ParsedTelemetry } from '../../ui/utils/telemetryParser.js';
+import type { EngineType } from '../../infra/engines/core/types.js';
 
 /**
  * Agent execution status
@@ -14,6 +15,9 @@ export interface AgentRecord {
 
   /** Agent name/type (e.g., 'frontend', 'backend', 'plan-creator') */
   name: string;
+
+  /** Engine type used for execution (e.g., 'claude', 'codex', 'cursor') */
+  engine?: EngineType;
 
   /** Current execution status */
   status: AgentStatus;
@@ -63,6 +67,7 @@ export interface RegisterAgentInput {
   prompt: string;
   parentId?: number;
   pid?: number;
+  engine?: EngineType;
   engineProvider?: string;
   modelName?: string;
 }
