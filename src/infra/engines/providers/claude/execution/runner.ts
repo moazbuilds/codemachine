@@ -85,7 +85,18 @@ function formatStreamJsonLine(line: string): string | null {
         }
       }
     } else if (json.type === 'result') {
-      return `⏱️  Duration: ${json.duration_ms}ms | Cost: $${json.total_cost_usd} | Tokens: ${json.usage.input_tokens}in/${json.usage.output_tokens}out`;
+      // Calculate total input tokens (non-cached + cached)
+      const cacheRead = json.usage.cache_read_input_tokens || 0;
+      const cacheCreation = json.usage.cache_creation_input_tokens || 0;
+      const totalCached = cacheRead + cacheCreation;
+      const totalIn = json.usage.input_tokens + totalCached;
+
+      // Show total input tokens with optional cached indicator
+      const tokensDisplay = totalCached > 0
+        ? `${totalIn}in/${json.usage.output_tokens}out (${totalCached} cached)`
+        : `${totalIn}in/${json.usage.output_tokens}out`;
+
+      return `⏱️  Duration: ${json.duration_ms}ms | Cost: $${json.total_cost_usd} | Tokens: ${tokensDisplay}`;
     }
 
     return null;
