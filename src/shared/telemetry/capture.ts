@@ -56,12 +56,16 @@ export function createTelemetryCapture(
         }
         // Try parsing result format with full telemetry (used by other engines)
         else if (json.type === 'result' && json.usage) {
+          // Calculate cached tokens from both cache_read_input_tokens and cache_creation_input_tokens
+          const cachedTokens = (json.usage.cache_read_input_tokens || 0) + (json.usage.cache_creation_input_tokens || 0);
+
           captured = {
             duration: json.duration_ms,
             cost: json.total_cost_usd,
             tokens: {
               input: json.usage.input_tokens,
               output: json.usage.output_tokens,
+              cached: cachedTokens > 0 ? cachedTokens : undefined,
             },
           };
         }
