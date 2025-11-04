@@ -75,7 +75,7 @@ export class FrameScheduler {
   private notifySubscribers(): void {
     const skipFactor = Math.max(1, Math.floor(this.targetFPS / this.adaptiveFrameRate));
 
-    for (const [id, subscriber] of this.subscribers) {
+    for (const [_id, subscriber] of this.subscribers) {
       // Priority-based frame skipping
       let shouldNotify = false;
 
@@ -165,11 +165,12 @@ export function useFrameScheduler(
   callback: (frame: number) => void,
   priority: AnimationPriority = 'medium',
   enabled: boolean = true
-): void {
+): (() => void) | undefined {
   const scheduler = getFrameScheduler();
 
   if (enabled) {
     const unsubscribe = scheduler.subscribe(callback, priority);
     return unsubscribe;
   }
+  return undefined;
 }

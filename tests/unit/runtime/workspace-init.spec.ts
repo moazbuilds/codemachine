@@ -103,7 +103,7 @@ describe('bootstrapWorkspace', () => {
     ]);
 
     const agentsContent = await readFile(agentsJson, 'utf8');
-    const parsed = JSON.parse(agentsContent) as Array<{ id: string; name?: string; promptPath: string }>;
+    const parsed = JSON.parse(agentsContent) as Array<{ id: string; name?: string }>;
     expect(Array.isArray(parsed)).toBe(true);
 
     const projectAgents = loadAgents(join(projectRoot, 'config', 'sub.agents.js'));
@@ -111,13 +111,12 @@ describe('bootstrapWorkspace', () => {
     const expectedIds = buildExpectedOrder(projectAgents, cliSubAgents);
 
     expect(parsed.map((a) => a.id)).toEqual(expectedIds);
-    // Dynamically check that prompt paths match agent IDs
+    // Note: promptPath is not saved in agents-config.json (removed during initialization)
+    // The prompt files are created as `${slugified-id}.md` on disk
     const projectAgentsFromFixture = loadAgents(join(projectRoot, 'config', 'sub.agents.js'));
-    expect(parsed[0].promptPath).toBe(`${projectAgentsFromFixture[0].id}.md`);
-    expect(parsed[1].promptPath).toBe(`${projectAgentsFromFixture[1].id}.md`);
-    await Promise.all(
-      parsed.map((agent) => stat(join(desiredCwd, '.codemachine', 'agents', agent.promptPath))),
-    );
+    // Verify prompt files exist on disk (using slugified IDs as filenames)
+    await stat(join(desiredCwd, '.codemachine', 'agents', `${projectAgentsFromFixture[0].id}.md`));
+    await stat(join(desiredCwd, '.codemachine', 'agents', `${projectAgentsFromFixture[1].id}.md`));
   });
 
   it('mirrors config/sub.agents.js to JSON and is idempotent', async () => {
@@ -155,7 +154,9 @@ describe('bootstrapWorkspace', () => {
     const cliAgentsForOrder = buildExpectedOrder(latestProjectAgents, cliSubAgents);
 
     expect(updatedContent.map((agent: { id: string }) => agent.id)).toEqual(cliAgentsForOrder);
-    expect(updatedContent[0]).toEqual({ id: updatedAgentId, promptPath: `${updatedAgentId}.md` });
+    // Note: promptPath is not saved in agents-config.json (removed during initialization)
+    expect(updatedContent[0]).toEqual({ id: updatedAgentId });
+    // Verify the prompt file exists on disk
     await stat(join(desiredCwd, '.codemachine', 'agents', `${updatedAgentId}.md`));
   });
 
@@ -188,16 +189,18 @@ describe('bootstrapWorkspace', () => {
     await bootstrapWorkspace({ cwd: desiredCwd });
 
     const agentsJson = join(desiredCwd, '.codemachine', 'agents', 'agents-config.json');
-    const parsedAgents = JSON.parse(await readFile(agentsJson, 'utf8')) as Array<{ id: string; promptPath: string }>;
+    const parsedAgents = JSON.parse(await readFile(agentsJson, 'utf8')) as Array<{ id: string }>;
     const cliSubAgentsOnly = loadAgents('../../../config/sub.agents.js');
     const expectedIds = buildExpectedOrder(cliSubAgentsOnly);
 
     expect(parsedAgents.map((agent: { id: string }) => agent.id)).toEqual(expectedIds);
+    // Note: promptPath is not saved in agents-config.json (removed during initialization)
+    // Verify prompt files exist on disk (using slugified IDs as filenames)
     const expectedDir = join(desiredCwd, '.codemachine', 'agents');
     await Promise.all(
       parsedAgents.map(async (agent) => {
-        expect(agent.promptPath.endsWith('.md')).toBe(true);
-        await stat(join(expectedDir, agent.promptPath));
+        const expectedFilename = `${agent.id}.md`;
+        await stat(join(expectedDir, expectedFilename));
       }),
     );
   });

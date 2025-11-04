@@ -57,8 +57,8 @@ Example:
  * @param filePath - The file path that was expected
  */
 export function createOptionalFileWarning(
-  placeholderName: string,
-  filePath: string,
+  _placeholderName: string,
+  _filePath: string,
 ): void {
   // Optional placeholders that fail to load are silently skipped
   // No warning is printed to avoid cluttering the output

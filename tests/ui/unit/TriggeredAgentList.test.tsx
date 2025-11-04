@@ -65,7 +65,7 @@ describe('TriggeredAgentList', () => {
       <TriggeredAgentList triggeredAgents={agents} />
     );
 
-    expect(lastFrame()).toContain('✓'); // completed
+    expect(lastFrame()).toContain('●'); // completed
     expect(lastFrame()).toContain('⠋'); // running
   });
 

@@ -4,7 +4,7 @@ import { processOutputChunk } from '../../../src/ui/utils/outputProcessor';
 describe('OutputProcessor', () => {
   describe('Tool detection', () => {
     it('should detect TOOL STARTED', () => {
-      const chunk = '🔧 TOOL STARTED: Read src/main.ts';
+      const chunk = '[GRAY]● Command: Read src/main.ts';
       const result = processOutputChunk(chunk);
 
       expect(result.type).toBe('tool');
@@ -12,14 +12,14 @@ describe('OutputProcessor', () => {
     });
 
     it('should detect TOOL COMPLETED', () => {
-      const chunk = '✅ TOOL COMPLETED: Read src/main.ts';
+      const chunk = '[GREEN]⎿ Read completed successfully';
       const result = processOutputChunk(chunk);
 
       expect(result.type).toBe('tool');
     });
 
     it('should detect TOOL usage', () => {
-      const chunk = '🔧 TOOL: Grep "TODO"';
+      const chunk = '[GRAY]● Command: Grep "TODO"';
       const result = processOutputChunk(chunk);
 
       expect(result.type).toBe('tool');
@@ -27,7 +27,7 @@ describe('OutputProcessor', () => {
     });
 
     it('should detect COMMAND', () => {
-      const chunk = '🔧 COMMAND: npm test';
+      const chunk = '[GRAY]● Command: npm test';
       const result = processOutputChunk(chunk);
 
       expect(result.type).toBe('tool');
@@ -37,11 +37,11 @@ describe('OutputProcessor', () => {
 
   describe('Thinking detection', () => {
     it('should detect THINKING blocks', () => {
-      const chunk = '🧠 THINKING: Need to check for common issues';
+      const chunk = '[ORANGE]● Thinking: Need to check for common issues';
       const result = processOutputChunk(chunk);
 
       expect(result.type).toBe('thinking');
-      expect(result.content).toContain('THINKING');
+      expect(result.content).toContain('Thinking');
     });
   });
 
@@ -75,14 +75,14 @@ describe('OutputProcessor', () => {
 
   describe('Text detection', () => {
     it('should detect TEXT messages', () => {
-      const chunk = '💬 TEXT: Starting analysis...';
+      const chunk = '[GRAY]● Message: Starting analysis...';
       const result = processOutputChunk(chunk);
 
       expect(result.type).toBe('text');
     });
 
     it('should detect MESSAGE', () => {
-      const chunk = '💬 MESSAGE: Running tests...';
+      const chunk = '[GRAY]● Message: Running tests...';
       const result = processOutputChunk(chunk);
 
       expect(result.type).toBe('text');

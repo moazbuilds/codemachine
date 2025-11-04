@@ -129,7 +129,7 @@ describe('WorkflowUIState', () => {
   });
 
   describe('state subscription', () => {
-    it('should notify listeners on state change', () => {
+    it('should notify listeners on state change', async () => {
       let notified = false;
       const unsubscribe = state.subscribe(() => {
         notified = true;
@@ -137,19 +137,29 @@ describe('WorkflowUIState', () => {
 
       state.addMainAgent('test-agent', 'claude', 0);
 
+      // Wait for throttled notification (16ms delay)
+      await new Promise(resolve => setTimeout(resolve, 20));
+
       expect(notified).toBe(true);
       unsubscribe();
     });
 
-    it('should unsubscribe correctly', () => {
+    it('should unsubscribe correctly', async () => {
       let count = 0;
       const unsubscribe = state.subscribe(() => {
         count++;
       });
 
       state.addMainAgent('agent-1', 'claude', 0);
+
+      // Wait for throttled notification
+      await new Promise(resolve => setTimeout(resolve, 20));
+
       unsubscribe();
       state.addMainAgent('agent-2', 'codex', 1);
+
+      // Wait again to ensure second notification doesn't fire
+      await new Promise(resolve => setTimeout(resolve, 20));
 
       expect(count).toBe(1);
     });

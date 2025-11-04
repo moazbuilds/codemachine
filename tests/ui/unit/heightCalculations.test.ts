@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  UI_COMPONENT_HEIGHTS,
+  UI_COMPONENT_DIMENSIONS,
   calculateMainContentHeight,
   calculateOutputWindowHeight,
   calculateAgentTimelineHeight,
@@ -15,14 +15,14 @@ const createMockStdout = (rows: number, columns: number = 80) => ({
 });
 
 describe('Height Calculations', () => {
-  describe('UI_COMPONENT_HEIGHTS', () => {
+  describe('UI_COMPONENT_DIMENSIONS', () => {
     it('should have correct height constants', () => {
-      expect(UI_COMPONENT_HEIGHTS.BRANDING_HEADER).toBe(3);
-      expect(UI_COMPONENT_HEIGHTS.TELEMETRY_BAR).toBe(2);
-      expect(UI_COMPONENT_HEIGHTS.STATUS_FOOTER).toBe(1);
-      expect(UI_COMPONENT_HEIGHTS.OUTPUT_WINDOW_HEADER).toBe(2);
-      expect(UI_COMPONENT_HEIGHTS.BORDERS_AND_PADDING).toBe(2);
-      expect(UI_COMPONENT_HEIGHTS.MINIMUM_HEIGHT).toBe(10);
+      expect(UI_COMPONENT_DIMENSIONS.BRANDING_HEADER).toBe(3);
+      expect(UI_COMPONENT_DIMENSIONS.TELEMETRY_BAR).toBe(3);
+      expect(UI_COMPONENT_DIMENSIONS.STATUS_FOOTER).toBe(2);
+      expect(UI_COMPONENT_DIMENSIONS.OUTPUT_WINDOW_HEADER).toBe(1);
+      expect(UI_COMPONENT_DIMENSIONS.BORDERS_AND_PADDING).toBe(2);
+      expect(UI_COMPONENT_DIMENSIONS.MINIMUM_HEIGHT).toBe(8);
     });
   });
 
@@ -31,16 +31,16 @@ describe('Height Calculations', () => {
       const stdout = createMockStdout(40);
       const result = calculateMainContentHeight(stdout);
 
-      // 40 - (3 + 2 + 1) = 34
-      expect(result).toBe(34);
+      // 40 - (3 + 3 + 2 + 2) = 30
+      expect(result).toBe(30);
     });
 
     it('should respect minimum height', () => {
       const stdout = createMockStdout(10);
       const result = calculateMainContentHeight(stdout);
 
-      // 10 - 6 = 4, but minimum is 10
-      expect(result).toBe(10);
+      // 10 - 10 = 0, but minimum is 8
+      expect(result).toBe(8);
     });
 
     it('should handle very small terminals', () => {
@@ -48,29 +48,29 @@ describe('Height Calculations', () => {
       const result = calculateMainContentHeight(stdout);
 
       // Should return minimum height
-      expect(result).toBe(10);
+      expect(result).toBe(8);
     });
 
     it('should handle large terminals', () => {
       const stdout = createMockStdout(100);
       const result = calculateMainContentHeight(stdout);
 
-      // 100 - 6 = 94
-      expect(result).toBe(94);
+      // 100 - 10 = 90
+      expect(result).toBe(90);
     });
 
     it('should handle null stdout', () => {
       const result = calculateMainContentHeight(null);
 
-      // Should use default 40 - 6 = 34
-      expect(result).toBe(34);
+      // Should use default 40 - 10 = 30
+      expect(result).toBe(30);
     });
 
     it('should handle undefined stdout', () => {
       const result = calculateMainContentHeight(undefined);
 
-      // Should use default 40 - 6 = 34
-      expect(result).toBe(34);
+      // Should use default 40 - 10 = 30
+      expect(result).toBe(30);
     });
   });
 
@@ -79,32 +79,32 @@ describe('Height Calculations', () => {
       const stdout = createMockStdout(40);
       const result = calculateOutputWindowHeight(stdout);
 
-      // Main content: 34, Output overhead: 2 + 2 = 4, so 34 - 4 = 30
-      expect(result).toBe(30);
+      // Main content: 30, Output overhead: 1, so 30 - 1 = 29
+      expect(result).toBe(29);
     });
 
-    it('should respect minimum height of 5', () => {
+    it('should respect minimum height of 4', () => {
       const stdout = createMockStdout(10);
       const result = calculateOutputWindowHeight(stdout);
 
-      // Main content: 10, Output overhead: 4, so 10 - 4 = 6, but minimum is 5
-      expect(result).toBe(6);
+      // Main content: 8, Output overhead: 1, so 8 - 1 = 7, minimum is 4
+      expect(result).toBe(7);
     });
 
     it('should handle very small terminals', () => {
       const stdout = createMockStdout(8);
       const result = calculateOutputWindowHeight(stdout);
 
-      // Main content: 10 (minimum), Output overhead: 4, so 10 - 4 = 6
-      expect(result).toBe(6);
+      // Main content: 8 (minimum), Output overhead: 1, so 8 - 1 = 7
+      expect(result).toBe(7);
     });
 
     it('should handle large terminals', () => {
       const stdout = createMockStdout(100);
       const result = calculateOutputWindowHeight(stdout);
 
-      // Main content: 94, Output overhead: 4, so 94 - 4 = 90
-      expect(result).toBe(90);
+      // Main content: 90, Output overhead: 1, so 90 - 1 = 89
+      expect(result).toBe(89);
     });
   });
 
@@ -113,32 +113,32 @@ describe('Height Calculations', () => {
       const stdout = createMockStdout(40);
       const result = calculateAgentTimelineHeight(stdout);
 
-      // Main content: 34, Timeline overhead: 2, so 34 - 2 = 32
-      expect(result).toBe(32);
+      // Main content: 30, Timeline overhead: 1, so 30 - 1 = 29
+      expect(result).toBe(29);
     });
 
-    it('should respect minimum height of 5', () => {
+    it('should respect minimum height of 4', () => {
       const stdout = createMockStdout(10);
       const result = calculateAgentTimelineHeight(stdout);
 
-      // Main content: 10, Timeline overhead: 2, so 10 - 2 = 8, but minimum is 5
-      expect(result).toBe(8);
+      // Main content: 8, Timeline overhead: 1, so 8 - 1 = 7, minimum is 4
+      expect(result).toBe(7);
     });
 
     it('should handle very small terminals', () => {
       const stdout = createMockStdout(6);
       const result = calculateAgentTimelineHeight(stdout);
 
-      // Main content: 10 (minimum), Timeline overhead: 2, so 10 - 2 = 8
-      expect(result).toBe(8);
+      // Main content: 8 (minimum), Timeline overhead: 1, so 8 - 1 = 7
+      expect(result).toBe(7);
     });
 
     it('should handle large terminals', () => {
       const stdout = createMockStdout(100);
       const result = calculateAgentTimelineHeight(stdout);
 
-      // Main content: 94, Timeline overhead: 2, so 94 - 2 = 92
-      expect(result).toBe(92);
+      // Main content: 90, Timeline overhead: 1, so 90 - 1 = 89
+      expect(result).toBe(89);
     });
   });
 
@@ -168,9 +168,9 @@ describe('Height Calculations', () => {
       expect(info.rows).toBe(40);
       expect(info.columns).toBe(120);
       expect(info.isTooSmall).toBe(false);
-      expect(info.mainContentHeight).toBe(34);
-      expect(info.outputWindowHeight).toBe(30);
-      expect(info.agentTimelineHeight).toBe(32);
+      expect(info.mainContentHeight).toBe(30);
+      expect(info.outputWindowHeight).toBe(29);
+      expect(info.agentTimelineHeight).toBe(29);
     });
 
     it('should detect small terminals correctly', () => {
@@ -178,9 +178,9 @@ describe('Height Calculations', () => {
       const info = getTerminalInfo(stdout);
 
       expect(info.isTooSmall).toBe(true);
-      expect(info.mainContentHeight).toBe(10); // minimum
-      expect(info.outputWindowHeight).toBe(6); // 10 - 4 = 6
-      expect(info.agentTimelineHeight).toBe(8); // 10 - 2 = 8
+      expect(info.mainContentHeight).toBe(8); // minimum
+      expect(info.outputWindowHeight).toBe(7); // 8 - 1 = 7
+      expect(info.agentTimelineHeight).toBe(7); // 8 - 1 = 7
     });
 
     it('should handle null stdout', () => {
@@ -189,9 +189,9 @@ describe('Height Calculations', () => {
       expect(info.rows).toBe(40);
       expect(info.columns).toBe(80);
       expect(info.isTooSmall).toBe(false);
-      expect(info.mainContentHeight).toBe(34);
-      expect(info.outputWindowHeight).toBe(30);
-      expect(info.agentTimelineHeight).toBe(32);
+      expect(info.mainContentHeight).toBe(30);
+      expect(info.outputWindowHeight).toBe(29);
+      expect(info.agentTimelineHeight).toBe(29);
     });
   });
 
@@ -210,9 +210,9 @@ describe('Height Calculations', () => {
         expect(timeline).toBeLessThanOrEqual(mainContent);
 
         // All should be at least their minimum values
-        expect(mainContent).toBeGreaterThanOrEqual(10);
-        expect(outputWindow).toBeGreaterThanOrEqual(5);
-        expect(timeline).toBeGreaterThanOrEqual(5);
+        expect(mainContent).toBeGreaterThanOrEqual(8);
+        expect(outputWindow).toBeGreaterThanOrEqual(4);
+        expect(timeline).toBeGreaterThanOrEqual(4);
       });
     });
   });

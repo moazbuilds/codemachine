@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AgentMonitorService } from '../../agents/monitoring/monitor.js';
 import type { AgentRecord } from '../../agents/monitoring/types.js';
-import { readLogFile, getFileSize, watchLogFile } from '../utils/logReader';
+import { readLogFile, getFileSize } from '../utils/logReader';
 
 export interface LogStreamResult {
   lines: string[];

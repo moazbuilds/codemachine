@@ -70,7 +70,7 @@ describe('MainAgentNode', () => {
       />
     );
 
-    expect(lastFrame()).toContain('✓');
+    expect(lastFrame()).toContain('●');
     expect(lastFrame()).toContain('01:05');
   });
 
