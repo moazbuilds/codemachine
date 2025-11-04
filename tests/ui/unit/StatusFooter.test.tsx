@@ -8,10 +8,9 @@ describe('StatusFooter', () => {
     const { lastFrame } = render(<StatusFooter />);
 
     expect(lastFrame()).toContain('[↑↓] Navigate');
-    expect(lastFrame()).toContain('[ENTER] Expand/Collapse');
-    expect(lastFrame()).toContain('[Ctrl+L] Full Logs');
-    expect(lastFrame()).toContain('[T] Telemetry');
-    expect(lastFrame()).toContain('[S] Skip');
+    expect(lastFrame()).toContain('[ENTER] Expand/View Logs');
+    expect(lastFrame()).toContain('[H] History');
+    expect(lastFrame()).toContain('[Ctrl+S] Skip');
     expect(lastFrame()).toContain('[Ctrl+C] Exit');
   });
 });

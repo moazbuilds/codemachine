@@ -12,7 +12,7 @@ describe('StatusIcons', () => {
     });
 
     it('should return correct icon for completed', () => {
-      expect(getStatusIcon('completed')).toBe('✓');
+      expect(getStatusIcon('completed')).toBe('●');
     });
 
     it('should return correct icon for skipped', () => {

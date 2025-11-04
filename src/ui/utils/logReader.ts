@@ -1,5 +1,4 @@
 import { readFileSync, statSync, watch, existsSync, createReadStream } from 'fs';
-import { createInterface } from 'readline';
 
 /**
  * Read log file and return array of lines
@@ -59,7 +58,7 @@ export class IncrementalLogReader {
         lines: newLines,
         hasNewContent: newLines.length > 0
       };
-    } catch (error) {
+    } catch (_error) {
       return { lines: [], hasNewContent: false };
     }
   }
@@ -77,8 +76,8 @@ export class IncrementalLogReader {
         end: end - 1 // end is inclusive
       });
 
-      stream.on('data', (chunk: string) => {
-        chunks.push(chunk);
+      stream.on('data', (chunk: string | Buffer) => {
+        chunks.push(typeof chunk === 'string' ? chunk : chunk.toString());
       });
 
       stream.on('end', () => {

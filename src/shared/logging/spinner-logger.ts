@@ -16,7 +16,10 @@ export interface SpinnerState {
  */
 function isInkUIActive(): boolean {
   // Check if stdout is a TTY and in raw mode (Ink uses raw mode)
-  return Boolean(process.stdout.isTTY && (process.stdin as any).isRaw);
+  interface ReadStreamWithRaw extends NodeJS.ReadStream {
+    isRaw: boolean;
+  }
+  return Boolean(process.stdout.isTTY && (process.stdin as ReadStreamWithRaw).isRaw);
 }
 
 function clearStatusLine(): void {

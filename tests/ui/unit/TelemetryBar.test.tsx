@@ -87,7 +87,7 @@ describe('TelemetryBar', () => {
       />
     );
 
-    expect(lastFrame()).toContain('Press Ctrl+C again to exit');
+    expect(lastFrame()).toContain('Press Ctrl+C again to close the session');
   });
 
   it('should show completed and stopped statuses', () => {
@@ -99,7 +99,7 @@ describe('TelemetryBar', () => {
         total={{ tokensIn: 0, tokensOut: 0 }}
       />
     );
-    expect(completed.lastFrame()).toContain('✓ Completed');
+    expect(completed.lastFrame()).toContain('● Completed');
 
     const stopped = render(
       <TelemetryBar

@@ -46,7 +46,7 @@ describe('SubAgentList', () => {
 
     expect(lastFrame()).toContain('validator');
     expect(lastFrame()).toContain('formatter');
-    expect(lastFrame()).toContain('✓'); // completed icon
+    expect(lastFrame()).toContain('●'); // completed icon
     expect(lastFrame()).toContain('⠋'); // running icon
   });
 

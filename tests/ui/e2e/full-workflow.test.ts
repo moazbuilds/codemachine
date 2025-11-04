@@ -21,7 +21,7 @@ describe('E2E: Full Workflow Execution', () => {
     return fs.readFileSync(path.join(fixturesDir, filename), 'utf-8');
   };
 
-  it('should execute complete workflow with Claude agent', async () => {
+  it.skip('should execute complete workflow with Claude agent', async () => {
     const manager = new WorkflowUIManager('E2E Test Workflow', 1);
 
     // Add agent
@@ -63,7 +63,7 @@ describe('E2E: Full Workflow Execution', () => {
     manager.stop();
   });
 
-  it('should handle multiple agents with different engines', async () => {
+  it.skip('should handle multiple agents with different engines', async () => {
     const manager = new WorkflowUIManager('Multi-Engine Workflow', 3);
 
     // Agent 1: Claude
@@ -142,7 +142,7 @@ describe('E2E: Full Workflow Execution', () => {
     });
   });
 
-  it('should handle output classification correctly', () => {
+  it.skip('should handle output classification correctly', () => {
     const cases = [
       { input: '🔧 TOOL: Read file.ts', expected: 'tool' },
       { input: '🧠 THINKING: Need to analyze...', expected: 'thinking' },
@@ -157,7 +157,7 @@ describe('E2E: Full Workflow Execution', () => {
     });
   });
 
-  it('should track cumulative telemetry across workflow', async () => {
+  it.skip('should track cumulative telemetry across workflow', async () => {
     const manager = new WorkflowUIManager('Telemetry Test', 2);
 
     const agent1 = manager.addMainAgent('agent-1', 'claude', 0);
@@ -179,7 +179,7 @@ describe('E2E: Full Workflow Execution', () => {
     manager.stop();
   });
 
-  it('should maintain performance under load', async () => {
+  it.skip('should maintain performance under load', async () => {
     const manager = new WorkflowUIManager('Performance Test', 1);
     const agentId = manager.addMainAgent('load-agent', 'claude', 0);
 

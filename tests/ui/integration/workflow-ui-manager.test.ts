@@ -53,7 +53,8 @@ describe('WorkflowUIManager Integration Tests', () => {
       expect(manager.getState().agents[0].status).toBe('completed');
     });
 
-    it('should handle output chunks', async () => {
+    it.skip('should handle output chunks', async () => {
+      // DEPRECATED: handleOutputChunk() removed - UI now reads from log files
       const agentId = manager.addMainAgent('test-agent', 'claude', 0);
 
       manager.handleOutputChunk(agentId, '💬 TEXT: Starting task...');
@@ -68,7 +69,8 @@ describe('WorkflowUIManager Integration Tests', () => {
       expect(state.agents[0].toolCount).toBeGreaterThan(0);
     });
 
-    it('should track telemetry from output', async () => {
+    it.skip('should track telemetry from output', async () => {
+      // DEPRECATED: handleOutputChunk() removed - UI now reads from log files
       const agentId = manager.addMainAgent('test-agent', 'claude', 0);
 
       manager.handleOutputChunk(agentId, 'Tokens: 1000in/500out');
@@ -129,7 +131,8 @@ describe('WorkflowUIManager Integration Tests', () => {
   });
 
   describe('Performance', () => {
-    it('should handle high-frequency output without degradation', () => {
+    it.skip('should handle high-frequency output without degradation', () => {
+      // DEPRECATED: handleOutputChunk() removed - UI now reads from log files
       const agentId = manager.addMainAgent('perf-agent', 'claude', 0);
 
       const startTime = Date.now();
@@ -145,7 +148,8 @@ describe('WorkflowUIManager Integration Tests', () => {
       expect(elapsed).toBeLessThan(200);
     });
 
-    it('should batch updates efficiently', async () => {
+    it.skip('should batch updates efficiently', async () => {
+      // DEPRECATED: handleOutputChunk() removed - UI now reads from log files
       const agentId = manager.addMainAgent('batch-agent', 'claude', 0);
 
       // Send multiple rapid updates
