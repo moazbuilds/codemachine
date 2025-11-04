@@ -61,21 +61,21 @@ codemachine
 
 ### Supported AI Engines
 
-CodeMachine requires at least one CLI-based AI engine to handle the primary roles of planning and writing code, and is designed to orchestrate multiple engines to collaborate within a single workflow. The table below shows the current status of supported and upcoming integrations.
+CodeMachine requires at least one CLI-based AI engine to handle the primary roles of planning and writing code, and is designed to orchestrate multiple engines to collaborate within a single workflow. The table below shows the current status of supported engines and their platform compatibility.
 
 
 <table align="center" style="width: 80%; margin: 0 auto;">
   <tr>
     <th align="center" style="padding: 12px; font-size: 16px;">CLI Engine</th>
     <th align="center" style="padding: 12px; font-size: 16px;">Status</th>
-    <th align="center" style="padding: 12px; font-size: 16px;">Main Agents</th>
-    <th align="center" style="padding: 12px; font-size: 16px;">Sub Agents</th>
-    <th align="center" style="padding: 12px; font-size: 16px;">Orchestrate</th>
+    <th align="center" style="padding: 12px; font-size: 16px;">Windows</th>
+    <th align="center" style="padding: 12px; font-size: 16px;">macOS</th>
+    <th align="center" style="padding: 12px; font-size: 16px;">Linux</th>
   </tr>
   <tr>
     <td align="center" style="padding: 10px; font-size: 15px;"><strong>Codex CLI</strong></td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">⚠️</td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
   </tr>
@@ -87,27 +87,38 @@ CodeMachine requires at least one CLI-based AI engine to handle the primary role
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
   </tr>
   <tr>
-    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Cursor CLI</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>CCR (Claude Code Router)</strong></td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
   </tr>
   <tr>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Cursor CLI</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">❌</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">❌</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+  </tr>
+  <tr>
     <td align="center" style="padding: 10px; font-size: 15px;"><strong>Gemini CLI</strong></td>
     <td align="center" style="padding: 10px; font-size: 15px;">🚧 Coming Soon</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">🚧</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">🚧</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">🚧</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
   </tr>
 <tr>
     <td align="center" style="padding: 10px; font-size: 15px;"><strong>Qwen Coder</strong></td>
     <td align="center" style="padding: 10px; font-size: 15px;">🚧 Coming Soon</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">🚧</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">🚧</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">🚧</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
   </tr>
 </table>
+
+<p align="center">
+  <em>✅ Fully Supported  |  ⚠️ Not Officially Supported  |  ❌ Not Available</em>
+</p>
 
 ---
 
@@ -266,5 +277,17 @@ We conducted a real-world comparison by monitoring development work on a project
 - [Specification Schema](docs/specification-schema.md)
   - [Essential Requirements](docs/specification-schema.md#part-1-the-essentials-core-requirements-for-any-project)
   - [Advanced Specifications](docs/specification-schema.md#part-2-advanced-specifications-for-complex-or-high-fidelity-projects)
+
+---
+
+## 🙏 Contributors
+
+Special thanks to the following contributors who have helped make CodeMachine better:
+
+- **[Bahy Ali](https://github.com/bahyali)** - Architect of the original workflow system and core orchestration concepts. His deep expertise and guidance were instrumental in shaping CodeMachine's foundation.
+
+- **[Adinda Praditya](https://github.com/apraditya)** - Added CCR (Claude Code Router) engine support, removing a major limitation by enabling users to leverage AI capabilities beyond subscription-based services.
+
+- **[SoyHub](https://github.com/SoyHub)** - Enhanced the UI system and contributed innovative ideas during brainstorming sessions that helped strengthen CodeMachine's capabilities.
 
 ---
