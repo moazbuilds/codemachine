@@ -1,4 +1,5 @@
 import crossSpawn from 'cross-spawn';
+import type { ChildProcess } from 'child_process';
 
 export interface SpawnOptions {
   command: string;
@@ -19,6 +20,35 @@ export interface SpawnResult {
   stderr: string;
 }
 
+/**
+ * Global registry of active child processes
+ * Used to ensure proper cleanup on process termination
+ */
+const activeProcesses = new Set<ChildProcess>();
+
+/**
+ * Kill all active child processes
+ * Called during cleanup to ensure no orphaned processes
+ */
+export function killAllActiveProcesses(): void {
+  for (const child of activeProcesses) {
+    try {
+      if (!child.killed) {
+        child.kill('SIGTERM');
+        // Force kill after 1 second if still running
+        setTimeout(() => {
+          if (!child.killed) {
+            child.kill('SIGKILL');
+          }
+        }, 1000);
+      }
+    } catch {
+      // Ignore errors during cleanup
+    }
+  }
+  activeProcesses.clear();
+}
+
 export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
   const { command, args = [], cwd, env, onStdout, onStderr, signal, stdioMode = 'pipe', timeout, stdinInput } = options;
 
@@ -32,6 +62,34 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
       signal,
       timeout,
     });
+
+    // Track this child process for cleanup
+    activeProcesses.add(child);
+
+    // Remove from tracking when process exits
+    const removeFromTracking = () => {
+      activeProcesses.delete(child);
+    };
+
+    // Handle abort signal explicitly (in case cross-spawn doesn't handle it properly)
+    if (signal) {
+      const abortHandler = () => {
+        if (!child.killed) {
+          try {
+            child.kill('SIGTERM');
+            // Force kill after 1 second if still running
+            setTimeout(() => {
+              if (!child.killed) {
+                child.kill('SIGKILL');
+              }
+            }, 1000);
+          } catch {
+            // Ignore kill errors
+          }
+        }
+      };
+      signal.addEventListener('abort', abortHandler, { once: true });
+    }
 
     // Write to stdin if data is provided
     if (child.stdin) {
@@ -62,10 +120,12 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
     }
 
     child.once('error', (error: Error) => {
+      removeFromTracking();
       reject(error);
     });
 
     child.once('close', (code: number | null) => {
+      removeFromTracking();
       const exitCode = code ?? 0;
       resolve({
         exitCode,
