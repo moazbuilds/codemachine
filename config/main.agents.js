@@ -100,7 +100,7 @@ module.exports = [
   },
   {
     id: 'principal-analyst',
-    name: 'Principal Analyst',
+    name: 'Principal Analyst - Checkpoint',
     description: 'Reviews project specifications and identifies critical ambiguities requiring clarification',
     promptPath: path.join(promptsDir, 'dev-codemachine', 'main-agents', '01-principal-analyst.md'),
   },
