@@ -8,7 +8,7 @@
   <strong>CodeMachine CLI</strong> is an autonomous multi-agent platform that works locally on your computer, turning specifications into production-ready code.<br></p>
 
 <p align="center">
-  <img src="docs/assets/demo.gif" alt="CodeMachine in Action" width="800">
+  <img src="docs/assets/demo.gif?v=2" alt="CodeMachine in Action" width="800">
 </p>
 
 
