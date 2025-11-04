@@ -11,12 +11,21 @@ import { metadata } from './metadata.js';
  */
 async function isCliInstalled(command: string): Promise<boolean> {
   try {
-    const result = await execa(command, ['--version'], { timeout: 3000, reject: false });
-    if (typeof result.exitCode === 'number' && result.exitCode === 0) return true;
+    // Try -v first (CCR uses -v instead of --version)
+    const result = await execa(command, ['-v'], { timeout: 3000, reject: false });
     const out = `${result.stdout ?? ''}\n${result.stderr ?? ''}`;
+
+    // Check for error messages indicating command not found
     if (/not recognized as an internal or external command/i.test(out)) return false;
     if (/command not found/i.test(out)) return false;
     if (/No such file or directory/i.test(out)) return false;
+
+    // If exit code is 0, CLI is installed
+    if (typeof result.exitCode === 'number' && result.exitCode === 0) return true;
+
+    // For CCR, check if output contains version info (even with non-zero exit code)
+    if (/version:\s*\d+\.\d+\.\d+/i.test(out)) return true;
+
     return false;
   } catch {
     return false;
@@ -64,13 +73,9 @@ export function getCcrAuthPaths(configDir: string): string[] {
 
 /**
  * Checks if CCR is authenticated
+ * For CCR, we consider it authenticated if the CLI is installed
  */
 export async function isAuthenticated(options?: CcrAuthOptions): Promise<boolean> {
-  // Check if token is set via environment variable
-  if (process.env.CCR_CODE_TOKEN) {
-    return true;
-  }
-
   const configDir = resolveCcrConfigDir(options);
   const credPath = getCredentialsPath(configDir);
 
@@ -84,14 +89,9 @@ export async function isAuthenticated(options?: CcrAuthOptions): Promise<boolean
 
 /**
  * Ensures CCR is authenticated
- * Unlike Claude, CCR doesn't require interactive setup - authentication is done via environment variable
+ * For CCR, we just need to ensure the CLI is installed and provide configuration tips
  */
 export async function ensureAuth(options?: CcrAuthOptions): Promise<boolean> {
-  // Check if token is already set via environment variable
-  if (process.env.CCR_CODE_TOKEN) {
-    return true;
-  }
-
   const configDir = resolveCcrConfigDir(options);
   const credPath = getCredentialsPath(configDir);
 
@@ -101,14 +101,6 @@ export async function ensureAuth(options?: CcrAuthOptions): Promise<boolean> {
     return true;
   } catch {
     // Credentials file doesn't exist
-  }
-
-  if (process.env.CODEMACHINE_SKIP_AUTH === '1') {
-    // Create a placeholder for testing/dry-run mode
-    const ccrDir = path.dirname(credPath);
-    await mkdir(ccrDir, { recursive: true });
-    await writeFile(credPath, '{}', { encoding: 'utf8' });
-    return true;
   }
 
   // Check if CLI is installed
@@ -124,18 +116,33 @@ export async function ensureAuth(options?: CcrAuthOptions): Promise<boolean> {
     throw new Error(`${metadata.name} CLI is not installed.`);
   }
 
-  // For CCR, authentication is token-based via environment variable
-  console.error(`\n────────────────────────────────────────────────────────────`);
-  console.error(`  ℹ️  CCR Authentication Notice`);
-  console.error(`────────────────────────────────────────────────────────────`);
-  console.error(`\nCCR uses token-based authentication.`);
-  console.error(`Please set your CCR token as an environment variable:\n`);
-  console.error(`  export CCR_CODE_TOKEN=<your-token>\n`);
-  console.error(`For persistence, add this line to your shell configuration:`);
-  console.error(`  ~/.bashrc (Bash) or ~/.zshrc (Zsh)\n`);
-  console.error(`────────────────────────────────────────────────────────────\n`);
+  // Create the credentials marker file
+  const ccrDir = path.dirname(credPath);
+  await mkdir(ccrDir, { recursive: true });
+  await writeFile(credPath, JSON.stringify({ authenticated: true }), { encoding: 'utf8' });
 
-  throw new Error('Authentication incomplete. Please set CCR_CODE_TOKEN environment variable.');
+  // Show configuration tip
+  console.log(`\n────────────────────────────────────────────────────────────`);
+  console.log(`  ✅  ${metadata.name} CLI Detected`);
+  console.log(`────────────────────────────────────────────────────────────`);
+  console.log(`\n💡 Tip: CCR is installed but you might still need to configure it`);
+  console.log(`       (if you haven't already).\n`);
+  console.log(`To configure CCR:`);
+  console.log(`  1. Run: ccr ui`);
+  console.log(`     Opens the web UI to add your providers\n`);
+  console.log(`  2. Or manually edit: ~/.claude-code-router/config.json\n`);
+  console.log(`🚀 Easiest way to use CCR inside Codemachine:`);
+  console.log(`   Logout from all other engines using:`);
+  console.log(`     codemachine auth logout`);
+  console.log(`   This will run CCR by default for all engines.\n`);
+  console.log(`   Or modify the template by adding ccr engine.`);
+  console.log(`   For full guide, check:`);
+  console.log(`   https://github.com/moazbuilds/CodeMachine-CLI/blob/main/docs/customizing-workflows.md\n`);
+  console.log(`For more help, visit:`);
+  console.log(`  https://github.com/musistudio/claude-code-router\n`);
+  console.log(`────────────────────────────────────────────────────────────\n`);
+
+  return true;
 }
 
 /**
