@@ -60,9 +60,8 @@ export function createOptionalFileWarning(
   placeholderName: string,
   filePath: string,
 ): void {
-  console.warn(
-    `⚠️  Warning: Optional placeholder {!${placeholderName}} could not be loaded from ${filePath}. Skipping...`
-  );
+  // Optional placeholders that fail to load are silently skipped
+  // No warning is printed to avoid cluttering the output
 }
 
 /**
