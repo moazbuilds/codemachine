@@ -7,6 +7,7 @@ import { metadata } from '../metadata.js';
 import { expandHomeDir } from '../../../../../shared/utils/index.js';
 import { logger } from '../../../../../shared/logging/index.js';
 import { createTelemetryCapture } from '../../../../../shared/telemetry/index.js';
+import { formatThinking, formatCommand, formatResult } from '../../../../../shared/formatters/outputMarkers.js';
 
 export interface RunCcrOptions {
   prompt: string;
@@ -26,6 +27,9 @@ export interface RunCcrResult {
 
 const ANSI_ESCAPE_SEQUENCE = new RegExp(String.raw`\u001B\[[0-9;?]*[ -/]*[@-~]`, 'g');
 
+// Track tool names for associating with results
+const toolNameMap = new Map<string, string>();
+
 /**
  * Formats a CCR stream-json line for display
  */
@@ -36,29 +40,62 @@ function formatStreamJsonLine(line: string): string | null {
     if (json.type === 'assistant' && json.message?.content) {
       for (const content of json.message.content) {
         if (content.type === 'text') {
-          return `💬 TEXT: ${content.text}`;
+          return content.text;
         } else if (content.type === 'thinking') {
-          return `🧠 THINKING: ${content.text}`;
+          return formatThinking(content.text);
         } else if (content.type === 'tool_use') {
-          const argKeys = Object.keys(content.input || {}).join(', ');
-          return `🔧 TOOL: ${content.name} | Args: ${argKeys}`;
+          // Track tool name for later use with result
+          if (content.id && content.name) {
+            toolNameMap.set(content.id, content.name);
+          }
+          const commandName = content.name || 'tool';
+          return formatCommand(commandName, 'started');
         }
       }
     } else if (json.type === 'user' && json.message?.content) {
       for (const content of json.message.content) {
         if (content.type === 'tool_result') {
+          // Get tool name from map
+          const toolName = content.tool_use_id ? toolNameMap.get(content.tool_use_id) : undefined;
+          const commandName = toolName || 'tool';
+
+          // Clean up the map entry
+          if (content.tool_use_id) {
+            toolNameMap.delete(content.tool_use_id);
+          }
+
+          let preview: string;
           if (content.is_error) {
-            return `❌ ERROR: ${content.content}`;
+            preview = typeof content.content === 'string' ? content.content : JSON.stringify(content.content);
+            // Show command in red with nested error
+            return formatCommand(commandName, 'error') + '\n' + formatResult(preview, true);
           } else {
-            const preview = typeof content.content === 'string'
-              ? content.content.substring(0, 100) + '...'
-              : JSON.stringify(content.content);
-            return `✅ RESULT: ${preview}`;
+            if (typeof content.content === 'string') {
+              const trimmed = content.content.trim();
+              preview = trimmed
+                ? (trimmed.length > 100 ? trimmed.substring(0, 100) + '...' : trimmed)
+                : 'empty';
+            } else {
+              preview = JSON.stringify(content.content);
+            }
+            // Show command in green with nested result
+            return formatCommand(commandName, 'success') + '\n' + formatResult(preview, false);
           }
         }
       }
     } else if (json.type === 'result') {
-      return `⏱️  Duration: ${json.duration_ms}ms | Cost: $${json.total_cost_usd} | Tokens: ${json.usage.input_tokens}in/${json.usage.output_tokens}out`;
+      // Calculate total input tokens (non-cached + cached)
+      const cacheRead = json.usage.cache_read_input_tokens || 0;
+      const cacheCreation = json.usage.cache_creation_input_tokens || 0;
+      const totalCached = cacheRead + cacheCreation;
+      const totalIn = json.usage.input_tokens + totalCached;
+
+      // Show total input tokens with optional cached indicator
+      const tokensDisplay = totalCached > 0
+        ? `${totalIn}in/${json.usage.output_tokens}out (${totalCached} cached)`
+        : `${totalIn}in/${json.usage.output_tokens}out`;
+
+      return `⏱️  Duration: ${json.duration_ms}ms | Cost: $${json.total_cost_usd} | Tokens: ${tokensDisplay}`;
     }
 
     return null;
