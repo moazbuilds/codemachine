@@ -22,6 +22,7 @@ export default {
     'founder-architect',
     'structural-data-architect',
     'behavior-architect',
+    'ui-ux-architect',
     'operational-architect',
     'file-assembler'
   ],
