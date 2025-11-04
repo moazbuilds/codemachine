@@ -65,6 +65,12 @@ module.exports = [
     mirrorPath: 'prompts/templates/dev-codemachine/sub-agents/architecture/03-behavior-architect.md'
   },
   {
+    id: 'ui-ux-architect',
+    name: 'UI/UX & Interface Architect',
+    description: 'Define user interface architecture, design systems, component hierarchies, and user experience patterns',
+    mirrorPath: 'prompts/templates/dev-codemachine/sub-agents/architecture/05-ui-ux-architect.md'
+  },
+  {
     id: 'operational-architect',
     name: 'Operational & Documentation Architect',
     description: 'Handle deployment, operations, security, and documentation architecture',
@@ -74,6 +80,6 @@ module.exports = [
     id: 'file-assembler',
     name: 'File Assembler',
     description: 'Execute commands and create manifest files from architecture outputs',
-    mirrorPath: 'prompts/templates/dev-codemachine/sub-agents/architecture/05-file-assembler.md'
+    mirrorPath: 'prompts/templates/dev-codemachine/sub-agents/architecture/06-file-assembler.md'
   }
 ];

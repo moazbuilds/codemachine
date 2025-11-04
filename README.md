@@ -236,7 +236,7 @@ We conducted a real-world comparison by monitoring development work on a project
   - [Start Command](docs/cli-reference.md#start)
   - [Template Selection](docs/cli-reference.md#templates)
 - [Development Commands](docs/cli-reference.md#development-commands)
-  - [Agent Execution](docs/cli-reference.md#agent)
+  - [Run Command](docs/cli-reference.md#run)
   - [Step Execution](docs/cli-reference.md#step)
 - [Authentication](docs/cli-reference.md#auth)
   - [Login](docs/cli-reference.md#auth-login)

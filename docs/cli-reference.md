@@ -174,58 +174,99 @@ codemachine -d /path/to/project templates
 
 Commands for executing agents and workflow steps during development.
 
-### `agent`
+### `run`
 
-Execute an agent directly with specified engine configuration.
+Execute single agents or orchestrate multiple agents with the unified run command.
 
 **Syntax:**
 ```bash
-codemachine agent [options] <id> <prompt...>
-codemachine <engine-name> agent [options] <id> <prompt...>
+codemachine run <script>
+codemachine <engine-name> run <script>
 ```
 
 **Arguments:**
 
 | Argument | Required | Description |
 |----------|----------|-------------|
-| `<id>` | Yes | Agent ID from `config/sub.agents.js` or `config/main.agents.js` |
-| `<prompt...>` | Yes | User request to send to the agent (variadic) |
+| `<script>` | Yes | Agent execution script with optional orchestration syntax |
 
 **Options:**
 
 | Option | Description | Default |
 |--------|-------------|---------|
 | `--model <model>` | Model to use (overrides agent config) | Agent's configured model |
+| `-d, --dir <directory>` | Working directory | `process.cwd()` |
 
-**Behavior:**
-- Executes specified agent with default engine configuration
-- Supports engine-specific variants (e.g., `codemachine claude agent`)
-- Overrides agent config when `--model` provided
+**Script Syntax:**
+
+The `<script>` parameter supports several formats:
+
+1. **Simple agent execution:**
+   ```
+   "agent-id 'prompt'"
+   ```
+
+2. **Enhanced syntax with parameters:**
+   ```
+   "agent-id[input:file1.md;file2.md,tail:100] 'prompt'"
+   ```
+
+   Available parameters:
+   - `input:<file>` or `input:<file1>;<file2>` - Include file content(s) in agent context
+   - `tail:<number>` - Limit file content to last N lines
+
+3. **Parallel execution (using `&`):**
+   ```
+   "agent1 'prompt1' & agent2 'prompt2' & agent3 'prompt3'"
+   ```
+
+4. **Sequential execution (using `&&`):**
+   ```
+   "agent1 'prompt1' && agent2 'prompt2' && agent3 'prompt3'"
+   ```
+
+5. **Mixed execution:**
+   ```
+   "agent1 'prompt1' && agent2 'prompt2' & agent3 'prompt3'"
+   ```
 
 **Engine-Specific Commands:**
 Each registered engine can be invoked directly:
 ```bash
-codemachine claude agent my-agent "Do something"
-codemachine codex agent my-agent "Do something"
-codemachine cursor agent my-agent "Do something"
+codemachine claude run "agent 'prompt'"
+codemachine codex run "agent 'prompt'"
+codemachine cursor run "agent 'prompt'"
 ```
 
 **Examples:**
-```bash
-# Execute agent with default engine
-codemachine agent code-generator "Create a login component"
 
-# Execute with specific engine
-codemachine claude agent code-generator "Create a login component"
+```bash
+# Simple single agent execution
+codemachine run "code-generator 'Build login feature'"
+
+# Agent with input files
+codemachine run "system-analyst[input:.codemachine/agents/system-analyst.md,tail:100] 'analyze architecture'"
+
+# Multiple input files without prompt
+codemachine run "arch-writer[input:file1.md;file2.md;file3.md]"
+
+# Parallel orchestration
+codemachine run "frontend[tail:50] 'UI' & backend[tail:50] 'API' & db[tail:30] 'schema'"
+
+# Sequential orchestration
+codemachine run "db 'Setup schema' && backend 'Create models' && api 'Build endpoints'"
+
+# Mixed orchestration
+codemachine run "db[tail:50] 'setup' && frontend[input:design.md,tail:100] & backend[input:api-spec.md,tail:100]"
+
+# With specific engine
+codemachine claude run "code-generator 'Create a login component'"
 
 # Override model
-codemachine agent code-generator "Create a login component" --model gpt-4
-
-# Multi-word prompt
-codemachine agent reviewer "Review the authentication module for security issues"
+codemachine run "code-generator 'Create component'" --model gpt-4
 
 # In specific workspace
-codemachine -d /my/project agent my-agent "Generate tests"
+codemachine -d /my/project run "my-agent 'Generate tests'"
 ```
 
 **Agent Resolution:**
@@ -233,17 +274,45 @@ codemachine -d /my/project agent my-agent "Generate tests"
 2. Searches `config/sub.agents.js`
 3. Throws error if agent ID not found
 
+**Execution Behavior:**
+- `&` operator: Agents execute in parallel
+- `&&` operator: Agents execute sequentially (waits for previous completion)
+- Mixed: Evaluates left-to-right with operator precedence
+- Enhanced syntax allows including file contents and limiting output
+
 **Use Cases:**
-- Quick agent testing during development
-- One-off code generation tasks
-- Agent behavior validation
-- Debugging agent prompts
+- Single agent execution for quick tasks
+- Multi-agent orchestration for complex workflows
+- Including specification files in agent context
+- Parallel feature development across multiple agents
+- Sequential pipeline execution (design → implement → test)
 
 **Technical Details:**
-- Source: `src/cli/commands/agent.command.ts`
-- Dynamically registers engine-specific subcommands
-- Uses default engine or specified engine variant
-- Variadic prompt arguments joined with spaces
+- Source: `src/cli/commands/run.command.ts`
+- Uses `CoordinatorService` for execution
+- Parses scripts via `CoordinatorParser`
+- Replaces both old `agent` and `orchestrate` commands
+- Supports enhanced syntax not available in legacy commands
+
+**Migration from Legacy Commands:**
+
+If you were using the old `agent` command:
+```bash
+# Old
+codemachine agent code-generator "Create login"
+
+# New
+codemachine run "code-generator 'Create login'"
+```
+
+If you were using the old `orchestrate` command:
+```bash
+# Old
+codemachine orchestrate "frontend 'UI' & backend 'API'"
+
+# New (same syntax, different command)
+codemachine run "frontend 'UI' & backend 'API'"
+```
 
 ---
 
@@ -515,23 +584,23 @@ CodeMachine dynamically registers engine-specific command variants for each regi
 
 **Pattern:**
 ```bash
-codemachine <engine-name> agent <id> <prompt...>
+codemachine <engine-name> run <script>
 ```
 
 **Examples:**
 ```bash
 # Claude-specific agent execution
-codemachine claude agent my-agent "Generate code"
+codemachine claude run "my-agent 'Generate code'"
 
 # Codex-specific agent execution
-codemachine codex agent my-agent "Generate code"
+codemachine codex run "my-agent 'Generate code'"
 
 # Cursor engine variant
-codemachine cursor agent my-agent "Generate code"
+codemachine cursor run "my-agent 'Generate code'"
 ```
 
 **Behavior:**
-- Same options and arguments as main `agent` command
+- Same options and arguments as main `run` command
 - Forces execution with specific engine
 - Useful for engine comparison and testing
 
@@ -595,8 +664,8 @@ codemachine templates
 # Authenticate
 codemachine auth login
 
-# Execute agent
-codemachine agent <id> "<prompt>"
+# Execute agent or orchestrate
+codemachine run "<agent-id> 'prompt'"
 
 # Execute workflow step
 codemachine step <id>

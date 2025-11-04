@@ -12,11 +12,11 @@
 
 **2. Execution Workflow**
 
-Your primary task is to execute the following command structure. This workflow involves a foundational step, followed by parallel processing of three architect agents, and concludes with assembly and version control.
+Your primary task is to execute the following command structure. This workflow involves a foundational step, followed by parallel processing of four architect agents, and concludes with assembly and version control.
 
 **Master Command:**
 ```bash
-codemachine run "founder-architect[tail:3] && structural-data-architect[tail:3] & behavior-architect[tail:3] & operational-architect[tail:3] && file-assembler[tail:3]"
+codemachine run "founder-architect[tail:3] && structural-data-architect[tail:3] & behavior-architect[tail:3] & ui-ux-architect[tail:3] & operational-architect[tail:3] && file-assembler[tail:3]"
 ```
 
 <br>
@@ -34,6 +34,7 @@ Before initiating **and before retrying** any part of the "Master Command," you 
         - `01_Blueprint_Foundation.md` → skip `founder-architect`
         - `02_System_Structure_and_Data.md` → skip `structural-data-architect`
         - `03_Behavior_and_Communication.md` → skip `behavior-architect`
+        - `06_UI_UX_Architecture.md` → skip `ui-ux-architect`
         - `04_Operational_Architecture.md` and `05_Rationale_and_Future.md` → skip `operational-architect`
         - `architecture_manifest.json` → skip `file-assembler`
     *   Remove completed agents from the "Master Command" to prevent re-running completed work.
@@ -44,12 +45,12 @@ When modifying the Master Command to remove or select agents, you MUST use ONLY 
 
 **Example 1:** If `founder-architect` has already completed (artifact exists), remove it:
 ```bash
-codemachine run "structural-data-architect[tail:3] & behavior-architect[tail:3] & operational-architect[tail:3] && file-assembler[tail:3]"
+codemachine run "structural-data-architect[tail:3] & behavior-architect[tail:3] & ui-ux-architect[tail:3] & operational-architect[tail:3] && file-assembler[tail:3]"
 ```
 
 **Example 2:** If `founder-architect` and `structural-data-architect` have completed:
 ```bash
-codemachine run "behavior-architect[tail:3] & operational-architect[tail:3] && file-assembler[tail:3]"
+codemachine run "behavior-architect[tail:3] & ui-ux-architect[tail:3] & operational-architect[tail:3] && file-assembler[tail:3]"
 ```
 
 **Example 3:** If only `file-assembler` needs to run:
