@@ -96,7 +96,7 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
     const memoryDir = path.resolve(cwd, '.codemachine', 'memory');
     const adapter = new MemoryAdapter(memoryDir);
     const store = new MemoryStore(adapter);
-    const compositePrompt = `[SYSTEM]\n${triggeredAgentTemplate}`;
+    const compositePrompt = triggeredAgentTemplate;
 
     // Execute triggered agent
     let totalTriggeredStdout = '';

@@ -121,10 +121,10 @@ async function executeStep(
   let compositePrompt: string;
   if (additionalPrompt) {
     // If additional prompt provided, append it as a REQUEST section
-    compositePrompt = `[SYSTEM]\n${agentTemplate}\n\n[REQUEST]\n${additionalPrompt}`;
+    compositePrompt = `${agentTemplate}\n\n[REQUEST]\n${additionalPrompt}`;
   } else {
     // If no additional prompt, just use the template
-    compositePrompt = `[SYSTEM]\n${agentTemplate}`;
+    compositePrompt = agentTemplate;
   }
 
   // Get engine and execute

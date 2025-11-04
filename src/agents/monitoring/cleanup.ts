@@ -1,6 +1,7 @@
 import { AgentMonitorService } from './monitor.js';
 import { AgentLoggerService } from './logger.js';
 import * as logger from '../../shared/logging/logger.js';
+import { killAllActiveProcesses } from '../../infra/process/spawn.js';
 
 /**
  * Handles graceful cleanup of monitoring state on process termination
@@ -42,10 +43,13 @@ export class MonitoringCleanup {
     // Handle Ctrl+C (SIGINT) with two-stage behavior
     process.on('SIGINT', async () => {
       if (!this.firstCtrlCPressed) {
-        // First Ctrl+C: Gracefully stop workflow without cleanup
+        // First Ctrl+C: Abort current step and stop workflow gracefully
         this.firstCtrlCPressed = true;
         this.firstCtrlCTime = Date.now();
-        logger.debug('First Ctrl+C detected - stopping workflow gracefully');
+        logger.debug('First Ctrl+C detected - aborting current step and stopping workflow gracefully');
+
+        // Emit workflow:skip to abort the currently running step (triggers AbortController)
+        process.emit('workflow:skip' as any);
 
         // Call UI callback to update status
         this.workflowHandlers.onStop?.();
@@ -98,6 +102,11 @@ export class MonitoringCleanup {
    */
   private static async handleSignal(signal: string, message: string): Promise<void> {
     logger.debug(`Received ${signal}: ${message}`);
+
+    // Kill all active child processes before cleanup
+    logger.debug('Killing all active child processes...');
+    killAllActiveProcesses();
+
     await this.cleanup('aborted', new Error(message));
     process.exit(130); // Standard exit code for Ctrl+C
   }
