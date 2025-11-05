@@ -51,21 +51,18 @@ module.exports = [
     name: 'Founder Architect',
     description: 'Handle foundational architecture tasks',
     mirrorPath: 'prompts/templates/dev-codemachine/sub-agents/architecture/01-founder-architect.md',
-    engine: 'ccr'
   },
   {
     id: 'structural-data-architect',
     name: 'Structural & Data Architect',
     description: 'Define the static structure of the system, components hierarchy, and data organization',
     mirrorPath: 'prompts/templates/dev-codemachine/sub-agents/architecture/02-structural-data-architect.md',
-    engine: 'ccr'
   },
   {
     id: 'behavior-architect',
     name: 'Behavior & Communication Architect',
     description: 'Define dynamic interactions, data flows, and communication patterns between components',
     mirrorPath: 'prompts/templates/dev-codemachine/sub-agents/architecture/03-behavior-architect.md',
-
   },
   {
     id: 'ui-ux-architect',
