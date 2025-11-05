@@ -78,6 +78,6 @@ Follow the detailed instructions for each script:
 
 ## Contextual Information:
 
-{foundation}
+Codebase
 
 
