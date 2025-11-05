@@ -182,11 +182,15 @@ export class WorkflowUIState {
 
     // Update the source agent's loop round
     if (loopState && loopState.active) {
+      // Debug: log loop state
+      if (process.env.LOG_LEVEL === 'debug') {
+        console.error(`[DEBUG] setLoopState: sourceAgent=${loopState.sourceAgent}, iteration=${loopState.iteration}, reason="${loopState.reason}"`);
+      }
       this.state = {
         ...this.state,
         agents: this.state.agents.map((agent) =>
           agent.id === loopState.sourceAgent
-            ? { ...agent, loopRound: loopState.iteration }
+            ? { ...agent, loopRound: loopState.iteration, loopReason: loopState.reason }
             : agent
         ),
       };
@@ -200,7 +204,7 @@ export class WorkflowUIState {
       ...this.state,
       agents: this.state.agents.map((agent) =>
         agent.id === agentId
-          ? { ...agent, loopRound: undefined }
+          ? { ...agent, loopRound: undefined, loopReason: undefined }
           : agent
       ),
     };
@@ -348,6 +352,8 @@ export class WorkflowUIState {
               startTime: Date.now(),
               endTime: undefined,
               error: undefined,
+              // Preserve loopRound and loopReason - these are set by setLoopState and should persist
+              // loopReason: undefined,  <-- removed to preserve loop state
               telemetry: {
                 tokensIn: 0,
                 tokensOut: 0,

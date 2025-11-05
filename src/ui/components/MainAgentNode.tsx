@@ -64,12 +64,16 @@ export const MainAgentNode: React.FC<MainAgentNodeProps> = ({ agent, isSelected 
 
   // If loop round exists, show cycle on separate line below
   if (hasLoopRound) {
+    // Debug: log loop reason
+    if (process.env.LOG_LEVEL === 'debug') {
+      console.error(`[DEBUG] MainAgentNode: loopRound=${agent.loopRound}, loopReason="${agent.loopReason}"`);
+    }
     return (
       <Box paddingX={1} flexDirection="column">
         {mainLine}
         <Box paddingLeft={2}>
           <Text bold color="cyan">
-            ⎿ Cycle {agent.loopRound}
+            ⎿ Cycle {agent.loopRound}{agent.loopReason ? ` - ${agent.loopReason}` : ''}
           </Text>
         </Box>
       </Box>
