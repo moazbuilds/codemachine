@@ -7,7 +7,7 @@ import { metadata } from '../metadata.js';
 import { expandHomeDir } from '../../../../../shared/utils/index.js';
 import { createTelemetryCapture } from '../../../../../shared/telemetry/index.js';
 import type { ParsedTelemetry } from '../../../core/types.js';
-import { formatThinking, formatCommand, formatResult } from '../../../../../shared/formatters/outputMarkers.js';
+import { formatThinking, formatCommand, formatResult, formatStatus } from '../../../../../shared/formatters/outputMarkers.js';
 
 export interface RunClaudeOptions {
   prompt: string;
@@ -84,6 +84,9 @@ function formatStreamJsonLine(line: string): string | null {
           }
         }
       }
+    } else if (json.type === 'system' && json.subtype === 'init') {
+      // Show status message when session starts
+      return formatStatus('Claude is analyzing your request...');
     } else if (json.type === 'result') {
       // Calculate total input tokens (non-cached + cached)
       const cacheRead = json.usage.cache_read_input_tokens || 0;
