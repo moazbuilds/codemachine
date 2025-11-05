@@ -22,13 +22,27 @@ export class RegistryLockService {
    * Acquire an exclusive lock on the registry file
    * Returns a release function to unlock the file
    *
-   * If the file doesn't exist yet, creates a placeholder to lock against
+   * Ensures the file exists before attempting to lock
    */
   async acquireLock(): Promise<() => Promise<void>> {
     try {
-      // For registry, we lock even if file doesn't exist yet
-      // (prevents race during initial creation)
       const lockPath = this.registryPath;
+
+      // Ensure file exists before locking (proper-lockfile requires this)
+      // Create empty file if it doesn't exist
+      const { existsSync } = await import('fs');
+      const { writeFile, mkdir } = await import('fs/promises');
+      const { dirname } = await import('path');
+
+      if (!existsSync(lockPath)) {
+        const dir = dirname(lockPath);
+        if (!existsSync(dir)) {
+          await mkdir(dir, { recursive: true });
+        }
+        // Create minimal valid registry file
+        await writeFile(lockPath, JSON.stringify({ lastId: 0, agents: {} }, null, 2), 'utf-8');
+        logger.debug(`Created registry file for locking: ${lockPath}`);
+      }
 
       // Acquire lock with proper-lockfile
       const release = await lockfile.lock(lockPath, {
@@ -38,7 +52,7 @@ export class RegistryLockService {
           minTimeout: 50,
           maxTimeout: 500,
         },
-        realpath: false, // Don't resolve symlinks (registry might not exist yet)
+        realpath: false, // Don't resolve symlinks
         lockfilePath: `${lockPath}.lock`, // Explicit lock file path
       });
 
@@ -47,10 +61,10 @@ export class RegistryLockService {
 
       return release;
     } catch (error) {
-      logger.warn(`Failed to acquire lock for registry ${this.registryPath}: ${error}`);
-      // Return no-op release function for graceful degradation
-      // This allows the system to continue even if locking fails
-      return async () => {};
+      logger.error(`CRITICAL: Failed to acquire lock for registry ${this.registryPath}: ${error}`);
+      // DO NOT silently degrade - throw error for critical operations
+      // This prevents data corruption from unprotected concurrent access
+      throw new Error(`Failed to acquire registry lock: ${error}`);
     }
   }
 
