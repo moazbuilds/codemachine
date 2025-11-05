@@ -1,8 +1,9 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { readFile, writeFile, mkdir } from 'fs/promises';
+import { readFile, writeFile, mkdir, rename } from 'fs/promises';
 import { dirname } from 'path';
 import type { AgentRecord, AgentRegistryData } from './types.js';
 import * as logger from '../../shared/logging/logger.js';
+import { RegistryLockService } from './registryLock.js';
 
 /**
  * Manages persistence of agent registry to disk with async I/O and write debouncing
@@ -19,9 +20,11 @@ export class AgentRegistry {
   private isDirty: boolean = false;
   private pendingWrite: NodeJS.Timeout | null = null;
   private writeDebounceMs: number = 100; // Batch writes within 100ms
+  private lockService: RegistryLockService;
 
   constructor(registryPath: string = '.codemachine/logs/registry.json') {
     this.registryPath = registryPath;
+    this.lockService = new RegistryLockService(registryPath);
     this.data = this.load();
   }
 
@@ -131,33 +134,43 @@ export class AgentRegistry {
 
   /**
    * Get next available agent ID
-   * Writes immediately to prevent ID conflicts across processes
+   * Uses file locking to prevent ID conflicts across processes
    */
-  getNextId(): number {
-    this.data.lastId += 1;
-    this.persistImmediate();
-    return this.data.lastId;
+  async getNextId(): Promise<number> {
+    return await this.lockService.withLock(async () => {
+      // Reload from disk to get latest ID (critical for multi-process)
+      this.data = this.load();
+      this.data.lastId += 1;
+      await this.persistImmediateAtomic();
+      return this.data.lastId;
+    });
   }
 
   /**
    * Save agent record
-   * Critical operations (initial registration) are written immediately
-   * to prevent timing issues with UI loading logs
+   * Critical operations (initial registration) are written immediately with locking
+   * to prevent timing issues and race conditions
    */
-  save(agent: AgentRecord): void {
-    this.data.agents[agent.id] = agent;
-
-    // For initial agent registration (no endTime), write immediately
-    // This prevents "Agent not found" errors when UI loads logs right after registration
+  async save(agent: AgentRecord): Promise<void> {
+    // For initial agent registration (no endTime), write immediately with lock
+    // This prevents "Agent not found" errors and race conditions
     if (!agent.endTime) {
-      this.persistImmediate();
+      await this.lockService.withLock(async () => {
+        // Reload to get latest state before saving
+        this.data = this.load();
+        this.data.agents[agent.id] = agent;
+        await this.persistImmediateAtomic();
+      });
     } else {
+      // For updates (has endTime), use in-memory cache and debounced write
+      this.data.agents[agent.id] = agent;
       this.persist();
     }
   }
 
   /**
    * Persist immediately without debouncing (for critical operations)
+   * DEPRECATED: Use persistImmediateAtomic() instead
    */
   private persistImmediate(): void {
     // Cancel any pending debounced write
@@ -182,6 +195,38 @@ export class AgentRegistry {
   }
 
   /**
+   * Persist immediately with atomic write (for critical operations under lock)
+   * Uses temp file + rename pattern for crash safety
+   */
+  private async persistImmediateAtomic(): Promise<void> {
+    // Cancel any pending debounced write
+    if (this.pendingWrite) {
+      clearTimeout(this.pendingWrite);
+      this.pendingWrite = null;
+    }
+
+    try {
+      const dir = dirname(this.registryPath);
+      if (!existsSync(dir)) {
+        await mkdir(dir, { recursive: true });
+      }
+
+      // Write to temp file first
+      const tempPath = `${this.registryPath}.tmp`;
+      await writeFile(tempPath, JSON.stringify(this.data, null, 2), 'utf-8');
+
+      // Atomic rename (POSIX guarantees atomicity)
+      await rename(tempPath, this.registryPath);
+
+      this.isDirty = false;
+      logger.debug(`Atomically persisted agent registry to ${this.registryPath}`);
+    } catch (error) {
+      logger.error(`Failed to atomically persist agent registry: ${error}`);
+      throw error; // Re-throw for lock handler
+    }
+  }
+
+  /**
    * Get agent by ID
    */
   get(id: number): AgentRecord | undefined {
@@ -197,18 +242,20 @@ export class AgentRegistry {
 
   /**
    * Update specific fields of an agent
-   * Reloads from disk first to prevent multi-process conflicts
+   * Uses file locking to prevent multi-process conflicts
    */
-  update(id: number, updates: Partial<AgentRecord>): void {
-    // Reload from disk to get latest state (critical for multi-process safety)
-    // This prevents subprocess changes (e.g., children array updates) from being lost
-    this.data = this.load();
+  async update(id: number, updates: Partial<AgentRecord>): Promise<void> {
+    await this.lockService.withLock(async () => {
+      // Reload from disk to get latest state (critical for multi-process safety)
+      // This prevents subprocess changes (e.g., children array updates) from being lost
+      this.data = this.load();
 
-    const agent = this.data.agents[id];
-    if (agent) {
-      this.data.agents[id] = { ...agent, ...updates };
-      this.persist();
-    }
+      const agent = this.data.agents[id];
+      if (agent) {
+        this.data.agents[id] = { ...agent, ...updates };
+        await this.persistImmediateAtomic();
+      }
+    });
   }
 
   /**

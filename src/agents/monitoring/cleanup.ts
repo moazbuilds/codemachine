@@ -134,7 +134,7 @@ export class MonitoringCleanup {
           try {
             // Mark agent as failed with appropriate error
             const errorMsg = error || new Error(`Agent ${reason}: ${agent.name}`);
-            monitor.fail(agent.id, errorMsg);
+            await monitor.fail(agent.id, errorMsg);
 
             // Close log stream (now async)
             await loggerService.closeStream(agent.id);

@@ -56,7 +56,7 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
       }
 
       // Register triggered agent with parent relationship and engine/model info
-      monitoringAgentId = monitor.register({
+      monitoringAgentId = await monitor.register({
         name: triggerAgentId,
         prompt: `Triggered by ${sourceAgentId}`,
         parentId: parentMonitoringId,
@@ -122,9 +122,11 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
       onTelemetry: (telemetry) => {
         ui?.updateAgentTelemetry(triggerAgentId, telemetry);
 
-        // Update telemetry in monitoring
+        // Update telemetry in monitoring (fire and forget - don't block streaming)
         if (monitor && monitoringAgentId !== undefined) {
-          monitor.updateTelemetry(monitoringAgentId, telemetry);
+          monitor.updateTelemetry(monitoringAgentId, telemetry).catch(err =>
+            console.error(`Failed to update telemetry: ${err}`)
+          );
         }
       },
       abortSignal,
@@ -156,14 +158,14 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
 
     // Mark agent as completed in monitoring
     if (monitor && monitoringAgentId !== undefined) {
-      monitor.complete(monitoringAgentId);
+      await monitor.complete(monitoringAgentId);
       // Note: Don't close stream here - workflow may write more messages
       // Streams will be closed by cleanup handlers or monitoring service shutdown
     }
   } catch (triggerError) {
     // Mark agent as failed in monitoring
     if (monitor && monitoringAgentId !== undefined) {
-      monitor.fail(monitoringAgentId, triggerError as Error);
+      await monitor.fail(monitoringAgentId, triggerError as Error);
       // Note: Don't close stream here - workflow may write more messages
       // Streams will be closed by cleanup handlers or monitoring service shutdown
     }

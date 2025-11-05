@@ -29,8 +29,8 @@ export class AgentMonitorService {
   /**
    * Register a new agent and return its ID
    */
-  register(input: RegisterAgentInput, logPath?: string): number {
-    const id = this.registry.getNextId();
+  async register(input: RegisterAgentInput, logPath?: string): Promise<number> {
+    const id = await this.registry.getNextId();
     const startTime = new Date().toISOString();
     const pid = input.pid ?? process.pid;
 
@@ -57,18 +57,17 @@ export class AgentMonitorService {
 
     // If this agent has a parent, add this agent to parent's children list
     if (input.parentId) {
-      // Reload registry to get latest parent state from disk (multi-process safety)
-      // Critical: subprocess may have updated parent's children array
-      this.registry.reload();
-
+      // Get parent and update children array atomically
+      // The update() method now uses locking to prevent race conditions
       const parent = this.registry.get(input.parentId);
-      if (parent) {
-        parent.children.push(id);
-        this.registry.save(parent);
+      if (parent && !parent.children.includes(id)) {
+        await this.registry.update(input.parentId, {
+          children: [...parent.children, id]
+        });
       }
     }
 
-    this.registry.save(agent);
+    await this.registry.save(agent);
     logger.debug(`Registered agent ${id} (${input.name})`);
     return id;
   }
@@ -76,7 +75,7 @@ export class AgentMonitorService {
   /**
    * Mark agent as completed
    */
-  complete(id: number, telemetry?: ParsedTelemetry): void {
+  async complete(id: number, telemetry?: ParsedTelemetry): Promise<void> {
     const agent = this.registry.get(id);
     if (!agent) {
       logger.warn(`Attempted to complete non-existent agent ${id}`);
@@ -97,7 +96,7 @@ export class AgentMonitorService {
       updates.telemetry = telemetry;
     }
 
-    this.registry.update(id, updates);
+    await this.registry.update(id, updates);
 
     logger.debug(`Agent ${id} (${agent.name}) completed in ${duration}ms`);
   }
@@ -105,7 +104,7 @@ export class AgentMonitorService {
   /**
    * Mark agent as failed
    */
-  fail(id: number, error: Error | string): void {
+  async fail(id: number, error: Error | string): Promise<void> {
     const agent = this.registry.get(id);
     if (!agent) {
       logger.warn(`Attempted to fail non-existent agent ${id}`);
@@ -117,7 +116,7 @@ export class AgentMonitorService {
     const errorMessage = error instanceof Error ? error.message : error;
 
     // Preserve existing telemetry when failing
-    this.registry.update(id, {
+    await this.registry.update(id, {
       status: 'failed',
       endTime,
       duration,
@@ -138,15 +137,15 @@ export class AgentMonitorService {
   /**
    * Update agent status
    */
-  updateStatus(id: number, status: AgentStatus): void {
-    this.registry.update(id, { status });
+  async updateStatus(id: number, status: AgentStatus): Promise<void> {
+    await this.registry.update(id, { status });
   }
 
   /**
    * Update agent telemetry
    */
-  updateTelemetry(id: number, telemetry: ParsedTelemetry): void {
-    this.registry.update(id, { telemetry });
+  async updateTelemetry(id: number, telemetry: ParsedTelemetry): Promise<void> {
+    await this.registry.update(id, { telemetry });
   }
 
   /**
@@ -259,7 +258,7 @@ export class AgentMonitorService {
    * Clear all descendants of an agent (used for loop resets)
    * Removes all child agents recursively from the registry
    */
-  clearDescendants(agentId: number): void {
+  async clearDescendants(agentId: number): Promise<void> {
     this.registry.reload();
     const agent = this.registry.get(agentId);
     if (!agent) {
@@ -271,13 +270,13 @@ export class AgentMonitorService {
 
     // Recursively delete all descendants
     for (const child of children) {
-      this.clearDescendants(child.id);
+      await this.clearDescendants(child.id);
       this.registry.delete(child.id);
     }
 
     // Clear the children array of the parent
     agent.children = [];
-    this.registry.save(agent);
+    await this.registry.save(agent);
 
     logger.debug(`Cleared ${children.length} descendants for agent ${agentId}`);
   }
@@ -319,13 +318,17 @@ export class AgentMonitorService {
       error: 'Process terminated unexpectedly'
     };
 
-    this.registry.update(agent.id, failureUpdate);
+    // Fire and forget - don't block read operations
+    this.registry.update(agent.id, failureUpdate).catch(err =>
+      logger.warn(`Failed to update agent ${agent.id} status: ${err}`)
+    );
+
     logger.debug(
       `Agent ${agent.id} (${agent.name}) marked as failed: process ${agent.pid} is no longer running`
     );
 
-    const updated = this.registry.get(agent.id);
-    return updated ?? { ...agent, ...failureUpdate };
+    // Return optimistically updated agent (don't wait for disk write)
+    return { ...agent, ...failureUpdate };
   }
 
   /**
