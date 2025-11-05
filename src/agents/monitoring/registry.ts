@@ -46,7 +46,21 @@ export class AgentRegistry {
     try {
       if (existsSync(this.registryPath)) {
         const content = await readFile(this.registryPath, 'utf-8');
+
+        // Skip empty or whitespace-only files (race condition during file creation)
+        if (!content || content.trim().length === 0) {
+          logger.debug('Registry file is empty, skipping reload');
+          return;
+        }
+
         const parsed = JSON.parse(content) as AgentRegistryData;
+
+        // Validate parsed data structure
+        if (!parsed || typeof parsed !== 'object' || !parsed.agents) {
+          logger.warn('Registry file has invalid structure, skipping reload');
+          return;
+        }
+
         this.data = parsed;
         logger.debug(`Async reloaded agent registry with ${Object.keys(parsed.agents).length} agents`);
       }
@@ -63,7 +77,21 @@ export class AgentRegistry {
     try {
       if (existsSync(this.registryPath)) {
         const content = readFileSync(this.registryPath, 'utf-8');
+
+        // Skip empty or whitespace-only files (race condition during file creation)
+        if (!content || content.trim().length === 0) {
+          logger.debug('Registry file is empty, returning default registry');
+          return { lastId: 0, agents: {} };
+        }
+
         const parsed = JSON.parse(content) as AgentRegistryData;
+
+        // Validate parsed data structure
+        if (!parsed || typeof parsed !== 'object' || !parsed.agents) {
+          logger.warn('Registry file has invalid structure, returning default registry');
+          return { lastId: 0, agents: {} };
+        }
+
         logger.debug(`Loaded agent registry with ${Object.keys(parsed.agents).length} agents`);
         return parsed;
       }

@@ -29,18 +29,19 @@ export class RegistryLockService {
       const lockPath = this.registryPath;
 
       // Ensure file exists before locking (proper-lockfile requires this)
-      // Create empty file if it doesn't exist
-      const { existsSync } = await import('fs');
-      const { writeFile, mkdir } = await import('fs/promises');
+      // Use synchronous operations to prevent race conditions during file creation
+      const { existsSync, mkdirSync, writeFileSync } = await import('fs');
       const { dirname } = await import('path');
 
       if (!existsSync(lockPath)) {
         const dir = dirname(lockPath);
         if (!existsSync(dir)) {
-          await mkdir(dir, { recursive: true });
+          mkdirSync(dir, { recursive: true });
         }
-        // Create minimal valid registry file
-        await writeFile(lockPath, JSON.stringify({ lastId: 0, agents: {} }, null, 2), 'utf-8');
+        // Create minimal valid registry file synchronously
+        // This ensures the file is fully written before we try to lock it
+        const initialData = JSON.stringify({ lastId: 0, agents: {} }, null, 2);
+        writeFileSync(lockPath, initialData, 'utf-8');
         logger.debug(`Created registry file for locking: ${lockPath}`);
       }
 
