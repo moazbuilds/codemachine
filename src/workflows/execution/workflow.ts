@@ -442,6 +442,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
           iteration,
           maxIterations: step.module?.behavior?.type === 'loop' ? step.module.behavior.maxIterations ?? Infinity : Infinity,
           skipList: loopResult.decision.skipList || [],
+          reason: loopResult.decision.reason,
         });
 
         // Reset all agents that will be re-executed in the loop
