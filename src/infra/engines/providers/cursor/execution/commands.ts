@@ -21,6 +21,7 @@ const MODEL_MAP: Record<string, string> = {
   'sonnet': 'sonnet-4.5',
   'claude-sonnet-4.5': 'sonnet-4.5',
   'opus': 'opus-4.1',
+  'grok': 'grok',
 };
 
 /**

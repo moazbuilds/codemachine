@@ -5,7 +5,7 @@ import { spawnProcess } from '../../../../process/spawn.js';
 import { buildCursorExecCommand } from './commands.js';
 import { metadata } from '../metadata.js';
 import { expandHomeDir } from '../../../../../shared/utils/index.js';
-import { formatThinking, formatCommand, formatResult } from '../../../../../shared/formatters/outputMarkers.js';
+import { formatThinking, formatCommand, formatResult, formatStatus } from '../../../../../shared/formatters/outputMarkers.js';
 
 export interface RunCursorOptions {
   prompt: string;
@@ -28,12 +28,44 @@ const ANSI_ESCAPE_SEQUENCE = new RegExp(String.raw`\u001B\[[0-9;?]*[ -/]*[@-~]`,
 // Track tool names for associating with results
 const toolNameMap = new Map<string, string>();
 
+// Track accumulated thinking text for delta updates
+let accumulatedThinking = '';
+
 /**
  * Formats a Cursor stream-json line for display
  */
 function formatStreamJsonLine(line: string): string | null {
   try {
     const json = JSON.parse(line);
+
+    // Handle system lifecycle events
+    if (json.type === 'system' && json.subtype === 'init') {
+      // Skip system init messages
+      return null;
+    }
+
+    // Handle user messages (request started)
+    if (json.type === 'user' && json.message) {
+      return formatStatus('Cursor is analyzing your request...');
+    }
+
+    // Handle root-level thinking messages (Grok and other models)
+    if (json.type === 'thinking') {
+      if (json.subtype === 'delta' && json.text) {
+        // Accumulate thinking deltas
+        accumulatedThinking += json.text;
+        // Return null for deltas to avoid spamming output with each token
+        return null;
+      } else if (json.subtype === 'completed') {
+        // When thinking is complete, return the full thinking block
+        if (accumulatedThinking) {
+          const result = formatThinking(accumulatedThinking);
+          accumulatedThinking = ''; // Reset for next thinking block
+          return result;
+        }
+        return null;
+      }
+    }
 
     // Handle root-level tool_call messages
     if (json.type === 'tool_call') {
