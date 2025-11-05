@@ -22,10 +22,20 @@ You **MUST** analyze all changes and:
 You **MUST**:
 1. Ensure only essential folders are in `.gitignore` (create or update .gitignore if needed):
    - `.codemachine/memory`
+   - `.codemachine/logs`
+   - `.codemachine/prompts`
+   - `.codemachine/agents`
+   - `.codemachine/template.json`
    - `node_modules`
 2. Stage all relevant files using `git add <file>` or `git add .` for all changes
 3. **MUST NOT** stage files that contain secrets, credentials, or sensitive data
-
+4. **MUST NOT** stage files that is not part of the project codebase or configuration files, e.g:
+    *   `*cache/`
+    *   `*.cache`
+    *   `__pycache__/`
+    *   `*.log`
+    *   `*.tmp`
+    *   `*.swp`
 ### Step 4: Generate Commit Message
 You **MUST** create a commit message following this format:
 
