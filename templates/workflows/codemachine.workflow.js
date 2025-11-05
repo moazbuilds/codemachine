@@ -5,15 +5,15 @@ export default {
     resolveStep('principal-analyst', { executeOnce: true, engine: 'claude' }), // Review specifications and identify critical ambiguities
     resolveUI("∴ Planning Phase ∴"),
     resolveStep('blueprint-orchestrator', { executeOnce: true }), // Orchestrate architecture blueprint generation
-    resolveStep('plan-agent', { executeOnce: true, engine: 'codex', notCompletedFallback: 'plan-fallback' }), // Generate comprehensive iterative development plan with architectural artifacts
-    resolveStep('task-breakdown', { executeOnce: true, engine: 'codex' }), // Extract and structure tasks from project plan into JSON format
-    resolveStep('git-commit', { executeOnce: true, engine: 'cursor' }), // Commit the task breakdown to git
+    resolveStep('plan-agent', { executeOnce: true }), // Generate comprehensive iterative development plan with architectural artifacts
+    resolveStep('task-breakdown', { executeOnce: true, engine: 'cursor', model: 'grok' }), // Extract and structure tasks from project plan into JSON format
+    resolveStep('git-commit', { executeOnce: true, engine: 'cursor', model: 'grok' }), // Commit the task breakdown to git
     resolveUI("⟲ Development Cycle ⟲"),
-    resolveStep('context-manager', { engine: 'codex' }), // Gather and prepare relevant context from architecture, plan, and codebase for task execution
-    resolveStep('code-generation', { engine: 'claude' }), // Generate code implementation based on task specifications and design artifacts
-    resolveStep('runtime-prep', { executeOnce: true, engine: 'claude' }), // Generate robust shell scripts for project automation (install, run, lint, test)
-    resolveStep('task-sanity-check', { engine: 'claude' }), // Verify generated code against task requirements and acceptance criteria
-    resolveStep('git-commit', { engine: 'cursor' }), // Commit the generated and verified code
+    resolveStep('context-manager', { engine: 'ccr' }), // Gather and prepare relevant context from architecture, plan, and codebase for task execution
+    resolveStep('code-generation', { engine: 'cursor', model: 'grok' }), // Generate code implementation based on task specifications and design artifacts
+    resolveStep('runtime-prep', { executeOnce: true, engine: 'cursor', model: 'grok' }), // Generate robust shell scripts for project automation (install, run, lint, test) 
+    resolveStep('task-sanity-check', { engine: 'cursor', model: 'grok' }), // Verify generated code against task requirements and acceptance criteria
+    resolveStep('git-commit', { engine: 'cursor', model: 'grok' }), // Commit the generated and verified code
     resolveUI("◈◈ Iteration Gate ◈◈"),
     resolveModule('check-task', { engine: 'cursor', loopSteps: 6, loopMaxIterations: 20,  loopSkip: ['runtime-prep']  }), // Loop back if tasks are not completed
   ],
