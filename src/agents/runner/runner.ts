@@ -242,7 +242,7 @@ export async function executeAgent(
   let monitoringAgentId: number | undefined;
 
   if (monitor && loggerService) {
-    monitoringAgentId = monitor.register({
+    monitoringAgentId = await monitor.register({
       name: agentId,
       prompt: displayPrompt || prompt, // Use display prompt for logging if provided
       parentId,
@@ -320,9 +320,11 @@ export async function executeAgent(
         }
       },
       onTelemetry: (telemetry) => {
-        // Update telemetry in monitoring
+        // Update telemetry in monitoring (fire and forget - don't block streaming)
         if (monitor && monitoringAgentId !== undefined) {
-          monitor.updateTelemetry(monitoringAgentId, telemetry);
+          monitor.updateTelemetry(monitoringAgentId, telemetry).catch(err =>
+            console.error(`Failed to update telemetry: ${err}`)
+          );
         }
 
         // Forward to caller's telemetry callback (for UI updates)
@@ -345,7 +347,7 @@ export async function executeAgent(
 
     // Mark agent as completed
     if (monitor && monitoringAgentId !== undefined) {
-      monitor.complete(monitoringAgentId);
+      await monitor.complete(monitoringAgentId);
       // Note: Don't close stream here - workflow may write more messages
       // Streams will be closed by cleanup handlers or monitoring service shutdown
     }
@@ -357,7 +359,7 @@ export async function executeAgent(
   } catch (error) {
     // Mark agent as failed
     if (monitor && monitoringAgentId !== undefined) {
-      monitor.fail(monitoringAgentId, error as Error);
+      await monitor.fail(monitoringAgentId, error as Error);
       // Note: Don't close stream here - workflow may write more messages
       // Streams will be closed by cleanup handlers or monitoring service shutdown
     }

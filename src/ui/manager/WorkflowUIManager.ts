@@ -511,7 +511,7 @@ export class WorkflowUIManager {
    * Reset an agent for a new loop iteration
    * Saves current state to history, then clears UI data and monitoring registry data
    */
-  resetAgentForLoop(agentId: string, cycleNumber?: number): void {
+  async resetAgentForLoop(agentId: string, cycleNumber?: number): Promise<void> {
     // 1. Save current agent state to execution history
     this.state.saveAgentToHistory(agentId, cycleNumber);
 
@@ -540,7 +540,7 @@ export class WorkflowUIManager {
       }
 
       // Clear descendants from monitoring registry
-      monitor.clearDescendants(monitoringId);
+      await monitor.clearDescendants(monitoringId);
     }
 
     if (this.fallbackMode) {

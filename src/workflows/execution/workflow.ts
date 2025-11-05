@@ -451,7 +451,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
           const resetStep = template.steps[resetIndex];
           if (resetStep && resetStep.type === 'module') {
             const resetUniqueAgentId = `${resetStep.agentId}-step-${resetIndex}`;
-            ui.resetAgentForLoop(resetUniqueAgentId, iteration);
+            await ui.resetAgentForLoop(resetUniqueAgentId, iteration);
           }
         }
 
