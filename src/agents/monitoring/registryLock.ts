@@ -1,5 +1,4 @@
 import lockfile from 'proper-lockfile';
-import { existsSync } from 'fs';
 import * as logger from '../../shared/logging/logger.js';
 
 /**
