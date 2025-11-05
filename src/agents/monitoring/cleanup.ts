@@ -49,7 +49,7 @@ export class MonitoringCleanup {
         logger.debug('First Ctrl+C detected - aborting current step and stopping workflow gracefully');
 
         // Emit workflow:skip to abort the currently running step (triggers AbortController)
-        process.emit('workflow:skip' as string);
+        (process as NodeJS.EventEmitter).emit('workflow:skip');
 
         // Call UI callback to update status
         this.workflowHandlers.onStop?.();
