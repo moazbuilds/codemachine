@@ -1,11 +1,12 @@
 import js from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
+import { defineConfig } from 'typescript-eslint';
 import tseslint from 'typescript-eslint';
 
 const typescriptFiles = ['src/**/*.{ts,tsx}', 'tests/**/*.{ts,tsx}'];
 
-export default tseslint.config(
+export default defineConfig(
   {
     ignores: ['node_modules', 'dist', 'coverage'],
   },
