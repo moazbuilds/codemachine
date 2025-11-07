@@ -19,7 +19,8 @@ for (let i = 0; i < args.length; i++) {
         console.error('[publish] --tag requires a value');
         process.exit(1);
       }
-      tag = args[++i];
+      i++; // Move to the next argument
+      tag = args[i];
       break;
     default:
       console.error(`[publish] Unknown option: ${args[i]}`);
