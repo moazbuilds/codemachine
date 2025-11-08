@@ -13,18 +13,26 @@ interface CapturedTelemetry {
  *
  * Cursor uses Claude API format with "result" events
  */
-export function parseTelemetry(json: any): CapturedTelemetry | null {
-  // Cursor format: same as Claude - type: 'result' with detailed usage
-  if (json.type === 'result' && json.usage) {
+export function parseTelemetry(json: unknown): CapturedTelemetry | null {
+  // Type guard to check if json is an object with required properties
+  if (
+    typeof json === 'object' &&
+    json !== null &&
+    'type' in json &&
+    (json as Record<string, unknown>).type === 'result' &&
+    'usage' in json
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = json as Record<string, any>;
     // Calculate cached tokens from both cache_read_input_tokens and cache_creation_input_tokens
-    const cachedTokens = (json.usage.cache_read_input_tokens || 0) + (json.usage.cache_creation_input_tokens || 0);
+    const cachedTokens = (data.usage.cache_read_input_tokens || 0) + (data.usage.cache_creation_input_tokens || 0);
 
     return {
-      duration: json.duration_ms,
-      cost: json.total_cost_usd,
+      duration: data.duration_ms,
+      cost: data.total_cost_usd,
       tokens: {
-        input: json.usage.input_tokens,
-        output: json.usage.output_tokens,
+        input: data.usage.input_tokens,
+        output: data.usage.output_tokens,
         cached: cachedTokens > 0 ? cachedTokens : undefined,
       },
     };

@@ -16,7 +16,7 @@ interface CapturedTelemetry {
   };
 }
 
-type TelemetryParser = (json: any) => CapturedTelemetry | null;
+type TelemetryParser = (json: unknown) => CapturedTelemetry | null;
 
 /**
  * Engine-specific telemetry parsers

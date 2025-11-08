@@ -13,7 +13,7 @@ describe('CCR Engine Registry Integration', () => {
     expect(ccrEngine).toBeDefined();
     expect(ccrEngine?.metadata).toEqual({
       id: 'ccr',
-      name: 'CCR',
+      name: 'Claude Code Router',
       description: 'Authenticate with Claude Code Router',
       cliCommand: 'ccr',
       cliBinary: 'ccr',

@@ -76,10 +76,12 @@ function cleanAnsi(text: string, plainLogs: boolean): string {
   return text.replace(ANSI_ESCAPE_SEQUENCE, '');
 }
 
-function formatToolUse(part: any, plainLogs: boolean): string {
-  const tool = part?.tool ?? 'tool';
+function formatToolUse(part: unknown, plainLogs: boolean): string {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const partObj = (typeof part === 'object' && part !== null ? part : {}) as Record<string, any>;
+  const tool = partObj?.tool ?? 'tool';
   const base = formatCommand(tool, 'success');
-  const state = part?.state ?? {};
+  const state = partObj?.state ?? {};
 
   if (tool === 'bash') {
     const outputRaw =
@@ -108,15 +110,17 @@ function formatToolUse(part: any, plainLogs: boolean): string {
   return base;
 }
 
-function formatStepEvent(type: string, part: any): string | null {
-  const reason = typeof part?.reason === 'string' ? part.reason : undefined;
+function formatStepEvent(type: string, part: unknown): string | null {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const partObj = (typeof part === 'object' && part !== null ? part : {}) as Record<string, any>;
+  const reason = typeof partObj?.reason === 'string' ? partObj.reason : undefined;
 
   // Only show final step (reason: 'stop'), skip intermediate steps (reason: 'tool-calls')
   if (reason !== 'stop') {
     return null;
   }
 
-  const tokens = part?.tokens;
+  const tokens = partObj?.tokens;
   if (!tokens) {
     return null;
   }
@@ -128,14 +132,16 @@ function formatStepEvent(type: string, part: any): string | null {
   return tokenSummary;
 }
 
-function formatErrorEvent(error: any, plainLogs: boolean): string {
+function formatErrorEvent(error: unknown, plainLogs: boolean): string {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const errorObj = (typeof error === 'object' && error !== null ? error : {}) as Record<string, any>;
   const dataMessage =
-    typeof error?.data?.message === 'string'
-      ? error.data.message
-      : typeof error?.message === 'string'
-        ? error.message
-        : typeof error?.name === 'string'
-          ? error.name
+    typeof errorObj?.data?.message === 'string'
+      ? errorObj.data.message
+      : typeof errorObj?.message === 'string'
+        ? errorObj.message
+        : typeof errorObj?.name === 'string'
+          ? errorObj.name
           : 'OpenCode reported an unknown error';
 
   const cleaned = cleanAnsi(dataMessage, plainLogs);
@@ -184,7 +190,7 @@ export async function runOpenCode(options: RunOpenCodeOptions): Promise<RunOpenC
       return;
     }
 
-    let parsed: any;
+    let parsed: unknown;
     try {
       parsed = JSON.parse(line);
     } catch {
@@ -208,10 +214,17 @@ export async function runOpenCode(options: RunOpenCodeOptions): Promise<RunOpenC
       }
     }
 
+    // Type guard for parsed JSON
+    if (typeof parsed !== 'object' || parsed === null) {
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const parsedObj = parsed as Record<string, any>;
+
     let formatted: string | null = null;
-    switch (parsed.type) {
+    switch (parsedObj.type) {
       case 'tool_use':
-        formatted = formatToolUse(parsed.part, plainLogs);
+        formatted = formatToolUse(parsedObj.part, plainLogs);
         break;
       case 'step_start':
         if (isFirstStep) {
@@ -221,10 +234,10 @@ export async function runOpenCode(options: RunOpenCodeOptions): Promise<RunOpenC
         // Subsequent step_start events are silent
         break;
       case 'step_finish':
-        formatted = formatStepEvent(parsed.type, parsed.part);
+        formatted = formatStepEvent(parsedObj.type, parsedObj.part);
         break;
       case 'text': {
-        const textPart = parsed.part;
+        const textPart = parsedObj.part;
         const textValue =
           typeof textPart?.text === 'string'
             ? cleanAnsi(textPart.text, plainLogs)
@@ -233,7 +246,7 @@ export async function runOpenCode(options: RunOpenCodeOptions): Promise<RunOpenC
         break;
       }
       case 'error':
-        formatted = formatErrorEvent(parsed.error, plainLogs);
+        formatted = formatErrorEvent(parsedObj.error, plainLogs);
         break;
       default:
         break;
