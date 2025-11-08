@@ -2,7 +2,7 @@ import type { EngineMetadata } from '../../core/base.js';
 
 export const metadata: EngineMetadata = {
   id: 'ccr',
-  name: 'CCR',
+  name: 'Claude Code Router',
   description: 'Authenticate with Claude Code Router',
   cliCommand: 'ccr',
   cliBinary: 'ccr',
