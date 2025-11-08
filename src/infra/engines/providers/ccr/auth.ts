@@ -53,11 +53,11 @@ export function resolveCcrConfigDir(options?: CcrAuthOptions): string {
 }
 
 /**
- * Gets the path to the credentials file
- * CCR stores it directly in CCR_CONFIG_DIR
+ * Gets the path to the .enable file
+ * This simple marker file indicates CCR is enabled in codemachine
  */
 export function getCredentialsPath(configDir: string): string {
-  return path.join(configDir, '.credentials.json');
+  return path.join(configDir, '.enable');
 }
 
 /**
@@ -65,15 +65,13 @@ export function getCredentialsPath(configDir: string): string {
  */
 export function getCcrAuthPaths(configDir: string): string[] {
   return [
-    getCredentialsPath(configDir), // .credentials.json
-    path.join(configDir, '.ccr.json'),
-    path.join(configDir, '.ccr.json.backup'),
+    getCredentialsPath(configDir), // .enable
   ];
 }
 
 /**
  * Checks if CCR is authenticated
- * For CCR, we consider it authenticated if the CLI is installed
+ * For CCR, we check if the .enable file exists
  */
 export async function isAuthenticated(options?: CcrAuthOptions): Promise<boolean> {
   const configDir = resolveCcrConfigDir(options);
@@ -89,7 +87,7 @@ export async function isAuthenticated(options?: CcrAuthOptions): Promise<boolean
 
 /**
  * Ensures CCR is authenticated
- * For CCR, we just need to ensure the CLI is installed and provide configuration tips
+ * Creates the .enable file to mark CCR as enabled in codemachine
  */
 export async function ensureAuth(options?: CcrAuthOptions): Promise<boolean> {
   const configDir = resolveCcrConfigDir(options);
@@ -116,10 +114,10 @@ export async function ensureAuth(options?: CcrAuthOptions): Promise<boolean> {
     throw new Error(`${metadata.name} CLI is not installed.`);
   }
 
-  // Create the credentials marker file
+  // Create the .enable marker file
   const ccrDir = path.dirname(credPath);
   await mkdir(ccrDir, { recursive: true });
-  await writeFile(credPath, JSON.stringify({ authenticated: true }), { encoding: 'utf8' });
+  await writeFile(credPath, '', { encoding: 'utf8' });
 
   // Show configuration tip
   console.log(`\n────────────────────────────────────────────────────────────`);
@@ -147,6 +145,7 @@ export async function ensureAuth(options?: CcrAuthOptions): Promise<boolean> {
 
 /**
  * Clears all CCR authentication data
+ * Removes the .enable file to disable CCR usage in codemachine
  */
 export async function clearAuth(options?: CcrAuthOptions): Promise<void> {
   const configDir = resolveCcrConfigDir(options);

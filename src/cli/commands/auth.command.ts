@@ -120,18 +120,6 @@ async function handleLogout(providerId: string): Promise<void> {
     throw new Error(`Unknown provider: ${providerId}`);
   }
 
-  // Special handling for CCR - no logout needed
-  if (providerId === 'ccr') {
-    console.log(`\n────────────────────────────────────────────────────────────`);
-    console.log(`  ℹ️  ${engine.metadata.name} Logout`);
-    console.log(`────────────────────────────────────────────────────────────`);
-    console.log(`\nCCR authentication is managed by the CCR CLI itself.`);
-    console.log(`There is no logout action required in Codemachine.\n`);
-    console.log(`To reconfigure CCR, simply run: ccr ui\n`);
-    console.log(`────────────────────────────────────────────────────────────\n`);
-    return;
-  }
-
   await engine.auth.clearAuth();
   console.log(`Signed out from ${engine.metadata.name}. Next action will be \`login\`.`);
 }
