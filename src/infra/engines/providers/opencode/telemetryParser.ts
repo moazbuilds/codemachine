@@ -13,20 +13,30 @@ interface CapturedTelemetry {
  *
  * OpenCode emits telemetry in "step_finish" events with nested tokens in part.tokens
  */
-export function parseTelemetry(json: any): CapturedTelemetry | null {
-  // OpenCode format: type: 'step_finish' with part.tokens
-  if (json.type === 'step_finish' && json.part?.tokens) {
-    const tokens = json.part.tokens;
-    const cache = (tokens.cache?.read || 0) + (tokens.cache?.write || 0);
+export function parseTelemetry(json: unknown): CapturedTelemetry | null {
+  // Type guard to check if json is an object with required properties
+  if (
+    typeof json === 'object' &&
+    json !== null &&
+    'type' in json &&
+    (json as Record<string, unknown>).type === 'step_finish' &&
+    'part' in json
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = json as Record<string, any>;
+    if (data.part?.tokens) {
+      const tokens = data.part.tokens;
+      const cache = (tokens.cache?.read || 0) + (tokens.cache?.write || 0);
 
-    return {
-      tokens: {
-        input: tokens.input,
-        output: tokens.output,
-        cached: cache > 0 ? cache : undefined,
-      },
-      cost: json.part.cost,
-    };
+      return {
+        tokens: {
+          input: tokens.input,
+          output: tokens.output,
+          cached: cache > 0 ? cache : undefined,
+        },
+        cost: data.part.cost,
+      };
+    }
   }
 
   return null;
