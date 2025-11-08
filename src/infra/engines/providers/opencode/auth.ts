@@ -8,18 +8,21 @@ import { metadata } from './metadata.js';
 
 const SENTINEL_FILE = 'auth.json';
 
-function resolveOpenCodeConfigDir(customPath?: string): string {
-  const configured = customPath ?? process.env.OPENCODE_CONFIG_DIR;
+/**
+ * Resolves the OpenCode home directory (base for all XDG paths)
+ */
+function resolveOpenCodeHome(customPath?: string): string {
+  const configured = customPath ?? process.env.OPENCODE_HOME;
   const target = configured ? expandHomeDir(configured) : path.join(homedir(), '.codemachine', 'opencode');
   return target;
 }
 
-async function ensureConfigDirExists(configDir: string): Promise<void> {
-  await mkdir(configDir, { recursive: true });
+async function ensureDataDirExists(dataDir: string): Promise<void> {
+  await mkdir(dataDir, { recursive: true });
 }
 
-function getSentinelPath(configDir: string): string {
-  return path.join(configDir, SENTINEL_FILE);
+function getSentinelPath(opencodeHome: string): string {
+  return path.join(opencodeHome, 'data', SENTINEL_FILE);
 }
 
 async function isCliInstalled(command: string): Promise<boolean> {
@@ -51,21 +54,15 @@ function logInstallHelp(): void {
   console.error(`────────────────────────────────────────────────────────────\n`);
 }
 
-function logGuidance(configDir: string): void {
-  console.log(`\n────────────────────────────────────────────────────────────`);
-  console.log(`  ✅  ${metadata.name} CLI Detected`);
-  console.log(`────────────────────────────────────────────────────────────`);
-  console.log(`\nOpenCode manages credentials via 'opencode auth'.`);
-  console.log(`Run 'opencode auth list' to inspect providers or 'opencode auth login' to add one.`);
-  console.log(`\nCodeMachine stores a sentinel at: ${getSentinelPath(configDir)}`);
-  console.log(`Your actual API keys remain managed by OpenCode.`);
-  console.log(`────────────────────────────────────────────────────────────\n`);
-}
 
 export async function isAuthenticated(): Promise<boolean> {
   return isCliInstalled(metadata.cliBinary);
 }
 
+/**
+ * Resolves OpenCode's actual data directory (where OpenCode stores auth.json)
+ * This uses XDG_DATA_HOME if set, otherwise falls back to standard XDG path
+ */
 function resolveOpenCodeDataDir(): string {
   const xdgData = process.env.XDG_DATA_HOME
     ? expandHomeDir(process.env.XDG_DATA_HOME)
@@ -84,38 +81,95 @@ async function hasOpenCodeCredential(providerId: string = 'opencode'): Promise<b
   }
 }
 
-export async function ensureAuth(): Promise<boolean> {
-  const configDir = resolveOpenCodeConfigDir();
-  await ensureConfigDirExists(configDir);
+export async function ensureAuth(forceLogin = false): Promise<boolean> {
+  const opencodeHome = resolveOpenCodeHome();
+  const dataDir = path.join(opencodeHome, 'data');
 
+  // Check if already authenticated (skip if forceLogin is true)
+  const sentinelPath = getSentinelPath(opencodeHome);
+  if (!forceLogin) {
+    try {
+      await stat(sentinelPath);
+      return true; // Already authenticated
+    } catch {
+      // Sentinel doesn't exist, need to authenticate
+    }
+  }
+
+  // Ensure data directory exists before proceeding
+  await ensureDataDirExists(dataDir);
+
+  // Check if CLI is installed
   const cliInstalled = await isCliInstalled(metadata.cliBinary);
   if (!cliInstalled) {
     logInstallHelp();
     throw new Error(`${metadata.name} CLI is not installed.`);
   }
 
-  const sentinelPath = getSentinelPath(configDir);
-  await writeFile(
-    sentinelPath,
-    JSON.stringify({ verifiedAt: new Date().toISOString() }, null, 2),
-    { encoding: 'utf8' },
-  );
+  if (process.env.CODEMACHINE_SKIP_AUTH === '1') {
+    await writeFile(sentinelPath, '{}', { encoding: 'utf8' });
+    return true;
+  }
 
-  logGuidance(configDir);
+  // Set up XDG environment variables for OpenCode
+  const xdgEnv = {
+    ...process.env,
+    XDG_CONFIG_HOME: path.join(opencodeHome, 'config'),
+    XDG_CACHE_HOME: path.join(opencodeHome, 'cache'),
+    XDG_DATA_HOME: path.join(opencodeHome, 'data'),
+  };
+
+  // Run interactive login via OpenCode CLI
+  try {
+    await execa('opencode', ['auth', 'login'], {
+      env: xdgEnv,
+      stdio: 'inherit',
+    });
+  } catch (error) {
+    const err = error as unknown as { code?: string; stderr?: string; message?: string };
+    const stderr = err?.stderr ?? '';
+    const message = err?.message ?? '';
+    const notFound =
+      err?.code === 'ENOENT' ||
+      /not recognized as an internal or external command/i.test(stderr || message) ||
+      /command not found/i.test(stderr || message) ||
+      /No such file or directory/i.test(stderr || message);
+
+    if (notFound) {
+      console.error(`\n────────────────────────────────────────────────────────────`);
+      console.error(`  ⚠️  ${metadata.name} CLI Not Found`);
+      console.error(`────────────────────────────────────────────────────────────`);
+      console.error(`\n'${metadata.cliBinary} auth login' failed because the CLI is missing.`);
+      console.error(`Please install ${metadata.name} CLI before trying again:\n`);
+      console.error(`  ${metadata.installCommand}\n`);
+      console.error(`────────────────────────────────────────────────────────────\n`);
+      throw new Error(`${metadata.name} CLI is not installed.`);
+    }
+
+    throw error;
+  }
+
+  // Create sentinel file after successful login
+  try {
+    await stat(sentinelPath);
+  } catch {
+    await writeFile(sentinelPath, '{}', 'utf8');
+  }
+
   return true;
 }
 
 export async function clearAuth(): Promise<void> {
-  const configDir = resolveOpenCodeConfigDir();
-  const sentinel = getSentinelPath(configDir);
+  const opencodeHome = resolveOpenCodeHome();
+
   try {
-    await rm(sentinel, { force: true });
+    await rm(opencodeHome, { recursive: true, force: true });
   } catch {
     // Ignore removal errors
   }
 
-  console.log(`\n${metadata.name} credentials are managed by the OpenCode CLI.`);
-  console.log(`Removed CodeMachine sentinel at ${sentinel} (if it existed).\n`);
+  console.log(`\n${metadata.name} authentication cleared.`);
+  console.log(`Removed OpenCode home directory at ${opencodeHome} (if it existed).\n`);
 }
 
 export async function nextAuthMenuAction(): Promise<'login' | 'logout'> {
@@ -124,8 +178,8 @@ export async function nextAuthMenuAction(): Promise<'login' | 'logout'> {
   if (!cli) return 'login';
 
   // If sentinel is missing or membership credential not found → show login guidance
-  const configDir = resolveOpenCodeConfigDir();
-  const sentinel = getSentinelPath(configDir);
+  const opencodeHome = resolveOpenCodeHome();
+  const sentinel = getSentinelPath(opencodeHome);
   let hasSentinel = false;
   try {
     await stat(sentinel);
@@ -139,4 +193,4 @@ export async function nextAuthMenuAction(): Promise<'login' | 'logout'> {
   return hasSentinel && hasMembership ? 'logout' : 'login';
 }
 
-export { resolveOpenCodeConfigDir };
+export { resolveOpenCodeHome };
