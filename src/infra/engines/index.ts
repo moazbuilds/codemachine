@@ -5,3 +5,4 @@ export * from './core/index.js';
 export * as codex from './providers/codex/index.js';
 export * as claude from './providers/claude/index.js';
 export * as ccr from './providers/ccr/index.js';
+export * as opencode from './providers/opencode/index.js';

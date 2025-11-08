@@ -389,7 +389,7 @@ All overrides available for `resolveStep()` and `resolveModule()`:
 | Option | Type | Description | Example |
 |--------|------|-------------|---------|
 | `executeOnce` | `boolean` | Run step only once per workflow | `true` |
-| `engine` | `string` | AI engine to use | `'claude'`, `'codex'`, `'cursor'` |
+| `engine` | `string` | AI engine to use | `'claude'`, `'codex'`, `'cursor'`, `'ccr'`, `'opencode'` |
 | `model` | `string` | Specific AI model | `'gpt-5-codex'`, `'opus'`, `'gpt-4'` |
 | `modelReasoningEffort` | `string` | Reasoning depth level | `'low'`, `'medium'`, `'high'` |
 | `agentName` | `string` | Custom display name | `'Senior Architect'` |
@@ -412,11 +412,13 @@ Additional options for `resolveModule()`:
 
 ### Available Engines
 
-CodeMachine supports three AI engines:
+CodeMachine supports the following AI engines:
 
 1. **claude** - Anthropic Claude models
 2. **codex** - OpenAI Codex models
 3. **cursor** - Cursor AI models
+4. **ccr** - Claude Code Router CLI (brings your locally configured providers)
+5. **opencode** - OpenCode CLI (provider-agnostic; supply `provider/model` strings such as `anthropic/claude-3.7-sonnet`)
 
 ### Engine Selection Strategy
 
@@ -455,6 +457,9 @@ steps: [
 
 **Cursor Models:**
 - Engine-specific models (check Cursor documentation)
+
+**OpenCode Models:**
+- Provide the CLI-formatted `provider/model` name directly (e.g., `anthropic/claude-3.7-sonnet`, `openai/gpt-4.1`); CodeMachine passes the value through so you can mirror your OpenCode config.
 
 ### Reasoning Effort Levels
 

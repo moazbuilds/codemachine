@@ -94,6 +94,13 @@ CodeMachine requires at least one CLI-based AI engine to handle the primary role
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
   </tr>
   <tr>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>OpenCode CLI</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+  </tr>
+  <tr>
     <td align="center" style="padding: 10px; font-size: 15px;"><strong>Cursor CLI</strong></td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
     <td align="center" style="padding: 10px; font-size: 15px;">❌</td>
@@ -119,6 +126,17 @@ CodeMachine requires at least one CLI-based AI engine to handle the primary role
 <p align="center">
   <em>✅ Fully Supported  |  ⚠️ Not Officially Supported  |  ❌ Not Available</em>
 </p>
+
+### OpenCode CLI Integration
+
+OpenCode ships as a first-class engine. Install the CLI with `npm i -g opencode-ai@latest` (or `brew install opencode`, `scoop install extras/opencode`, `choco install opencode`) and then:
+
+- `codemachine opencode run "build hello world"` streams JSON-formatted OpenCode output through CodeMachine’s log markers.
+- Workflow steps can force OpenCode with `codemachine step <agent> --engine opencode --model anthropic/claude-3.7-sonnet`.
+- Guardrail environment defaults (overridable) are applied automatically:  
+  `OPENCODE_PERMISSION={"edit":"allow","webfetch":"allow","bash":{"*":"allow"}}`,  
+  `OPENCODE_DISABLE_LSP_DOWNLOAD=1`, `OPENCODE_DISABLE_DEFAULT_PLUGINS=1`, and `OPENCODE_CONFIG_DIR=$HOME/.codemachine/opencode`.
+- Set `CODEMACHINE_SKIP_OPENCODE=1` for dry-run workflows or `CODEMACHINE_PLAIN_LOGS=1` when you need ANSI-free logs.
 
 ---
 
@@ -289,5 +307,7 @@ Special thanks to the following contributors who have helped make CodeMachine be
 - **[Adinda Praditya](https://github.com/apraditya)** - Added CCR (Claude Code Router) engine support, removing a major limitation by enabling users to leverage AI capabilities beyond subscription-based services.
 
 - **[SoyHub](https://github.com/SoyHub)** - Enhanced the UI system and contributed innovative ideas during brainstorming sessions that helped strengthen CodeMachine's capabilities.
+
+- **[TheMightyDman](https://github.com/TheMightyDman)** - Added OpenCode CLI engine integration, which brings support for multiple AI providers (Anthropic, OpenAI, Google, and more) to CodeMachine. An enthusiastic and active contributor to the project.
 
 ---
