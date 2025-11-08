@@ -35,7 +35,7 @@ function shouldApplyDefault(key: string, overrides?: NodeJS.ProcessEnv): boolean
 }
 
 function resolveRunnerEnv(env?: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
-  const runnerEnv: NodeJS.ProcessEnv = { ...(env ?? {}) };
+  const runnerEnv: NodeJS.ProcessEnv = { ...process.env, ...(env ?? {}) };
 
   if (shouldApplyDefault('OPENCODE_PERMISSION', env)) {
     runnerEnv.OPENCODE_PERMISSION = DEFAULT_PERMISSION_POLICY;
