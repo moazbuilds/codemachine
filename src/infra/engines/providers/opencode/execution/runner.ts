@@ -4,7 +4,7 @@ import { spawnProcess } from '../../../../process/spawn.js';
 import { buildOpenCodeRunCommand } from './commands.js';
 import { metadata } from '../metadata.js';
 import { resolveOpenCodeHome } from '../auth.js';
-import { formatCommand, formatResult, formatStatus } from '../../../../../shared/formatters/outputMarkers.js';
+import { formatCommand, formatResult, formatStatus, formatMessage } from '../../../../../shared/formatters/outputMarkers.js';
 import { logger } from '../../../../../shared/logging/index.js';
 import { createTelemetryCapture } from '../../../../../shared/telemetry/index.js';
 import type { ParsedTelemetry } from '../../../core/types.js';
@@ -108,25 +108,24 @@ function formatToolUse(part: any, plainLogs: boolean): string {
   return base;
 }
 
-function formatStepEvent(type: string, part: any): string {
-  if (type === 'step_start') {
-    return formatStatus('OpenCode started a new step');
+function formatStepEvent(type: string, part: any): string | null {
+  const reason = typeof part?.reason === 'string' ? part.reason : undefined;
+
+  // Only show final step (reason: 'stop'), skip intermediate steps (reason: 'tool-calls')
+  if (reason !== 'stop') {
+    return null;
   }
 
-  const reason = typeof part?.reason === 'string' ? part.reason : undefined;
   const tokens = part?.tokens;
-  const cache = tokens ? (tokens.cache?.read ?? 0) + (tokens.cache?.write ?? 0) : 0;
-  const tokenSummary = tokens
-    ? `Tokens ${tokens.input ?? 0}in/${tokens.output ?? 0}out${cache > 0 ? ` (${cache} cached)` : ''}`
-    : undefined;
-  const cost = typeof part?.cost === 'number' ? `Cost $${part.cost.toFixed(4)}` : undefined;
+  if (!tokens) {
+    return null;
+  }
 
-  const segments = ['OpenCode finished a step'];
-  if (reason) segments.push(`Reason: ${reason}`);
-  if (tokenSummary) segments.push(tokenSummary);
-  if (cost) segments.push(cost);
+  const cache = (tokens.cache?.read ?? 0) + (tokens.cache?.write ?? 0);
+  const totalIn = (tokens.input ?? 0) + cache;
+  const tokenSummary = `⏱️  Tokens: ${totalIn}in/${tokens.output ?? 0}out${cache > 0 ? ` (${cache} cached)` : ''}`;
 
-  return formatStatus(segments.join(' | '));
+  return tokenSummary;
 }
 
 function formatErrorEvent(error: any, plainLogs: boolean): string {
@@ -178,6 +177,7 @@ export async function runOpenCode(options: RunOpenCodeOptions): Promise<RunOpenC
 
   const telemetryCapture = createTelemetryCapture('opencode', model, prompt, workingDir);
   let jsonBuffer = '';
+  let isFirstStep = true;
 
   const processLine = (line: string): void => {
     if (!line.trim()) {
@@ -214,6 +214,12 @@ export async function runOpenCode(options: RunOpenCodeOptions): Promise<RunOpenC
         formatted = formatToolUse(parsed.part, plainLogs);
         break;
       case 'step_start':
+        if (isFirstStep) {
+          isFirstStep = false;
+          formatted = formatStatus('OpenCode is analyzing your request...');
+        }
+        // Subsequent step_start events are silent
+        break;
       case 'step_finish':
         formatted = formatStepEvent(parsed.type, parsed.part);
         break;
@@ -223,7 +229,7 @@ export async function runOpenCode(options: RunOpenCodeOptions): Promise<RunOpenC
           typeof textPart?.text === 'string'
             ? cleanAnsi(textPart.text, plainLogs)
             : '';
-        formatted = textValue ? `${textValue}` : null;
+        formatted = textValue ? formatMessage(textValue) : null;
         break;
       }
       case 'error':
@@ -241,7 +247,21 @@ export async function runOpenCode(options: RunOpenCodeOptions): Promise<RunOpenC
 
   const normalizeChunk = (chunk: string): string => {
     let result = chunk;
+
+    // Convert line endings to \n
     result = result.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+    // Handle carriage returns that cause line overwrites
+    result = result.replace(/^.*\r([^\r\n]*)/gm, '$1');
+
+    // Strip ANSI sequences in plain mode
+    if (plainLogs) {
+      result = result.replace(ANSI_ESCAPE_SEQUENCE, '');
+    }
+
+    // Collapse excessive newlines
+    result = result.replace(/\n{3,}/g, '\n\n');
+
     return result;
   };
 

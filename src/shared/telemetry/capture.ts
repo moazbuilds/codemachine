@@ -1,5 +1,10 @@
 import { logTelemetry } from './logger.js';
 import type { EngineType } from '../../infra/engines/index.js';
+import { parseTelemetry as parseClaudeTelemetry } from '../../infra/engines/providers/claude/telemetryParser.js';
+import { parseTelemetry as parseCodexTelemetry } from '../../infra/engines/providers/codex/telemetryParser.js';
+import { parseTelemetry as parseOpenCodeTelemetry } from '../../infra/engines/providers/opencode/telemetryParser.js';
+import { parseTelemetry as parseCCRTelemetry } from '../../infra/engines/providers/ccr/telemetryParser.js';
+import { parseTelemetry as parseCursorTelemetry } from '../../infra/engines/providers/cursor/telemetryParser.js';
 
 interface CapturedTelemetry {
   duration?: number;
@@ -10,6 +15,19 @@ interface CapturedTelemetry {
     cached?: number;
   };
 }
+
+type TelemetryParser = (json: any) => CapturedTelemetry | null;
+
+/**
+ * Engine-specific telemetry parsers
+ */
+const telemetryParsers: Record<EngineType, TelemetryParser> = {
+  claude: parseClaudeTelemetry,
+  codex: parseCodexTelemetry,
+  opencode: parseOpenCodeTelemetry,
+  ccr: parseCCRTelemetry,
+  cursor: parseCursorTelemetry,
+};
 
 export interface TelemetryCapture {
   /**
@@ -44,30 +62,11 @@ export function createTelemetryCapture(
       try {
         const json = JSON.parse(line);
 
-        // Try parsing turn.completed format (used by some engines)
-        if (json.type === 'turn.completed' && json.usage) {
-          captured = {
-            tokens: {
-              input: json.usage.input_tokens,
-              output: json.usage.output_tokens,
-              cached: json.usage.cached_input_tokens,
-            },
-          };
-        }
-        // Try parsing result format with full telemetry (used by other engines)
-        else if (json.type === 'result' && json.usage) {
-          // Calculate cached tokens from both cache_read_input_tokens and cache_creation_input_tokens
-          const cachedTokens = (json.usage.cache_read_input_tokens || 0) + (json.usage.cache_creation_input_tokens || 0);
-
-          captured = {
-            duration: json.duration_ms,
-            cost: json.total_cost_usd,
-            tokens: {
-              input: json.usage.input_tokens,
-              output: json.usage.output_tokens,
-              cached: cachedTokens > 0 ? cachedTokens : undefined,
-            },
-          };
+        // Use engine-specific parser
+        const parser = telemetryParsers[engine];
+        const result = parser(json);
+        if (result) {
+          captured = result;
         }
       } catch {
         // Ignore JSON parse errors - not all lines will be valid JSON
