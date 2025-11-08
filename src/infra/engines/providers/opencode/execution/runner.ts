@@ -1,7 +1,9 @@
+import * as path from 'node:path';
+
 import { spawnProcess } from '../../../../process/spawn.js';
 import { buildOpenCodeRunCommand } from './commands.js';
 import { metadata } from '../metadata.js';
-import { resolveOpenCodeConfigDir } from '../auth.js';
+import { resolveOpenCodeHome } from '../auth.js';
 import { formatCommand, formatResult, formatStatus } from '../../../../../shared/formatters/outputMarkers.js';
 import { logger } from '../../../../../shared/logging/index.js';
 import { createTelemetryCapture } from '../../../../../shared/telemetry/index.js';
@@ -47,10 +49,20 @@ function resolveRunnerEnv(env?: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
     runnerEnv.OPENCODE_DISABLE_DEFAULT_PLUGINS = '1';
   }
 
-  if (!runnerEnv.OPENCODE_CONFIG_DIR && !process.env.OPENCODE_CONFIG_DIR) {
-    runnerEnv.OPENCODE_CONFIG_DIR = resolveOpenCodeConfigDir();
-  } else if (runnerEnv.OPENCODE_CONFIG_DIR) {
-    runnerEnv.OPENCODE_CONFIG_DIR = resolveOpenCodeConfigDir(runnerEnv.OPENCODE_CONFIG_DIR);
+  // Set all three XDG environment variables to subdirectories under OPENCODE_HOME
+  // This centralizes all OpenCode data under ~/.codemachine/opencode by default
+  const opencodeHome = resolveOpenCodeHome(runnerEnv.OPENCODE_HOME);
+
+  if (shouldApplyDefault('XDG_CONFIG_HOME', env)) {
+    runnerEnv.XDG_CONFIG_HOME = path.join(opencodeHome, 'config');
+  }
+
+  if (shouldApplyDefault('XDG_CACHE_HOME', env)) {
+    runnerEnv.XDG_CACHE_HOME = path.join(opencodeHome, 'cache');
+  }
+
+  if (shouldApplyDefault('XDG_DATA_HOME', env)) {
+    runnerEnv.XDG_DATA_HOME = path.join(opencodeHome, 'data');
   }
 
   return runnerEnv;

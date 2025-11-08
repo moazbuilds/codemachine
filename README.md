@@ -308,4 +308,6 @@ Special thanks to the following contributors who have helped make CodeMachine be
 
 - **[SoyHub](https://github.com/SoyHub)** - Enhanced the UI system and contributed innovative ideas during brainstorming sessions that helped strengthen CodeMachine's capabilities.
 
+- **[TheMightyDman](https://github.com/TheMightyDman)** - Added OpenCode CLI engine integration, which brings support for multiple AI providers (Anthropic, OpenAI, Google, and more) to CodeMachine. An enthusiastic and active contributor to the project.
+
 ---
