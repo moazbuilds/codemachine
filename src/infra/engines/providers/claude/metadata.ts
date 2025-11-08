@@ -2,7 +2,7 @@ import type { EngineMetadata } from '../../core/base.js';
 
 export const metadata: EngineMetadata = {
   id: 'claude',
-  name: 'Claude',
+  name: 'Claude Code',
   description: 'Authenticate with Claude AI',
   cliCommand: 'claude',
   cliBinary: 'claude',
