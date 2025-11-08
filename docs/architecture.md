@@ -32,7 +32,7 @@ Before starting, ensure your environment meets these requirements:
 |------------|----------------|-------|
 | Node.js | 20.10.0 | Required for running CodeMachine CLI |
 | npm | 9.0.0 | Package manager (pnpm also supported) |
-| AI Engine CLI | Latest | At least one: Codex CLI, Claude Code CLI, or Cursor CLI |
+| AI Engine CLI | Latest | At least one: Codex CLI, Claude Code CLI, Cursor CLI, CCR CLI, or OpenCode CLI |
 
 ## Get your first project generated
 

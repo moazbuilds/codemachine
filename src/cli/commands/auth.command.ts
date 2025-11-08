@@ -51,6 +51,24 @@ async function handleLogin(providerId: string): Promise<void> {
       console.log(`For more help, visit:`);
       console.log(`  https://github.com/musistudio/claude-code-router\n`);
       console.log(`────────────────────────────────────────────────────────────\n`);
+    }
+    // Special handling for OpenCode - show membership guidance
+    else if (providerId === 'opencode') {
+      console.log(`\n────────────────────────────────────────────────────────────`);
+      console.log(`  ✅  ${engine.metadata.name} CLI Detected`);
+      console.log(`────────────────────────────────────────────────────────────`);
+      console.log(`\nOpenCode supports two auth modes:`);
+      console.log(`  • Provider API keys via \`opencode auth login <provider>\``);
+      console.log(`  • OpenCode Zen membership (recommended to start)`);
+      console.log(`\nTo use Zen:`);
+      console.log(`  1) Run: opencode auth login`);
+      console.log(`  2) Select: opencode`);
+      console.log(`  3) Visit https://opencode.ai/auth to create an API key`);
+      console.log(`  4) Paste the key back into the prompt`);
+      console.log(`\nCheck configured creds: opencode auth list`);
+      console.log(`Stored at: ~/.local/share/opencode/auth.json (XDG data dir)\n`);
+      console.log(`Tip: You can always switch engines or clear this sentinel via \`codemachine auth logout\`.`);
+      console.log(`────────────────────────────────────────────────────────────\n`);
     } else {
       console.log(`Already authenticated with ${engine.metadata.name}. Use \`codemachine auth logout\` to sign out.`);
     }

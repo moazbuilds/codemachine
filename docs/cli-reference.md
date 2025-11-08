@@ -597,6 +597,9 @@ codemachine codex run "my-agent 'Generate code'"
 
 # Cursor engine variant
 codemachine cursor run "my-agent 'Generate code'"
+
+# OpenCode engine variant
+codemachine opencode run "build hello world"
 ```
 
 **Behavior:**
@@ -608,6 +611,16 @@ codemachine cursor run "my-agent 'Generate code'"
 - Commands registered automatically at startup
 - Based on engines in engine registry
 - Each engine gets its own subcommand namespace
+
+### OpenCode Environment Guardrails
+
+The OpenCode provider needs explicit permission defaults to stay non-interactive. When you run `codemachine opencode ...` or `--engine opencode`, the CLI injects (unless already set):
+
+- `OPENCODE_PERMISSION={"edit":"allow","webfetch":"allow","bash":{"*":"allow"}}`
+- `OPENCODE_DISABLE_LSP_DOWNLOAD=1` and `OPENCODE_DISABLE_DEFAULT_PLUGINS=1`
+- `OPENCODE_CONFIG_DIR=$HOME/.codemachine/opencode` (can be overridden)
+
+You can also set `CODEMACHINE_SKIP_OPENCODE=1` to dry-run pipelines without launching the CLI, or `CODEMACHINE_PLAIN_LOGS=1` to strip ANSI markers in log exports.
 
 ---
 
