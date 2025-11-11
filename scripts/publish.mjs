@@ -1,5 +1,8 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 import { execSync } from 'child_process';
+
+// Get the path to the current bun executable
+const bunPath = process.execPath;
 
 // Parse arguments
 let dryRun = true;
@@ -55,9 +58,9 @@ try {
   execSync('npm whoami', { stdio: 'pipe' });
 
   // Run build, test, and lint
-  execCommand('npm run build', 'Running npm run build');
-  execCommand('npm run test', 'Running npm run test');
-  execCommand('npm run lint', 'Running npm run lint');
+  execCommand(`${bunPath} run build`, 'Running build');
+  execCommand(`${bunPath} x vitest run`, 'Running tests');
+  execCommand(`${bunPath} run lint`, 'Running lint');
 
   // Publish
   const publishCmd = `npm publish --tag ${tag}`;
