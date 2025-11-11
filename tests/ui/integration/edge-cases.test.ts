@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, spyOn } from 'bun:test';
 import { WorkflowUIManager } from '../../../src/ui/manager/WorkflowUIManager';
 
 /**
@@ -12,11 +12,11 @@ import { WorkflowUIManager } from '../../../src/ui/manager/WorkflowUIManager';
 
 describe('Edge Cases and Error Handling', () => {
   let manager: WorkflowUIManager;
-  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+  let consoleErrorSpy: ReturnType<typeof spyOn>;
 
   beforeEach(() => {
     manager = new WorkflowUIManager('Edge Case Test', 5);
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    consoleErrorSpy = spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -29,7 +29,7 @@ describe('Edge Cases and Error Handling', () => {
   describe('Graceful Degradation', () => {
     it.skip('should fallback to console.log when no TTY', () => {
       const originalIsTTY = process.stdout.isTTY;
-      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const consoleLogSpy = spyOn(console, 'log').mockImplementation(() => {});
 
       // Mock non-TTY environment
       Object.defineProperty(process.stdout, 'isTTY', {

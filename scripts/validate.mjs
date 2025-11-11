@@ -12,7 +12,7 @@ const execCommand = (cmd, description) => {
 try {
   execCommand(`${bunPath} run lint`, 'Running lint');
   execCommand(`${bunPath} run typecheck`, 'Running typecheck');
-  execCommand(`${bunPath} x vitest run`, 'Running tests');
+  execCommand(`${bunPath} test`, 'Running tests');
   console.log('[validate] All checks passed!');
 } catch (error) {
   console.error('[validate] Validation failed');

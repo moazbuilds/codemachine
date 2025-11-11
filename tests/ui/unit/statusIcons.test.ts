@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { getStatusIcon, getStatusColor } from '../../../src/ui/utils/statusIcons';
 
 describe('StatusIcons', () => {

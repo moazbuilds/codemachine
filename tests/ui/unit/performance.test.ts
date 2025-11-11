@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import {
   CircularBuffer,
   throttle,
@@ -43,7 +43,7 @@ describe('Performance Utilities', () => {
 
   describe('throttle', () => {
     it('should limit function calls', async () => {
-      const fn = vi.fn();
+      const fn = mock();
       const throttled = throttle(fn, 100);
 
       throttled();
@@ -61,7 +61,7 @@ describe('Performance Utilities', () => {
 
   describe('debounce', () => {
     it('should delay execution until calls stop', async () => {
-      const fn = vi.fn();
+      const fn = mock();
       const debounced = debounce(fn, 50);
 
       debounced();
@@ -100,13 +100,13 @@ describe('Performance Utilities', () => {
 
   describe('BatchUpdater', () => {
     beforeEach(() => {
-      vi.useFakeTimers();
+      mock.useFakeTimers();
     });
 
     it('should batch updates', () => {
       const updater = new BatchUpdater(50);
-      const fn1 = vi.fn();
-      const fn2 = vi.fn();
+      const fn1 = mock();
+      const fn2 = mock();
 
       updater.schedule(fn1);
       updater.schedule(fn2);
@@ -114,7 +114,7 @@ describe('Performance Utilities', () => {
       expect(fn1).not.toHaveBeenCalled();
       expect(fn2).not.toHaveBeenCalled();
 
-      vi.advanceTimersByTime(50);
+      mock.advanceTimersByTime(50);
 
       expect(fn1).toHaveBeenCalledTimes(1);
       expect(fn2).toHaveBeenCalledTimes(1);
@@ -122,7 +122,7 @@ describe('Performance Utilities', () => {
 
     it('should flush immediately when requested', () => {
       const updater = new BatchUpdater(100);
-      const fn = vi.fn();
+      const fn = mock();
 
       updater.schedule(fn);
       expect(fn).not.toHaveBeenCalled();
@@ -133,12 +133,12 @@ describe('Performance Utilities', () => {
 
     it('should clear pending updates', () => {
       const updater = new BatchUpdater(100);
-      const fn = vi.fn();
+      const fn = mock();
 
       updater.schedule(fn);
       updater.clear();
 
-      vi.advanceTimersByTime(100);
+      mock.advanceTimersByTime(100);
       expect(fn).not.toHaveBeenCalled();
     });
   });

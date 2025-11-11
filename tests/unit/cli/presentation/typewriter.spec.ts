@@ -1,19 +1,19 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 
 import { renderTypewriter } from '../../../../src/cli/presentation/typewriter.js';
 
 describe('renderTypewriter', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
+    mock.useFakeTimers();
   });
 
   afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
+    mock.useRealTimers();
+    mock.restore();
   });
 
   it('writes characters in batches using the default interval', async () => {
-    const writer = vi.fn();
+    const writer = mock();
     await renderTypewriter({ text: 'CLI', writer });
 
     expect(writer).toHaveBeenCalledTimes(3);
@@ -21,10 +21,10 @@ describe('renderTypewriter', () => {
   });
 
   it('invokes onChunk callback for each character with index', async () => {
-    const onChunk = vi.fn();
-    const promise = renderTypewriter({ text: 'ok', onChunk, writer: vi.fn() });
+    const onChunk = mock();
+    const promise = renderTypewriter({ text: 'ok', onChunk, writer: mock() });
 
-    await vi.advanceTimersByTimeAsync(12);
+    await mock.advanceTimersByTimeAsync(12);
     await promise;
 
     expect(onChunk.mock.calls).toEqual([
@@ -34,17 +34,17 @@ describe('renderTypewriter', () => {
   });
 
   it('applies custom interval when provided', async () => {
-    const writer = vi.fn();
+    const writer = mock();
     const promise = renderTypewriter({ text: 'abcdefghij', writer, intervalMs: 20 });
 
     // First batch of five characters is written immediately.
     expect(writer).toHaveBeenCalledTimes(5);
     expect(writer.mock.calls.slice(0, 5).map((call) => call[0]).join('')).toBe('abcde');
 
-    await vi.advanceTimersByTimeAsync(19);
+    await mock.advanceTimersByTimeAsync(19);
     expect(writer).toHaveBeenCalledTimes(5);
 
-    await vi.advanceTimersByTimeAsync(1);
+    await mock.advanceTimersByTimeAsync(1);
     await promise;
 
     expect(writer).toHaveBeenCalledTimes(10);
@@ -52,7 +52,7 @@ describe('renderTypewriter', () => {
   });
 
   it('resolves immediately when text is empty', async () => {
-    const writer = vi.fn();
+    const writer = mock();
 
     await renderTypewriter({ text: '', writer });
 

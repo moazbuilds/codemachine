@@ -1,11 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 // Mock the runner module to avoid calling the actual CCR CLI
-vi.mock('../../../src/infra/engines/providers/ccr/execution/runner.js', async () => {
-  const actual = await vi.importActual('../../../src/infra/engines/providers/ccr/execution/runner.js');
+mock.module('../../../src/infra/engines/providers/ccr/execution/runner.js', () => {
   return {
-    ...actual,
-    runCcr: vi.fn().mockResolvedValue({ stdout: 'mocked output', stderr: '' }),
+    runCcr: mock(() => Promise.resolve({ stdout: 'mocked output', stderr: '' })),
   };
 });
 
@@ -20,24 +18,25 @@ describe('CCR Executor', () => {
   beforeEach(() => {
     // Clear any environment variables that might affect the tests
     delete process.env.CODEMACHINE_SKIP_CCR;
-    vi.clearAllMocks();
+    // Clear mock call counts
+    if (runCcr.mockClear) {
+      runCcr.mockClear();
+    }
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    // Bun automatically restores mocks
   });
 
   it('executes CCR prompt successfully', async () => {
-    const runCcrSpy = vi.mocked(runCcr);
-
     await runCcrPrompt({
       agentId: mockAgentId,
       prompt: mockPrompt,
       cwd: mockCwd,
     });
 
-    expect(runCcrSpy).toHaveBeenCalledTimes(1);
-    expect(runCcrSpy).toHaveBeenCalledWith({
+    expect(runCcr).toHaveBeenCalledTimes(1);
+    expect(runCcr).toHaveBeenCalledWith({
       prompt: mockPrompt,
       workingDir: mockCwd,
       onData: expect.any(Function),
@@ -46,8 +45,6 @@ describe('CCR Executor', () => {
   });
 
   it('executes CCR prompt with model parameter', async () => {
-    const runCcrSpy = vi.mocked(runCcr);
-
     await runCcrPrompt({
       agentId: mockAgentId,
       prompt: mockPrompt,
@@ -55,8 +52,8 @@ describe('CCR Executor', () => {
       model: 'sonnet',
     });
 
-    expect(runCcrSpy).toHaveBeenCalledTimes(1);
-    expect(runCcrSpy).toHaveBeenCalledWith({
+    expect(runCcr).toHaveBeenCalledTimes(1);
+    expect(runCcr).toHaveBeenCalledWith({
       prompt: mockPrompt,
       workingDir: mockCwd,
       model: 'sonnet',
@@ -70,7 +67,7 @@ describe('CCR Executor', () => {
     process.env.CODEMACHINE_SKIP_CCR = '1';
 
     // Spy on console.log to verify it's called with the dry run message
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const consoleSpy = spyOn(console, 'log').mockImplementation(() => {});
 
     await runCcrPrompt({
       agentId: mockAgentId,
@@ -84,40 +81,36 @@ describe('CCR Executor', () => {
   });
 
   it('handles stdout write errors gracefully', async () => {
-    const runCcrSpy = vi.mocked(runCcr);
-
     // Mock stdout write to throw an error
-    const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => {
+    const stdoutSpy = spyOn(process.stdout, 'write').mockImplementation(() => {
       throw new Error('stdout write error');
     });
 
     // Should not throw even if stdout write fails
-    await expect(runCcrPrompt({
+    await runCcrPrompt({
       agentId: mockAgentId,
       prompt: mockPrompt,
       cwd: mockCwd,
-    })).resolves.not.toThrow();
+    });
 
-    expect(runCcrSpy).toHaveBeenCalledTimes(1);
+    expect(runCcr).toHaveBeenCalledTimes(1);
     stdoutSpy.mockRestore();
   });
 
   it('handles stderr write errors gracefully', async () => {
-    const runCcrSpy = vi.mocked(runCcr);
-
     // Mock stderr write to throw an error
-    const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => {
+    const stderrSpy = spyOn(process.stderr, 'write').mockImplementation(() => {
       throw new Error('stderr write error');
     });
 
     // Should not throw even if stderr write fails
-    await expect(runCcrPrompt({
+    await runCcrPrompt({
       agentId: mockAgentId,
       prompt: mockPrompt,
       cwd: mockCwd,
-    })).resolves.not.toThrow();
+    });
 
-    expect(runCcrSpy).toHaveBeenCalledTimes(1);
+    expect(runCcr).toHaveBeenCalledTimes(1);
     stderrSpy.mockRestore();
   });
 });

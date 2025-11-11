@@ -59,7 +59,7 @@ try {
 
   // Run build, test, and lint
   execCommand(`${bunPath} run build`, 'Running build');
-  execCommand(`${bunPath} x vitest run`, 'Running tests');
+  execCommand(`${bunPath} test`, 'Running tests');
   execCommand(`${bunPath} run lint`, 'Running lint');
 
   // Publish

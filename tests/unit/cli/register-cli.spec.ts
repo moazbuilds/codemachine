@@ -1,15 +1,15 @@
 import { Command } from 'commander';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 
 import { registerCli } from '../../../src/cli/program.js';
 
 describe('registerCli', () => {
   let program: Command;
-  let consoleSpy: ReturnType<typeof vi.spyOn>;
+  let consoleSpy: ReturnType<typeof spyOn>;
 
   beforeEach(async () => {
     program = new Command();
-    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    consoleSpy = spyOn(console, 'log').mockImplementation(() => {});
 
     await registerCli(program);
   });

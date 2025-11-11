@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import {
   UI_COMPONENT_DIMENSIONS,
   calculateMainContentHeight,
