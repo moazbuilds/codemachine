@@ -1,5 +1,6 @@
 node_modules/
 dist/
+binaries/
 coverage/
 .DS_Store
 reports/

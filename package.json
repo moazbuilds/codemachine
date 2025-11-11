@@ -11,7 +11,8 @@
     "bun": ">=1.0.0"
   },
   "scripts": {
-    "build": "tsup src/runtime/index.ts --format esm --dts --sourcemap --out-dir dist",
+    "build": "bun build ./src/runtime/index.ts --outdir ./dist --target bun --format esm --sourcemap=external",
+    "build:binaries": "bun scripts/build-binaries.mjs",
     "dev": "DEBUG=true tsx src/runtime/cli-setup.ts",
     "debug": "REACT_DEVTOOLS=1 DEBUG=\"ink:*\" tsx src/runtime/cli-setup.ts",
     "start": "bun run build && node dist/index.js start",
@@ -66,7 +67,6 @@
     "ink-testing-library": "^4.0.0",
     "prettier": "^3.2.5",
     "react-devtools-core": "^6.1.5",
-    "tsup": "^8.5.0",
     "tsx": "^4.7.2",
     "typescript": "^5.4.5",
     "typescript-eslint": "^8.44.1",
