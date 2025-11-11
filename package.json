@@ -8,13 +8,13 @@
   },
   "engines": {
     "node": ">=20.10.0",
-    "npm": ">=9.0.0"
+    "bun": ">=1.0.0"
   },
   "scripts": {
     "build": "tsup src/runtime/index.ts --format esm --dts --sourcemap --out-dir dist",
     "dev": "DEBUG=true tsx src/runtime/cli-setup.ts",
     "debug": "REACT_DEVTOOLS=1 DEBUG=\"ink:*\" tsx src/runtime/cli-setup.ts",
-    "start": "pnpm -s build && node dist/index.js start",
+    "start": "bun run build && node dist/index.js start",
     "lint": "eslint --max-warnings=0 \"{src,tests}/**/*.{ts,tsx}\"",
     "test": "vitest run --coverage",
     "test:watch": "vitest watch",

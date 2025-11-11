@@ -1,0 +1,19 @@
+$ vitest run --coverage
+
+ RUN  v3.2.4 /home/moaz2/CodexMachine/projects/codemachine-bun-migration
+
+
+⎯⎯⎯⎯⎯⎯ Unhandled Error ⎯⎯⎯⎯⎯⎯⎯
+NotImplementedError: node:inspector is not yet implemented in Bun. Track the status & thumbs up the issue: https://github.com/oven-sh/bun/issues/2445
+ ❯ ::bunternal:: internal:shared:15:68
+ ❯ new ::bunternal:: node:inspector:19:24
+ ❯ node_modules/@vitest/coverage-v8/dist/index.js:6:17
+ ❯ moduleEvaluation native:1:11
+ ❯ processTicksAndRejections native:7:39
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_NOT_IMPLEMENTED', originalLine: 15, originalColumn: 68 }
+
+
+
+error: script "test" exited with code 1

@@ -1,0 +1,232 @@
+
+> codemachine@0.5.0 test /home/moaz2/CodexMachine/projects/codemachine-bun-migration
+> vitest run --coverage
+
+
+ RUN  v3.2.4 /home/moaz2/CodexMachine/projects/codemachine-bun-migration
+      Coverage enabled with v8
+
+stderr | tests/unit/workflows/steps.spec.ts > workflow step tracking > getResumeStartIndex > handles corrupted tracking file gracefully
+Failed to read resume start index from tracking file: Unexpected token 'i', "invalid json content" is not valid JSON
+
+ ✓ tests/ui/unit/heightCalculations.test.ts (22 tests) 137ms
+ ✓ tests/unit/workflows/steps.spec.ts (9 tests) 273ms
+ ✓ tests/unit/cli/execution-ui.spec.ts (5 tests) 65ms
+ ✓ tests/ui/unit/WorkflowUIState.test.ts (14 tests) 143ms
+ ✓ tests/unit/workflows/module-behavior.test.ts (12 tests) 77ms
+ ✓ tests/ui/unit/types.test.ts (9 tests) 118ms
+ ✓ tests/ui/unit/performance.test.ts (10 tests) 323ms
+ ✓ tests/ui/unit/TriggeredAgentList.test.tsx (8 tests) 232ms
+stdout | tests/ui/integration/workflow-ui-manager.test.ts > WorkflowUIManager Integration Tests > Fallback Mode > should detect non-TTY environment
+Starting workflow: Fallback Test
+
+stdout | tests/ui/integration/edge-cases.test.ts > Edge Cases and Error Handling > State Consistency > should handle rapid start/stop cycles
+Starting workflow: Start/Stop Test
+Starting workflow: Start/Stop Test
+Starting workflow: Start/Stop Test
+Starting workflow: Start/Stop Test
+Starting workflow: Start/Stop Test
+Starting workflow: Start/Stop Test
+Starting workflow: Start/Stop Test
+Starting workflow: Start/Stop Test
+Starting workflow: Start/Stop Test
+Starting workflow: Start/Stop Test
+
+ ✓ tests/ui/unit/SubAgentList.test.tsx (7 tests) 220ms
+ ✓ tests/ui/integration/workflow-ui-manager.test.ts (11 tests | 4 skipped) 29ms
+ ✓ tests/ui/unit/telemetryParser.test.ts (11 tests) 23ms
+ ✓ tests/ui/integration/edge-cases.test.ts (16 tests | 9 skipped) 33ms
+ ✓ tests/ui/e2e/full-workflow.test.ts (6 tests | 5 skipped) 17ms
+stderr | tests/unit/infra/ccr-engine.spec.ts
+Invalid engine module: [90mundefined[39m
+
+ ✓ tests/ui/unit/outputProcessor.test.ts (11 tests) 58ms
+stderr | tests/unit/infra/engine-runner.spec.ts
+Invalid engine module: [90mundefined[39m
+
+ ↓ tests/ui/unit/useTerminalResize.test.tsx (6 tests | 6 skipped)
+ ✓ tests/ui/unit/formatters.test.ts (16 tests) 64ms
+ ✓ tests/ui/unit/SubAgentSummary.test.tsx (6 tests) 105ms
+ ✓ tests/ui/unit/MainAgentNode.test.tsx (6 tests) 142ms
+ ✓ tests/ui/unit/TelemetryBar.test.tsx (6 tests) 239ms
+ ✓ tests/unit/infra/ccr-command-builder.spec.ts (5 tests) 18ms
+stderr | tests/unit/infra/ccr-engine.spec.ts > CCR Engine Runner > throws when the CCR CLI exits with a non-zero status code
+[ERROR] CCR CLI execution failed {
+  exitCode: [33m2[39m,
+  error: [32m'fatal: unable to launch'[39m,
+  command: [32m'ccr code --print --output-format stream-json --verbose --dangerously-skip-permissions --permission-mode bypassPermissions'[39m
+}
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > creates missing directories and files
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/01-founder-architect.md to /tmp/workspace-bootstrap-AUB8yy/projects/new-app/.codemachine/agents/founder-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > creates missing directories and files
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/02-structural-data-architect.md to /tmp/workspace-bootstrap-AUB8yy/projects/new-app/.codemachine/agents/structural-data-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > creates missing directories and files
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/03-behavior-architect.md to /tmp/workspace-bootstrap-AUB8yy/projects/new-app/.codemachine/agents/behavior-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > creates missing directories and files
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/05-ui-ux-architect.md to /tmp/workspace-bootstrap-AUB8yy/projects/new-app/.codemachine/agents/ui-ux-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > creates missing directories and files
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/04-operational-architect.md to /tmp/workspace-bootstrap-AUB8yy/projects/new-app/.codemachine/agents/operational-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > creates missing directories and files
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/06-file-assembler.md to /tmp/workspace-bootstrap-AUB8yy/projects/new-app/.codemachine/agents/file-assembler.md
+
+ ✓ tests/unit/infra/ccr-engine.spec.ts (7 tests) 42ms
+ ✓ tests/unit/infra/ccr-executor.spec.ts (5 tests) 34ms
+ ✓ tests/unit/agents/memory-store.spec.ts (4 tests) 117ms
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/01-founder-architect.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/founder-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/02-structural-data-architect.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/structural-data-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/03-behavior-architect.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/behavior-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/05-ui-ux-architect.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/ui-ux-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/04-operational-architect.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/operational-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/06-file-assembler.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/file-assembler.md
+
+ ✓ tests/unit/cli/presentation/typewriter.spec.ts (4 tests) 49ms
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/01-founder-architect.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/founder-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/03-behavior-architect.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/behavior-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/05-ui-ux-architect.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/ui-ux-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/02-structural-data-architect.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/structural-data-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/04-operational-architect.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/operational-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/06-file-assembler.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/file-assembler.md
+
+stderr | tests/unit/infra/engine-runner.spec.ts > Engine Runner > throws when the engine CLI exits with a non-zero status code
+[ERROR] Codex CLI execution failed {
+  exitCode: [33m2[39m,
+  error: [32m'fatal: unable to launch'[39m,
+  command: [32m'codex exec --json --skip-git-repo-check --sandbox danger-full-access --dangerously-bypass-approvals-and-sandbox -C /tmp/workspace/project -'[39m
+}
+
+ ✓ tests/ui/unit/statusIcons.test.ts (8 tests) 12ms
+ ✓ tests/unit/infra/engine-runner.spec.ts (3 tests) 38ms
+ ✓ tests/unit/cli/presentation/layout.spec.ts (4 tests) 19ms
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/01-founder-architect.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/founder-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/02-structural-data-architect.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/structural-data-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/03-behavior-architect.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/behavior-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/05-ui-ux-architect.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/ui-ux-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/04-operational-architect.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/operational-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/06-file-assembler.md to /tmp/workspace-bootstrap-BOJfFh/projects/sample-app/.codemachine/agents/file-assembler.md
+
+ ✓ tests/ui/unit/LoopIndicator.test.tsx (4 tests) 333ms
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > respects CODEMACHINE_CWD environment override when cwd not provided
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/01-founder-architect.md to /tmp/workspace-bootstrap-q2gKFY/env/codemachine-cwd/.codemachine/agents/founder-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > respects CODEMACHINE_CWD environment override when cwd not provided
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/02-structural-data-architect.md to /tmp/workspace-bootstrap-q2gKFY/env/codemachine-cwd/.codemachine/agents/structural-data-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > respects CODEMACHINE_CWD environment override when cwd not provided
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/03-behavior-architect.md to /tmp/workspace-bootstrap-q2gKFY/env/codemachine-cwd/.codemachine/agents/behavior-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > respects CODEMACHINE_CWD environment override when cwd not provided
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/05-ui-ux-architect.md to /tmp/workspace-bootstrap-q2gKFY/env/codemachine-cwd/.codemachine/agents/ui-ux-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > respects CODEMACHINE_CWD environment override when cwd not provided
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/04-operational-architect.md to /tmp/workspace-bootstrap-q2gKFY/env/codemachine-cwd/.codemachine/agents/operational-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > respects CODEMACHINE_CWD environment override when cwd not provided
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/06-file-assembler.md to /tmp/workspace-bootstrap-q2gKFY/env/codemachine-cwd/.codemachine/agents/file-assembler.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > falls back to the CLI agents catalog when workspace has no config
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/03-behavior-architect.md to /tmp/workspace-bootstrap-LmiUpo/projects/bare-app/.codemachine/agents/behavior-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > falls back to the CLI agents catalog when workspace has no config
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/04-operational-architect.md to /tmp/workspace-bootstrap-LmiUpo/projects/bare-app/.codemachine/agents/operational-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > falls back to the CLI agents catalog when workspace has no config
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/06-file-assembler.md to /tmp/workspace-bootstrap-LmiUpo/projects/bare-app/.codemachine/agents/file-assembler.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > falls back to the CLI agents catalog when workspace has no config
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/02-structural-data-architect.md to /tmp/workspace-bootstrap-LmiUpo/projects/bare-app/.codemachine/agents/structural-data-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > falls back to the CLI agents catalog when workspace has no config
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/01-founder-architect.md to /tmp/workspace-bootstrap-LmiUpo/projects/bare-app/.codemachine/agents/founder-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > falls back to the CLI agents catalog when workspace has no config
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/05-ui-ux-architect.md to /tmp/workspace-bootstrap-LmiUpo/projects/bare-app/.codemachine/agents/ui-ux-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > creates template.json when templatePath is provided
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/01-founder-architect.md to /tmp/workspace-bootstrap-ptD8kO/projects/template-test/.codemachine/agents/founder-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > creates template.json when templatePath is provided
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/02-structural-data-architect.md to /tmp/workspace-bootstrap-ptD8kO/projects/template-test/.codemachine/agents/structural-data-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > creates template.json when templatePath is provided
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/03-behavior-architect.md to /tmp/workspace-bootstrap-ptD8kO/projects/template-test/.codemachine/agents/behavior-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > creates template.json when templatePath is provided
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/05-ui-ux-architect.md to /tmp/workspace-bootstrap-ptD8kO/projects/template-test/.codemachine/agents/ui-ux-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > creates template.json when templatePath is provided
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/04-operational-architect.md to /tmp/workspace-bootstrap-ptD8kO/projects/template-test/.codemachine/agents/operational-architect.md
+
+stdout | tests/unit/runtime/workspace-init.spec.ts > bootstrapWorkspace > creates template.json when templatePath is provided
+[workspace] Copied template file from /home/moaz2/CodexMachine/projects/codemachine-bun-migration/prompts/templates/dev-codemachine/sub-agents/architecture/06-file-assembler.md to /tmp/workspace-bootstrap-ptD8kO/projects/template-test/.codemachine/agents/file-assembler.md
+
+ ✓ tests/unit/runtime/workspace-init.spec.ts (5 tests) 2529ms
+   ✓ bootstrapWorkspace > mirrors config/sub.agents.js to JSON and is idempotent  1906ms
+ ✓ tests/ui/unit/BrandingHeader.test.tsx (3 tests) 91ms
+ ✓ tests/ui/unit/StatusFooter.test.tsx (1 test) 104ms
+ ❯ tests/e2e/start-cli.spec.ts (1 test | 1 skipped) 10034ms
+   ↓ codemachine CLI smoke > shows the interactive start menu
+ ✓ tests/unit/infra/ccr-registry.spec.ts (5 tests) 79ms
+ ✓ tests/integration/workflows/planning-workflow.spec.ts (2 tests) 28ms
+ ✓ tests/unit/cli/register-cli.spec.ts (2 tests) 16ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/e2e/start-cli.spec.ts [ tests/e2e/start-cli.spec.ts ]
+Error: Hook timed out in 10000ms.
+If this is a long-running hook, pass a timeout value as the last argument or configure it globally with "hookTimeout".
+ ❯ tests/e2e/start-cli.spec.ts:123:1
+    121| };
+    122| 
+    123| beforeAll(async () => {
+       | ^
+    124|   if (!existsSync(distEntry)) {
+    125|     const buildResult = await runCommand('npm', ['run', 'build']);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 33 passed | 1 skipped (35)
+      Tests  229 passed | 25 skipped (254)
+   Start at  23:04:48
+   Duration  13.98s (transform 8.52s, setup 1.50s, collect 63.23s, tests 15.84s, environment 25ms, prepare 16.57s)
+
+ ELIFECYCLE  Test failed. See above for more details.
