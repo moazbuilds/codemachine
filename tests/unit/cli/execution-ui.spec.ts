@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { PassThrough } from 'node:stream';
 import { createKeyboardController } from '../../../src/cli/controllers/keyboard-controls';
 import { renderExecutionScreen } from '../../../src/cli/presentation/typewriter';
@@ -19,8 +19,8 @@ describe('Keyboard controls', () => {
       pause?: () => void;
     };
     mockStdin.isTTY = true;
-    mockStdin.setRawMode = vi.fn();
-    vi.spyOn(process, 'stdin', 'get').mockReturnValue(
+    mockStdin.setRawMode = mock();
+    spyOn(process, 'stdin', 'get').mockReturnValue(
       mockStdin as unknown as NodeJS.ReadStream,
     );
   });
@@ -39,8 +39,8 @@ describe('Keyboard controls', () => {
     // before start: no listeners
     expect(mockStdin.listenerCount('data')).toBe(0);
 
-    const resumeSpy = vi.spyOn(mockStdin, 'resume');
-    const pauseSpy = vi.spyOn(mockStdin, 'pause');
+    const resumeSpy = spyOn(mockStdin, 'resume');
+    const pauseSpy = spyOn(mockStdin, 'pause');
 
     kb.start();
 
@@ -89,10 +89,10 @@ describe('Keyboard controls', () => {
 
 describe('Execution screen typewriter streaming', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
+    mock.useFakeTimers();
   });
   afterEach(() => {
-    vi.useRealTimers();
+    mock.useRealTimers();
   });
 
   it('streams using the default interval and mirrors to logger', async () => {
@@ -106,10 +106,10 @@ describe('Execution screen typewriter streaming', () => {
       },
     });
 
-    vi.advanceTimersByTime(1);
+    mock.advanceTimersByTime(1);
     expect(chunks.length).toBeGreaterThan(0);
 
-    vi.advanceTimersByTime(50);
+    mock.advanceTimersByTime(50);
     expect(logged).toBe(text);
 
     handle.stop();
@@ -125,7 +125,7 @@ describe('Execution screen typewriter streaming', () => {
       onChunk: (s) => defaultChunks.push(s),
       logger: () => {},
     });
-    vi.advanceTimersByTime(24); // two ticks at 12ms
+    mock.advanceTimersByTime(24); // two ticks at 12ms
     const defaultCount = defaultChunks.length;
     expect(defaultCount).toBeGreaterThan(0);
     defaultHandle.stop();
@@ -137,7 +137,7 @@ describe('Execution screen typewriter streaming', () => {
       onChunk: (s) => fastChunks.push(s),
       logger: () => {},
     });
-    vi.advanceTimersByTime(24);
+    mock.advanceTimersByTime(24);
     const fastCount = fastChunks.length;
     expect(fastCount).toBeGreaterThan(defaultCount);
     fastHandle.stop();
@@ -149,7 +149,7 @@ describe('Execution screen typewriter streaming', () => {
       onChunk: (s) => slowChunks.push(s),
       logger: () => {},
     });
-    vi.advanceTimersByTime(24);
+    mock.advanceTimersByTime(24);
     const slowCount = slowChunks.length;
     expect(slowCount).toBeLessThan(defaultCount);
     slowHandle.stop();
@@ -163,12 +163,12 @@ describe('Execution screen typewriter streaming', () => {
       logger: () => {},
     });
 
-    vi.advanceTimersByTime(1);
+    mock.advanceTimersByTime(1);
     const afterFirstTick = chunks.length;
     expect(afterFirstTick).toBeGreaterThan(0);
 
     handle.stop();
-    vi.advanceTimersByTime(100);
+    mock.advanceTimersByTime(100);
     expect(chunks.length).toBe(afterFirstTick);
   });
 });

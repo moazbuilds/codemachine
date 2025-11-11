@@ -17,8 +17,9 @@
     "debug": "REACT_DEVTOOLS=1 DEBUG=\"ink:*\" bun src/runtime/cli-setup.ts",
     "start": "bun run build && bun dist/index.js start",
     "lint": "eslint --max-warnings=0 \"{src,tests}/**/*.{ts,tsx}\"",
-    "test": "vitest run --coverage",
-    "test:watch": "vitest watch",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "prepare": "husky install",
@@ -58,7 +59,6 @@
     "@types/update-notifier": "^6.0.8",
     "@typescript-eslint/eslint-plugin": "^8.44.1",
     "@typescript-eslint/parser": "^8.44.1",
-    "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-typescript": "^4.4.4",
@@ -68,7 +68,6 @@
     "prettier": "^3.2.5",
     "react-devtools-core": "^6.1.5",
     "typescript": "^5.4.5",
-    "typescript-eslint": "^8.44.1",
-    "vitest": "^3.2.4"
+    "typescript-eslint": "^8.44.1"
   }
 }

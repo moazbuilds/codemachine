@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { parseTelemetryChunk } from '../../../src/ui/utils/telemetryParser';
 import { readFileSync } from 'fs';
 import { join } from 'path';
