@@ -1,5 +1,8 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 import { execSync } from 'child_process';
+
+// Get the path to the current bun executable
+const bunPath = process.execPath;
 
 const execCommand = (cmd, description) => {
   console.log(`[validate] ${description}...`);
@@ -7,9 +10,9 @@ const execCommand = (cmd, description) => {
 };
 
 try {
-  execCommand('npm run lint', 'Running lint');
-  execCommand('npm run typecheck', 'Running typecheck');
-  execCommand('npm run test -- --run', 'Running tests');
+  execCommand(`${bunPath} run lint`, 'Running lint');
+  execCommand(`${bunPath} run typecheck`, 'Running typecheck');
+  execCommand(`${bunPath} x vitest run`, 'Running tests');
   console.log('[validate] All checks passed!');
 } catch (error) {
   console.error('[validate] Validation failed');
