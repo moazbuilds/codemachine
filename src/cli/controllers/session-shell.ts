@@ -2,16 +2,19 @@ import { createRequire } from 'node:module';
 import { existsSync } from 'node:fs';
 import { dirname, join, parse } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawn } from 'node:child_process';
-import React from 'react';
+import React, { useState } from 'react';
 import { render } from 'ink';
 
 import { renderMainMenu } from '../presentation/main-menu.js';
 import { renderTypewriter } from '../presentation/typewriter.js';
 import { SessionShell } from '../components/SessionShell.js';
+import { SelectMenu, type SelectChoice } from '../components/SelectMenu.js';
 import { runWorkflowQueue } from '../../workflows/index.js';
 import { clearTerminal } from '../../shared/utils/terminal.js';
 import { debug } from '../../shared/logging/logger.js';
+import { registry } from '../../infra/engines/index.js';
+import { handleLogin, handleLogout } from '../commands/auth.command.js';
+import { getAvailableTemplates, selectTemplateByNumber } from '../commands/templates.command.js';
 
 export interface SessionShellOptions {
   cwd: string;
@@ -20,27 +23,134 @@ export interface SessionShellOptions {
   showIntro?: boolean;
 }
 
-/**
- * Run a codemachine CLI command as a subprocess
- * Returns a promise that resolves with the exit code
- */
-function runCliCommand(args: string[]): Promise<number> {
-  return new Promise((resolve) => {
-    const child = spawn('codemachine', args, {
-      stdio: 'inherit', // Pass stdin/stdout/stderr directly to the child
-      shell: false,
-    });
+type ViewState =
+  | { type: 'main' }
+  | { type: 'login-select' }
+  | { type: 'logout-select' }
+  | { type: 'template-select' };
 
-    child.on('close', (code) => {
-      resolve(code ?? 0);
-    });
-
-    child.on('error', (error) => {
-      console.error(`Failed to start command: ${error.message}`);
-      resolve(1);
-    });
-  });
+interface SessionWrapperProps {
+  onCommand: (command: string) => Promise<void>;
+  onExit: () => void;
+  projectName?: string;
 }
+
+const TemplateSelectView: React.FC<{ onSelect: (templateNumber: number) => void; onCancel: () => void }> = ({ onSelect, onCancel }) => {
+  const [templates, setTemplates] = useState<SelectChoice<number>[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    getAvailableTemplates().then(templateChoices => {
+      const choices = templateChoices.map((t, index) => ({
+        title: t.title,
+        value: index + 1,
+        description: t.description,
+      }));
+      setTemplates(choices);
+      setLoading(false);
+    }).catch(error => {
+      console.error('Error loading templates:', error);
+      onCancel();
+    });
+  }, []);
+
+  if (loading || templates.length === 0) {
+    return null;
+  }
+
+  return React.createElement(SelectMenu<number>, {
+    message: 'Choose a workflow template:',
+    choices: templates,
+    onSelect: (value: number) => onSelect(value),
+    onCancel,
+  });
+};
+
+const SessionWrapper: React.FC<SessionWrapperProps> = ({ onCommand, onExit, projectName }) => {
+  const [view, setView] = useState<ViewState>({ type: 'main' });
+
+  const handleCommand = async (command: string): Promise<void> => {
+    if (command === '/login') {
+      setView({ type: 'login-select' });
+    } else if (command === '/logout') {
+      setView({ type: 'logout-select' });
+    } else if (command === '/templates' || command === '/template') {
+      setView({ type: 'template-select' });
+    } else {
+      await onCommand(command);
+    }
+  };
+
+  const returnToMain = () => {
+    setView({ type: 'main' });
+  };
+
+  // Render main session shell
+  if (view.type === 'main') {
+    return React.createElement(SessionShell, {
+      onCommand: handleCommand,
+      onExit,
+      projectName,
+    });
+  }
+
+  // Render login provider selection
+  if (view.type === 'login-select') {
+    const providers = registry.getAll().map(engine => ({
+      title: engine.metadata.name,
+      value: engine.metadata.id,
+      description: engine.metadata.description,
+    }));
+
+    return React.createElement(SelectMenu<string>, {
+      message: 'Choose authentication provider to login:',
+      choices: providers,
+      onSelect: (providerId: string) => {
+        returnToMain();
+        handleLogin(providerId).catch(error => {
+          console.error('Login error:', error instanceof Error ? error.message : String(error));
+        });
+      },
+      onCancel: returnToMain,
+    });
+  }
+
+  // Render logout provider selection
+  if (view.type === 'logout-select') {
+    const providers = registry.getAll().map(engine => ({
+      title: engine.metadata.name,
+      value: engine.metadata.id,
+      description: engine.metadata.description,
+    }));
+
+    return React.createElement(SelectMenu<string>, {
+      message: 'Choose authentication provider to logout:',
+      choices: providers,
+      onSelect: (providerId: string) => {
+        returnToMain();
+        handleLogout(providerId).catch(error => {
+          console.error('Logout error:', error instanceof Error ? error.message : String(error));
+        });
+      },
+      onCancel: returnToMain,
+    });
+  }
+
+  // Render template selection
+  if (view.type === 'template-select') {
+    return React.createElement(TemplateSelectView, {
+      onSelect: (templateNumber: number) => {
+        returnToMain();
+        selectTemplateByNumber(templateNumber).catch(error => {
+          console.error('Template selection error:', error instanceof Error ? error.message : String(error));
+        });
+      },
+      onCancel: returnToMain,
+    });
+  }
+
+  return null;
+};
 
 export async function runSessionShell(options: SessionShellOptions): Promise<void> {
   const { cwd, specificationPath, specDisplayPath } = options;
@@ -93,51 +203,6 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
       ].join('\n'));
     } else if (command === '/version') {
       console.log(`CodeMachine v${pkg.version}`);
-    } else if (command === '/login') {
-      // Unmount Ink UI to release terminal control
-      if (inkInstance) {
-        inkInstance.unmount();
-        inkInstance = null;
-      }
-
-      // Clear terminal for clean auth flow
-      clearTerminal();
-
-      // Run the auth login command as a subprocess
-      await runCliCommand(['auth', 'login']);
-
-      // Restart Ink UI after command completes
-      startInkUI();
-    } else if (command === '/logout') {
-      // Unmount Ink UI to release terminal control
-      if (inkInstance) {
-        inkInstance.unmount();
-        inkInstance = null;
-      }
-
-      // Clear terminal for clean auth flow
-      clearTerminal();
-
-      // Run the auth logout command as a subprocess
-      await runCliCommand(['auth', 'logout']);
-
-      // Restart Ink UI after command completes
-      startInkUI();
-    } else if (command === '/templates' || command === '/template') {
-      // Unmount Ink UI to release terminal control
-      if (inkInstance) {
-        inkInstance.unmount();
-        inkInstance = null;
-      }
-
-      // Clear terminal for clean templates flow
-      clearTerminal();
-
-      // Run the templates command as a subprocess
-      await runCliCommand(['templates']);
-
-      // Restart Ink UI after command completes
-      startInkUI();
     } else {
       throw new Error(`Unrecognized command: ${command}. Type /help for options.`);
     }
@@ -159,7 +224,7 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
     }
 
     inkInstance = render(
-      React.createElement(SessionShell, {
+      React.createElement(SessionWrapper, {
         onCommand: handleCommand,
         onExit: handleExit,
         projectName: specDisplayPath,
