@@ -1,8 +1,7 @@
 import type { Command } from 'commander';
 import * as path from 'node:path';
 import { homedir } from 'node:os';
-import { execa } from 'execa';
-import prompts from 'prompts';
+import { confirm, isCancel } from '@clack/prompts';
 import { registry } from '../../infra/engines/index.js';
 import { selectFromMenu, type SelectionChoice } from '../presentation/selection-menu.js';
 import { expandHomeDir } from '../../shared/utils/index.js';
@@ -78,10 +77,13 @@ async function handleLogin(providerId: string): Promise<void> {
       // Show current auth providers
       console.log(`Current authentication providers:\n`);
       try {
-        await execa('opencode', ['auth', 'list'], {
-          stdio: 'inherit',
-          env: xdgEnv
+        const proc = Bun.spawn(['opencode', 'auth', 'list'], {
+          stdout: 'inherit',
+          stderr: 'inherit',
+          stdin: 'inherit',
+          env: { ...process.env, ...xdgEnv }
         });
+        await proc.exited;
       } catch {
         console.log('(Unable to fetch auth list)');
       }
@@ -89,14 +91,17 @@ async function handleLogin(providerId: string): Promise<void> {
       console.log();
 
       // Ask if user wants to add another provider
-      const response = await prompts({
-        type: 'confirm',
-        name: 'addAnother',
+      const addAnother = await confirm({
         message: 'Do you want to add another authentication provider?',
-        initial: false
+        initialValue: false,
       });
 
-      if (response.addAnother) {
+      if (isCancel(addAnother)) {
+        console.log('\nAuthentication update cancelled.\n');
+        return;
+      }
+
+      if (addAnother) {
         // Force login to add another provider
         await engine.auth.ensureAuth(true);
         console.log(`\n${engine.metadata.name} authentication provider added successfully.`);

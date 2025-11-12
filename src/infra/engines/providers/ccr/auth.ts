@@ -1,7 +1,6 @@
 import { stat, rm, writeFile, mkdir } from 'node:fs/promises';
 import * as path from 'node:path';
 import { homedir } from 'node:os';
-import { execa } from 'execa';
 
 import { expandHomeDir } from '../../../../shared/utils/index.js';
 import { metadata } from './metadata.js';
@@ -12,8 +11,21 @@ import { metadata } from './metadata.js';
 async function isCliInstalled(command: string): Promise<boolean> {
   try {
     // Try -v first (CCR uses -v instead of --version)
-    const result = await execa(command, ['-v'], { timeout: 3000, reject: false });
-    const out = `${result.stdout ?? ''}\n${result.stderr ?? ''}`;
+    const proc = Bun.spawn([command, '-v'], {
+      stdout: 'pipe',
+      stderr: 'pipe',
+      stdin: 'ignore',
+    });
+
+    // Set a timeout
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Timeout')), 3000)
+    );
+
+    const exitCode = await Promise.race([proc.exited, timeout]);
+    const stdout = await new Response(proc.stdout).text();
+    const stderr = await new Response(proc.stderr).text();
+    const out = `${stdout}\n${stderr}`;
 
     // Check for error messages indicating command not found
     if (/not recognized as an internal or external command/i.test(out)) return false;
@@ -21,7 +33,7 @@ async function isCliInstalled(command: string): Promise<boolean> {
     if (/No such file or directory/i.test(out)) return false;
 
     // If exit code is 0, CLI is installed
-    if (typeof result.exitCode === 'number' && result.exitCode === 0) return true;
+    if (typeof exitCode === 'number' && exitCode === 0) return true;
 
     // For CCR, check if output contains version info (even with non-zero exit code)
     if (/version:\s*\d+\.\d+\.\d+/i.test(out)) return true;

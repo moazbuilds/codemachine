@@ -1,7 +1,6 @@
 import { stat, rm, mkdir, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { homedir } from 'node:os';
-import { execa } from 'execa';
 
 import { expandHomeDir } from '../../../../shared/utils/index.js';
 import { metadata } from './metadata.js';
@@ -11,9 +10,23 @@ import { metadata } from './metadata.js';
  */
 async function isCliInstalled(command: string): Promise<boolean> {
   try {
-    const result = await execa(command, ['--version'], { timeout: 3000, reject: false });
-    if (typeof result.exitCode === 'number' && result.exitCode === 0) return true;
-    const out = `${result.stdout ?? ''}\n${result.stderr ?? ''}`;
+    const proc = Bun.spawn([command, '--version'], {
+      stdout: 'pipe',
+      stderr: 'pipe',
+      stdin: 'ignore',
+    });
+
+    // Set a timeout
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Timeout')), 3000)
+    );
+
+    const exitCode = await Promise.race([proc.exited, timeout]);
+    const stdout = await new Response(proc.stdout).text();
+    const stderr = await new Response(proc.stderr).text();
+    const out = `${stdout}\n${stderr}`;
+
+    if (typeof exitCode === 'number' && exitCode === 0) return true;
     if (/not recognized as an internal or external command/i.test(out)) return false;
     if (/command not found/i.test(out)) return false;
     if (/No such file or directory/i.test(out)) return false;
@@ -124,13 +137,14 @@ export async function ensureAuth(options?: CursorAuthOptions): Promise<boolean> 
 
   // Set CURSOR_CONFIG_DIR to control where cursor-agent stores authentication
   try {
-    await execa('cursor-agent', ['login'], {
+    const proc = Bun.spawn(['cursor-agent', 'login'], {
       env: {
         ...process.env,
         CURSOR_CONFIG_DIR: configDir,
       },
-      stdio: 'inherit',
+      stdio: ['inherit', 'inherit', 'inherit'],
     });
+    await proc.exited;
   } catch (error) {
     const err = error as unknown as { code?: string; stderr?: string; message?: string };
     const stderr = err?.stderr ?? '';
