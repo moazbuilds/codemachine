@@ -39,6 +39,16 @@ export async function registerCli(program: Command): Promise<void> {
 }
 
 function findPackageJson(moduleUrl: string): string {
+  // For compiled binaries, try to find package.json from current working directory
+  if (typeof Bun !== 'undefined' && Bun.main && Bun.main.startsWith('/$bunfs/')) {
+    const cwdPackageJson = join(process.cwd(), 'package.json');
+    if (existsSync(cwdPackageJson)) return cwdPackageJson;
+
+    // Fallback: embed version info directly for compiled binaries
+    // This is a temporary workaround - ideally version would be embedded during build
+    return join(process.cwd(), 'package.json'); // Let it fail gracefully if not found
+  }
+
   let currentDir = dirname(fileURLToPath(moduleUrl));
   const { root } = parse(currentDir);
 

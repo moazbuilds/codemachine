@@ -45,5 +45,45 @@ export interface ModuleConfig extends AgentConfig {
 // Config loaders
 const require = createRequire(import.meta.url);
 
-export const mainAgents = require(path.resolve(packageRoot, 'config', 'main.agents.js')) as AgentConfig[];
-export const moduleCatalog = require(path.resolve(packageRoot, 'config', 'modules.js')) as ModuleConfig[];
+// Lazy-loaded configs to avoid loading during compilation or when not needed
+let _mainAgents: AgentConfig[] | null = null;
+let _moduleCatalog: ModuleConfig[] | null = null;
+
+export function getMainAgents(): AgentConfig[] {
+  if (!_mainAgents) {
+    _mainAgents = require(path.resolve(packageRoot, 'config', 'main.agents.js')) as AgentConfig[];
+  }
+  return _mainAgents;
+}
+
+export function getModuleCatalog(): ModuleConfig[] {
+  if (!_moduleCatalog) {
+    _moduleCatalog = require(path.resolve(packageRoot, 'config', 'modules.js')) as ModuleConfig[];
+  }
+  return _moduleCatalog;
+}
+
+// Legacy exports for backwards compatibility (will trigger lazy load)
+export const mainAgents = new Proxy([] as AgentConfig[], {
+  get(_target, prop) {
+    return getMainAgents()[prop as keyof AgentConfig[]];
+  },
+  has(_target, prop) {
+    return prop in getMainAgents();
+  },
+  ownKeys(_target) {
+    return Reflect.ownKeys(getMainAgents());
+  },
+});
+
+export const moduleCatalog = new Proxy([] as ModuleConfig[], {
+  get(_target, prop) {
+    return getModuleCatalog()[prop as keyof ModuleConfig[]];
+  },
+  has(_target, prop) {
+    return prop in getModuleCatalog();
+  },
+  ownKeys(_target) {
+    return Reflect.ownKeys(getModuleCatalog());
+  },
+});

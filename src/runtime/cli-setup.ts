@@ -12,6 +12,11 @@ const DEFAULT_SPEC_PATH = '.codemachine/inputs/specifications.md';
 
 // Resolve package root to find templates directory
 const packageRoot = (() => {
+  // For compiled binaries, use the current working directory as package root
+  if (typeof Bun !== 'undefined' && Bun.main && Bun.main.startsWith('/$bunfs/')) {
+    return process.cwd();
+  }
+
   const moduleDir = path.dirname(fileURLToPath(import.meta.url));
   let current = moduleDir;
   while (true) {
@@ -73,12 +78,24 @@ const shouldRunCli = (() => {
   const entry = process.argv[1];
   if (!entry) return false;
 
+  // For compiled binaries, Bun.main will be the binary itself
+  if (typeof Bun !== 'undefined' && Bun.main) {
+    try {
+      const mainPath = fileURLToPath(Bun.main);
+      const modulePath = fileURLToPath(import.meta.url);
+      if (mainPath === modulePath) return true;
+    } catch {
+      // Continue to other checks
+    }
+  }
+
   try {
     const resolvedEntry = realpathSync(entry);
     const modulePath = realpathSync(fileURLToPath(import.meta.url));
     return resolvedEntry === modulePath;
   } catch {
-    return entry.includes('index');
+    // Fallback: if entry contains 'index' or 'codemachine', run CLI
+    return entry.includes('index') || entry.includes('codemachine');
   }
 })();
 
