@@ -56,13 +56,19 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
       }
 
       // Register triggered agent with parent relationship and engine/model info
+      const promptText = `Triggered by ${sourceAgentId}`;
       monitoringAgentId = await monitor.register({
         name: triggerAgentId,
-        prompt: `Triggered by ${sourceAgentId}`,
+        prompt: promptText,
         parentId: parentMonitoringId,
         engineProvider: engineType,
         modelName: triggeredModel,
       });
+
+      // Store full prompt for debug mode logging
+      if (loggerService && monitoringAgentId !== undefined) {
+        loggerService.storeFullPrompt(monitoringAgentId, promptText);
+      }
 
       // Register monitoring ID with UI immediately so it can load logs
       if (ui && monitoringAgentId !== undefined) {

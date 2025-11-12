@@ -14,6 +14,8 @@ export class AgentLoggerService {
   private static instance: AgentLoggerService;
   private activeStreams: Map<number, WriteStream> = new Map();
   private lockService: LogLockService = new LogLockService();
+  // Store full prompts temporarily (for debug mode logging) - cleared after stream creation
+  private fullPrompts: Map<number, string> = new Map();
 
   private constructor() {
     logger.debug('AgentLoggerService initialized');
@@ -27,6 +29,14 @@ export class AgentLoggerService {
       AgentLoggerService.instance = new AgentLoggerService();
     }
     return AgentLoggerService.instance;
+  }
+
+  /**
+   * Store full prompt temporarily for debug mode logging
+   * Should be called right after agent registration, before any writes
+   */
+  storeFullPrompt(agentId: number, fullPrompt: string): void {
+    this.fullPrompts.set(agentId, fullPrompt);
   }
 
   /**
@@ -53,11 +63,22 @@ export class AgentLoggerService {
     this.activeStreams.set(agentId, stream);
 
     // Write header with first line of prompt (full prompt only in debug mode)
-    const isDebugMode = process.env.DEBUG === '1' || process.env.DEBUG === 'true' || process.env.NODE_ENV === 'development';
+    // Note: Don't check NODE_ENV here as Bun build optimizes it to 'true' at build time
+    const isDebugMode = process.env.DEBUG === '1' || process.env.DEBUG === 'true';
     const firstLine = agent.prompt.split('\n')[0];
-    const promptToLog = isDebugMode
-      ? agent.prompt
-      : firstLine;
+
+    // In debug mode, use full untruncated prompt if available
+    let promptToLog: string;
+    if (isDebugMode) {
+      const fullPrompt = this.fullPrompts.get(agentId);
+      promptToLog = fullPrompt || agent.prompt; // Fall back to stored (truncated) prompt if full not available
+      // Clean up the full prompt from memory after using it
+      this.fullPrompts.delete(agentId);
+    } else {
+      promptToLog = firstLine;
+      // Also clean up if it was stored but we're not in debug mode
+      this.fullPrompts.delete(agentId);
+    }
 
     // Format timestamp for better readability (remove T and milliseconds)
     const formattedTime = agent.startTime.replace('T', ' ').replace(/\.\d{3}Z$/, '');
