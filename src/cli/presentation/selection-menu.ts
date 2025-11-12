@@ -1,12 +1,14 @@
-import prompts from 'prompts';
+import { isCancel, select, type Option } from '@clack/prompts';
 
-export interface SelectionChoice<T = string> {
+type Primitive = string | number | boolean;
+
+export interface SelectionChoice<T extends Primitive = string> {
   title: string;
   value: T;
   description?: string;
 }
 
-export interface SelectionOptions<T = string> {
+export interface SelectionOptions<T extends Primitive = string> {
   message: string;
   choices: SelectionChoice<T>[];
   initial?: number;
@@ -16,16 +18,23 @@ export interface SelectionOptions<T = string> {
  * Presents an interactive selection menu to the user with up/down arrow navigation
  * @returns The selected value or undefined if cancelled
  */
-export async function selectFromMenu<T = string>(
+export async function selectFromMenu<T extends Primitive = string>(
   options: SelectionOptions<T>
 ): Promise<T | undefined> {
-  const response = await prompts({
-    type: 'select',
-    name: 'selected',
+  const initialIndex = options.initial ?? 0;
+  const initialChoice = options.choices[initialIndex];
+
+  const clackOptions = options.choices.map((choice) => ({
+    value: choice.value,
+    label: choice.title,
+    hint: choice.description,
+  })) as Option<T>[];
+
+  const response = await select<T>({
     message: options.message,
-    choices: options.choices,
-    initial: options.initial ?? 0
+    options: clackOptions,
+    initialValue: initialChoice?.value,
   });
 
-  return response.selected;
+  return isCancel(response) ? undefined : response;
 }
