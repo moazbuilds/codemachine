@@ -21,3 +21,4 @@ package-lock.json
 .codemachine/prompts
 .codemachine/agents
 .codemachine/template.json
+bun-migration/
