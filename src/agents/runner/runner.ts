@@ -242,14 +242,20 @@ export async function executeAgent(
   let monitoringAgentId: number | undefined;
 
   if (monitor && loggerService) {
+    // For registration: use displayPrompt (short user request) if provided, otherwise full prompt
+    const promptForDisplay = displayPrompt || prompt;
     monitoringAgentId = await monitor.register({
       name: agentId,
-      prompt: displayPrompt || prompt, // Use display prompt for logging if provided
+      prompt: promptForDisplay, // This gets truncated in monitor for memory efficiency
       parentId,
       engine: engineType,
       engineProvider: engineType,
       modelName: model,
     });
+
+    // Store FULL prompt for debug mode logging (not the display prompt)
+    // In debug mode, we want to see the complete composite prompt with template + input files
+    loggerService.storeFullPrompt(monitoringAgentId, prompt);
 
     // Register monitoring ID with UI immediately so it can load logs
     if (ui && uniqueAgentId && monitoringAgentId !== undefined) {
