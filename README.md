@@ -140,6 +140,43 @@ OpenCode ships as a first-class engine. Install the CLI with `npm i -g opencode-
 
 ---
 
+## **Running on VPS / Remote Servers**
+
+CodeMachine can run on remote servers for long-running workflows. Special handling is provided for SSH disconnections and headless operation.
+
+### Quick Start
+
+```bash
+# Launch persistently (survives SSH disconnect)
+./scripts/deployment/codemachine-persistent.sh
+
+# Close laptop / disconnect SSH - process continues
+
+# Reconnect and check status
+./scripts/deployment/codemachine-status.sh
+
+# Watch logs
+tail -f .codemachine/logs/persistent-output.log
+```
+
+### Understanding UI Behavior
+
+When you reconnect via SSH after disconnection:
+- ✅ **Process continues running** (verified by status script)
+- ❌ **Interactive UI detaches** (expected - Ink framework limitation)
+
+**This is not a bug.** The compute layer (agents, code generation) works correctly in headless mode. Use the status script and logs for monitoring.
+
+### Available Tools
+
+- `codemachine-persistent.sh` - Launch with SSH disconnect survival
+- `codemachine-status.sh` - Enhanced monitoring (running agents, logs, errors)
+- `codemachine-stop.sh` - Graceful shutdown
+
+📖 **Full guide:** [docs/vps-deployment.md](docs/vps-deployment.md)
+
+---
+
 ## **Production Validation:**
 
 CodeMachine has been battle-tested on the Sustaina Platform a full-stack ESG compliance system spanning **7 microservices**, **500+ files**, and **60,000+ lines of code** across Python, TypeScript, React, FastAPI, and NestJS.
