@@ -108,6 +108,13 @@ CodeMachine requires at least one CLI-based AI engine to handle the primary role
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
   </tr>
   <tr>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Auggie CLI</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+  </tr>
+  <tr>
     <td align="center" style="padding: 10px; font-size: 15px;"><strong>Gemini CLI</strong></td>
     <td align="center" style="padding: 10px; font-size: 15px;">🚧 Coming Soon</td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
