@@ -255,6 +255,10 @@ export async function executeAgent(
     if (ui && uniqueAgentId && monitoringAgentId !== undefined) {
       ui.registerMonitoringId(uniqueAgentId, monitoringAgentId);
     }
+
+    // Create log file immediately to prevent "Can't connect to agent" errors
+    // This ensures the log file exists before the engine starts producing output
+    loggerService.write(monitoringAgentId, ''); // Empty write to create the file
   }
 
   // Set up memory
