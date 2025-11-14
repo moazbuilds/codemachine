@@ -8,6 +8,7 @@ import { expandHomeDir } from '../../../../../shared/utils/index.js';
 import { createTelemetryCapture } from '../../../../../shared/telemetry/index.js';
 import type { ParsedTelemetry } from '../../../core/types.js';
 import { formatThinking, formatCommand, formatResult, formatMessage, formatStatus } from '../../../../../shared/formatters/outputMarkers.js';
+import { debug } from '../../../../../shared/logging/logger.js';
 
 export interface RunCodexOptions {
   prompt: string;
@@ -144,14 +145,12 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
 
   const { command, args } = buildCodexExecCommand({ workingDir, prompt, model, modelReasoningEffort });
 
-  // Debug logging only when LOG_LEVEL=debug
-  if (process.env.LOG_LEVEL === 'debug') {
-    console.error(`[DEBUG] Codex runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
-    console.error(`[DEBUG] Codex runner - args count: ${args.length}`);
-    console.error(
-      `[DEBUG] Codex runner - CLI: ${command} ${args.map((arg) => (/\s/.test(arg) ? `"${arg}"` : arg)).join(' ')} | stdin preview: ${prompt.slice(0, 120)}`,
-    );
-  }
+  // Debug logging
+  debug(`Codex runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
+  debug(`Codex runner - args count: ${args.length}`);
+  debug(
+    `Codex runner - CLI: ${command} ${args.map((arg) => (/\s/.test(arg) ? `"${arg}"` : arg)).join(' ')} | stdin preview: ${prompt.slice(0, 120)}`
+  );
 
   // Create telemetry capture instance
   const telemetryCapture = createTelemetryCapture('codex', model, prompt, workingDir);

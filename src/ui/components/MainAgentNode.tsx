@@ -5,6 +5,7 @@ import type { AgentState } from '../state/types';
 import { getStatusIcon, getStatusColor } from '../utils/statusIcons';
 import { formatTokens } from '../utils/formatters';
 import { calculateDuration } from '../utils/calculateDuration';
+import { debug } from '../../shared/logging/logger.js';
 
 export interface MainAgentNodeProps {
   agent: AgentState;
@@ -65,9 +66,7 @@ export const MainAgentNode: React.FC<MainAgentNodeProps> = ({ agent, isSelected 
   // If loop round exists, show cycle on separate line below
   if (hasLoopRound) {
     // Debug: log loop reason
-    if (process.env.LOG_LEVEL === 'debug') {
-      console.error(`[DEBUG] MainAgentNode: loopRound=${agent.loopRound}, loopReason="${agent.loopReason}"`);
-    }
+    debug(`MainAgentNode: loopRound=${agent.loopRound}, loopReason="${agent.loopReason}"`);
     return (
       <Box paddingX={1} flexDirection="column">
         {mainLine}

@@ -4,6 +4,7 @@ import { evaluateLoopBehavior } from './evaluator.js';
 import { formatAgentLog } from '../../../shared/logging/index.js';
 import type { ActiveLoop } from '../skip.js';
 import type { WorkflowUIManager } from '../../../ui/index.js';
+import { debug } from '../../../shared/logging/logger.js';
 
 export interface LoopDecision {
   shouldRepeat: boolean;
@@ -34,16 +35,11 @@ export async function handleLoopLogic(
     cwd,
   });
 
-  if (process.env.CODEMACHINE_DEBUG_LOOPS === '1') {
-    const tail = output.trim().split(/\n/).slice(-1)[0] ?? '';
-    console.log(
-      formatAgentLog(
-        step.agentId,
-        `[loop] step=${step.agentName} behavior=${JSON.stringify(step.module?.behavior)} ` +
-          `iteration=${iterationCount} lastLine=${tail}`,
-      ),
-    );
-  }
+  const tail = output.trim().split(/\n/).slice(-1)[0] ?? '';
+  debug(
+    `[loop] step=${step.agentName} behavior=${JSON.stringify(step.module?.behavior)} ` +
+      `iteration=${iterationCount} lastLine=${tail}`
+  );
 
   if (loopDecision?.shouldRepeat) {
     const nextIterationCount = iterationCount + 1;

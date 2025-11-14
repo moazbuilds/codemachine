@@ -1,4 +1,5 @@
 import { readFileSync, statSync, watch, existsSync, createReadStream } from 'fs';
+import { warn } from '../../shared/logging/logger.js';
 
 /**
  * Read log file and return array of lines
@@ -139,7 +140,7 @@ export function watchLogFile(
   callback: (lines: string[]) => void
 ): () => void {
   if (!existsSync(path)) {
-    console.warn(`Cannot watch non-existent file: ${path}`);
+    warn(`Cannot watch non-existent file: ${path}`);
     return () => {}; // Return no-op cleanup
   }
 

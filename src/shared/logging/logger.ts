@@ -74,18 +74,24 @@ export function debug(message: string, ...args: unknown[]): void {
 
 export function info(message: string, ...args: unknown[]): void {
   if (shouldLog('info')) {
-    console.error(`[INFO] ${message}`, ...args);
+    // Write directly to stderr to bypass console hijacking
+    const formatted = formatMessage(`[INFO] ${message}`, ...args);
+    process.stderr.write(formatted + '\n');
   }
 }
 
 export function warn(message: string, ...args: unknown[]): void {
   if (shouldLog('warn')) {
-    console.error(`[WARN] ${message}`, ...args);
+    // Write directly to stderr to bypass console hijacking
+    const formatted = formatMessage(`[WARN] ${message}`, ...args);
+    process.stderr.write(formatted + '\n');
   }
 }
 
 export function error(message: string, ...args: unknown[]): void {
   if (shouldLog('error')) {
-    console.error(`[ERROR] ${message}`, ...args);
+    // Write directly to stderr to bypass console hijacking
+    const formatted = formatMessage(`[ERROR] ${message}`, ...args);
+    process.stderr.write(formatted + '\n');
   }
 }
