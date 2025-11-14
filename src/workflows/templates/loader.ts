@@ -1,22 +1,14 @@
 import * as path from 'node:path';
 import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
 import type { WorkflowTemplate } from './types.js';
 import { validateWorkflowTemplate } from './validator.js';
 import { ensureTemplateGlobals } from './globals.js';
+import { resolvePackageRoot } from '../../shared/utils/package-json.js';
 
 // Package root resolution
-export const packageRoot = (() => {
-  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
-  let current = moduleDir;
-  while (true) {
-    if (existsSync(path.join(current, 'package.json'))) return current;
-    const parent = path.dirname(current);
-    if (parent === current) return moduleDir;
-    current = parent;
-  }
-})();
+export const packageRoot = resolvePackageRoot(import.meta.url, 'workflow templates loader');
 
 export const templatesDir = path.resolve(packageRoot, 'templates', 'workflows');
 

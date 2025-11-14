@@ -1,7 +1,4 @@
 import { createRequire } from 'node:module';
-import { existsSync } from 'node:fs';
-import { dirname, join, parse } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import React, { useState } from 'react';
 import { render } from 'ink';
 
@@ -15,6 +12,7 @@ import { debug } from '../../shared/logging/logger.js';
 import { registry } from '../../infra/engines/index.js';
 import { handleLogin, handleLogout } from '../commands/auth.command.js';
 import { getAvailableTemplates, selectTemplateByNumber } from '../commands/templates.command.js';
+import { resolvePackageJson } from '../../shared/utils/package-json.js';
 
 export interface SessionShellOptions {
   cwd: string;
@@ -162,7 +160,7 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
   }
 
   const require = createRequire(import.meta.url);
-  const packageJsonPath = findPackageJson(import.meta.url);
+  const packageJsonPath = resolvePackageJson(import.meta.url, 'CLI module');
   const pkg = require(packageJsonPath) as { version: string };
 
   let inkInstance: ReturnType<typeof render> | null = null;
@@ -237,18 +235,4 @@ export async function runSessionShell(options: SessionShellOptions): Promise<voi
 
   // Start the Ink UI (don't clear to preserve main menu)
   startInkUI();
-}
-
-function findPackageJson(moduleUrl: string): string {
-  let currentDir = dirname(fileURLToPath(moduleUrl));
-  const { root } = parse(currentDir);
-
-  while (true) {
-    const candidate = join(currentDir, 'package.json');
-    if (existsSync(candidate)) return candidate;
-    if (currentDir === root) break;
-    currentDir = dirname(currentDir);
-  }
-
-  throw new Error('Unable to locate package.json from CLI module');
 }

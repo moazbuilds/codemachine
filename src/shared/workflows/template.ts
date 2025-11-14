@@ -1,21 +1,11 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { resolvePackageRoot } from '../utils/package-json.js';
 
 const TEMPLATE_TRACKING_FILE = 'template.json';
 
-// Resolve package root to find templates directory
-const packageRoot = (() => {
-  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
-  let current = moduleDir;
-  while (true) {
-    if (existsSync(path.join(current, 'package.json'))) return current;
-    const parent = path.dirname(current);
-    if (parent === current) return moduleDir;
-    current = parent;
-  }
-})();
+const packageRoot = resolvePackageRoot(import.meta.url, 'workflows template tracking');
 
 const templatesDir = path.resolve(packageRoot, 'templates', 'workflows');
 
