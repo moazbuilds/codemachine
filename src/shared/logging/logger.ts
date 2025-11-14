@@ -1,3 +1,7 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { format as formatMessage } from 'node:util';
+
 /**
  * Logger utility that respects LOG_LEVEL environment variable
  */
@@ -11,8 +15,24 @@ const LOG_LEVELS = {
 
 type LogLevel = keyof typeof LOG_LEVELS;
 
+let debugLogStream: fs.WriteStream | null = null;
+
+function resolveRequestedLevel(): string {
+  const explicit = process.env.LOG_LEVEL;
+  if (explicit && explicit.trim()) {
+    return explicit.trim().toLowerCase();
+  }
+
+  // Fallback to DEBUG env flag (used by bun run dev)
+  if (process.env.DEBUG && process.env.DEBUG.trim() !== '' && process.env.DEBUG !== '0' && process.env.DEBUG.toLowerCase() !== 'false') {
+    return 'debug';
+  }
+
+  return 'info';
+}
+
 function getCurrentLogLevel(): LogLevel {
-  const level = (process.env.LOG_LEVEL || 'info').trim().toLowerCase() as LogLevel;
+  const level = resolveRequestedLevel() as LogLevel;
   return LOG_LEVELS[level] !== undefined ? level : 'info';
 }
 
@@ -21,9 +41,34 @@ function shouldLog(level: LogLevel): boolean {
   return LOG_LEVELS[level] >= LOG_LEVELS[currentLevel];
 }
 
+function writeDebugLog(message: string, ...args: unknown[]): void {
+  if (!debugLogStream) {
+    console.error(message, ...args);
+    return;
+  }
+
+  const timestamp = new Date().toISOString();
+  const formatted = formatMessage(message, ...args);
+  debugLogStream.write(`${timestamp} ${formatted}\n`);
+}
+
+export function setDebugLogFile(filePath: string | null): void {
+  if (debugLogStream) {
+    debugLogStream.end();
+    debugLogStream = null;
+  }
+
+  if (!filePath) {
+    return;
+  }
+
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  debugLogStream = fs.createWriteStream(filePath, { flags: 'a' });
+}
+
 export function debug(message: string, ...args: unknown[]): void {
   if (shouldLog('debug')) {
-    console.error(`[DEBUG] ${message}`, ...args);
+    writeDebugLog(`[DEBUG] ${message}`, ...args);
   }
 }
 

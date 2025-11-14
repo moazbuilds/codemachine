@@ -24,6 +24,7 @@ export class WorkflowUIManager {
   private consoleHijacked = false;
   private agentIdMap: Map<string, number> = new Map(); // UI agent ID → Monitoring agent ID
   private syncInterval?: NodeJS.Timeout;
+  private debugLogPath?: string;
 
   constructor(workflowName: string, totalSteps: number = 0) {
     this.state = new WorkflowUIState(workflowName, totalSteps);
@@ -70,6 +71,10 @@ export class WorkflowUIManager {
       // Hijack console to prevent breaking Ink UI
       this.hijackConsole();
 
+      if (this.debugLogPath) {
+        debug(`[WorkflowUIManager] Writing debug logs to ${this.debugLogPath}`);
+      }
+
       // Start syncing sub-agents from registry
       this.startSubAgentSync();
 
@@ -97,6 +102,13 @@ export class WorkflowUIManager {
       console.error('Failed to initialize Ink UI, using fallback mode:', error);
       console.log(`Starting workflow: ${this.state.getState().workflowName}`);
     }
+  }
+
+  /**
+   * Store debug log path so we can notify users in fallback mode or future UI renders.
+   */
+  setDebugLogPath(path: string): void {
+    this.debugLogPath = path;
   }
 
   /**

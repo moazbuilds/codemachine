@@ -1,5 +1,4 @@
 import * as path from 'node:path';
-import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import type { WorkflowTemplate } from './types.js';

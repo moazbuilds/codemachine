@@ -1,6 +1,27 @@
 import type { Database } from 'bun:sqlite';
 import type { AgentRecord, RegisterAgentInput } from '../types.js';
-import type { ParsedTelemetry } from '../../../infra/engines/core/types.js';
+type AgentRow = {
+  id: number;
+  name: string;
+  engine: string | null;
+  status: string;
+  parent_id: number | null;
+  pid: number | null;
+  start_time: string;
+  end_time: string | null;
+  duration: number | null;
+  prompt: string;
+  log_path: string;
+  error: string | null;
+  engine_provider: string | null;
+  model_name: string | null;
+  tokens_in: number | null;
+  tokens_out: number | null;
+  cached_tokens: number | null;
+  cost: number | null;
+  cache_creation_tokens: number | null;
+  cache_read_tokens: number | null;
+};
 
 export class AgentRepository {
   constructor(private db: Database) {}
@@ -36,7 +57,7 @@ export class AgentRepository {
       FROM agents a
       LEFT JOIN telemetry t ON a.id = t.agent_id
       WHERE a.id = ?
-    `).get(id);
+    `).get(id) as AgentRow | undefined;
 
     return row ? this.toRecord(row) : undefined;
   }
@@ -47,9 +68,9 @@ export class AgentRepository {
       FROM agents a
       LEFT JOIN telemetry t ON a.id = t.agent_id
       ORDER BY a.id ASC
-    `).all();
+    `).all() as AgentRow[];
 
-    return rows.map(row => this.toRecord(row));
+    return rows.map((row: AgentRow) => this.toRecord(row));
   }
 
   getChildren(parentId: number): AgentRecord[] {
@@ -59,14 +80,14 @@ export class AgentRepository {
       LEFT JOIN telemetry t ON a.id = t.agent_id
       WHERE a.parent_id = ?
       ORDER BY a.id ASC
-    `).all(parentId);
+    `).all(parentId) as AgentRow[];
 
-    return rows.map(row => this.toRecord(row));
+    return rows.map((row: AgentRow) => this.toRecord(row));
   }
 
   update(id: number, updates: Partial<AgentRecord>): void {
     const fields: string[] = [];
-    const values: any[] = [];
+    const values: Array<string | number | null> = [];
 
     if (updates.status) {
       fields.push('status = ?');
@@ -155,34 +176,36 @@ export class AgentRepository {
     return result.maxId ?? 0;
   }
 
-  private toRecord(row: any): AgentRecord {
-    const childrenRows = this.db.prepare('SELECT id FROM agents WHERE parent_id = ?').all(row.id);
-    const children = childrenRows.map((r: any) => r.id);
+  private toRecord(row: AgentRow): AgentRecord {
+    const childrenRows = this.db.prepare('SELECT id FROM agents WHERE parent_id = ?').all(row.id) as Array<{ id: number }>;
+    const children = childrenRows.map((r) => r.id);
 
     return {
       id: row.id,
       name: row.name,
-      engine: row.engine,
-      status: row.status,
-      parentId: row.parent_id,
-      pid: row.pid,
+      engine: row.engine ?? undefined,
+      status: row.status as AgentRecord['status'],
+      parentId: row.parent_id ?? undefined,
+      pid: row.pid ?? undefined,
       startTime: row.start_time,
-      endTime: row.end_time,
-      duration: row.duration,
+      endTime: row.end_time ?? undefined,
+      duration: row.duration ?? undefined,
       prompt: row.prompt,
       logPath: row.log_path,
-      error: row.error,
-      engineProvider: row.engine_provider,
-      modelName: row.model_name,
+      error: row.error ?? undefined,
+      engineProvider: row.engine_provider ?? undefined,
+      modelName: row.model_name ?? undefined,
       children,
-      telemetry: row.tokens_in !== null ? {
-        tokensIn: row.tokens_in,
-        tokensOut: row.tokens_out,
-        cached: row.cached_tokens,
-        cost: row.cost,
-        cacheCreationTokens: row.cache_creation_tokens,
-        cacheReadTokens: row.cache_read_tokens,
-      } : undefined,
+      telemetry: row.tokens_in !== null && row.tokens_out !== null
+        ? {
+            tokensIn: row.tokens_in,
+            tokensOut: row.tokens_out,
+            cached: row.cached_tokens ?? undefined,
+            cost: row.cost ?? undefined,
+            cacheCreationTokens: row.cache_creation_tokens ?? undefined,
+            cacheReadTokens: row.cache_read_tokens ?? undefined,
+          }
+        : undefined,
     };
   }
 }
