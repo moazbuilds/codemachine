@@ -1,0 +1,47 @@
+name: Build Platform Binaries
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-platform:
+    name: Build ${{ matrix.slug }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            slug: codemachine-linux-x64
+          - os: macos-14
+            slug: codemachine-darwin-arm64
+          - os: macos-13
+            slug: codemachine-darwin-x64
+          - os: windows-latest
+            slug: codemachine-windows-x64
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.1.8
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build CLI bundle
+        run: bun run build
+
+      - name: Build platform binary
+        run: bun run build:binaries
+
+      - name: Upload binary package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.slug }}
+          path: binaries/${{ matrix.slug }}
