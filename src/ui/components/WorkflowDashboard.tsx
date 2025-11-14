@@ -83,42 +83,41 @@ export const WorkflowDashboard: React.FC<WorkflowDashboardProps> = ({
   }, [state.startTime, state.endTime, checkpointFreezeTime]);
 
   // Keyboard event handling - disabled when other views are active
-  useInput((input, key) => {
-    // Ignore all workflow keyboard inputs when checkpoint modal is active
-    if (state.checkpointState?.active) {
-      return;
-    }
-
-    // Ignore all workflow keyboard inputs when history view or log viewer is open
-    if (showHistory || logViewerAgentId || historyLogViewerMonitoringId) {
-      return;
-    }
-
-    if (key.ctrl && input === 's') {
-      onAction({ type: 'SKIP' });
-    } else if (input === 'h') {
-      setShowHistory(!showHistory);
-      onAction({ type: 'TOGGLE_TELEMETRY' });
-    } else if (key.upArrow) {
-      onAction({ type: 'NAVIGATE_UP', visibleItemCount: state.visibleItemCount });
-    } else if (key.downArrow) {
-      onAction({ type: 'NAVIGATE_DOWN', visibleItemCount: state.visibleItemCount });
-    } else if (key.return) {
-      // Enter key has dual functionality:
-      // 1. If summary row selected → toggle expand/collapse
-      // 2. If main agent or subagent selected → open log viewer
-      if (state.selectedItemType === 'summary' && state.selectedAgentId) {
-        // Toggle expand/collapse for summary
-        onAction({ type: 'TOGGLE_EXPAND', agentId: state.selectedAgentId });
-      } else {
-        // Open log viewer for main agent or subagent
-        const agentId = state.selectedSubAgentId || state.selectedAgentId;
-        if (agentId) {
-          setLogViewerAgentId(agentId);
+  useInput(
+    (input, key) => {
+      if (key.ctrl && input === 's') {
+        onAction({ type: 'SKIP' });
+      } else if (input === 'h') {
+        setShowHistory(!showHistory);
+        onAction({ type: 'TOGGLE_TELEMETRY' });
+      } else if (key.upArrow) {
+        onAction({ type: 'NAVIGATE_UP', visibleItemCount: state.visibleItemCount });
+      } else if (key.downArrow) {
+        onAction({ type: 'NAVIGATE_DOWN', visibleItemCount: state.visibleItemCount });
+      } else if (key.return) {
+        // Enter key has dual functionality:
+        // 1. If summary row selected → toggle expand/collapse
+        // 2. If main agent or subagent selected → open log viewer
+        if (state.selectedItemType === 'summary' && state.selectedAgentId) {
+          // Toggle expand/collapse for summary
+          onAction({ type: 'TOGGLE_EXPAND', agentId: state.selectedAgentId });
+        } else {
+          // Open log viewer for main agent or subagent
+          const agentId = state.selectedSubAgentId || state.selectedAgentId;
+          if (agentId) {
+            setLogViewerAgentId(agentId);
+          }
         }
       }
+    },
+    {
+      isActive:
+        !state.checkpointState?.active &&
+        !showHistory &&
+        !logViewerAgentId &&
+        !historyLogViewerMonitoringId,
     }
-  });
+  );
 
   // Get current agent for output window using centralized logic
   const currentAgent = getOutputAgent(state);

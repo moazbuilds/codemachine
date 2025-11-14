@@ -104,12 +104,12 @@ export async function executeFallbackStep(
     }
   } catch (error) {
     // Don't update status to failed - let it stay as running/retrying
-    console.error(
-      formatAgentLog(
+    if (ui) {
+      ui.logMessage(
         fallbackAgentId,
-        `Fallback agent failed: ${error instanceof Error ? error.message : String(error)}`,
-      ),
-    );
+        `Fallback agent failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
     throw error; // Re-throw to prevent original step from running
   }
 }

@@ -21,6 +21,7 @@ export class WorkflowUIManager {
   private lastRenderTime = 0;
   private originalConsoleLog?: typeof console.log;
   private originalConsoleError?: typeof console.error;
+  private originalConsoleWarn?: typeof console.warn;
   private consoleHijacked = false;
   private agentIdMap: Map<string, number> = new Map(); // UI agent ID → Monitoring agent ID
   private syncInterval?: NodeJS.Timeout;
@@ -120,6 +121,7 @@ export class WorkflowUIManager {
 
     this.originalConsoleLog = console.log;
     this.originalConsoleError = console.error;
+    this.originalConsoleWarn = console.warn;
     this.consoleHijacked = true;
 
     // Suppress console.log completely during UI mode
@@ -127,11 +129,15 @@ export class WorkflowUIManager {
       // Silently ignore - messages should use ui.logMessage() instead
     };
 
-    // Allow errors through stderr for debugging
-    console.error = (...args: unknown[]) => {
-      if (this.originalConsoleError) {
-        this.originalConsoleError(...args);
-      }
+    // Suppress console.error and console.warn completely during UI mode
+    // All error logging should go through ui.logMessage() to prevent breaking Ink layout
+    console.error = (..._args: unknown[]) => {
+      // Silently ignore - errors should use ui.logMessage() instead
+    };
+
+    // Also hijack console.warn to prevent placeholder warnings from breaking UI
+    console.warn = (..._args: unknown[]) => {
+      // Silently ignore - warnings should use ui.logMessage() instead
     };
   }
 
@@ -146,6 +152,9 @@ export class WorkflowUIManager {
     }
     if (this.originalConsoleError) {
       console.error = this.originalConsoleError;
+    }
+    if (this.originalConsoleWarn) {
+      console.warn = this.originalConsoleWarn;
     }
     this.consoleHijacked = false;
   }
