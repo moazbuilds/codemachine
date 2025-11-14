@@ -30,10 +30,22 @@ export class MonitoringCleanup {
   }
 
   /**
+   * Reset the Ctrl+C state between workflow runs so the next workflow
+   * always starts with the two-stage behavior.
+   */
+  private static resetCtrlCState(): void {
+    this.firstCtrlCPressed = false;
+    this.firstCtrlCTime = 0;
+  }
+
+  /**
    * Set up signal handlers for graceful cleanup
    * Should be called once at application startup
    */
   static setup(): void {
+    // Reset on every setup invocation to avoid carrying state
+    this.resetCtrlCState();
+
     if (this.isSetup) {
       return; // Already set up
     }
@@ -41,37 +53,8 @@ export class MonitoringCleanup {
     this.isSetup = true;
 
     // Handle Ctrl+C (SIGINT) with two-stage behavior
-    process.on('SIGINT', async () => {
-      if (!this.firstCtrlCPressed) {
-        // First Ctrl+C: Abort current step and stop workflow gracefully
-        this.firstCtrlCPressed = true;
-        this.firstCtrlCTime = Date.now();
-        logger.debug('First Ctrl+C detected - aborting current step and stopping workflow gracefully');
-
-        // Emit workflow:skip to abort the currently running step (triggers AbortController)
-        (process as NodeJS.EventEmitter).emit('workflow:skip');
-
-        // Call UI callback to update status
-        this.workflowHandlers.onStop?.();
-
-        // Don't exit - wait for second Ctrl+C
-        return;
-      }
-
-      // Check if enough time has passed since first Ctrl+C
-      const timeSinceFirst = Date.now() - this.firstCtrlCTime;
-      if (timeSinceFirst < this.CTRL_C_DEBOUNCE_MS) {
-        logger.debug(`Ignoring Ctrl+C - too soon (${timeSinceFirst}ms < ${this.CTRL_C_DEBOUNCE_MS}ms). Press Ctrl+C again to exit.`);
-        return;
-      }
-
-      // Second Ctrl+C (after debounce): Run cleanup and exit
-      logger.debug(`Second Ctrl+C detected after ${timeSinceFirst}ms - cleaning up and exiting`);
-
-      // Call UI callback to update status before exit
-      this.workflowHandlers.onExit?.();
-
-      await this.handleSignal('SIGINT', 'User interrupted (Ctrl+C)');
+    process.on('SIGINT', () => {
+      void this.handleCtrlCPress('signal');
     });
 
     // Handle termination signal (SIGTERM)
@@ -95,6 +78,58 @@ export class MonitoringCleanup {
     });
 
     logger.debug('MonitoringCleanup signal handlers initialized');
+  }
+
+  /**
+   * Public entrypoint for UI components to trigger the two-stage Ctrl+C flow
+   * without relying on terminal-delivered SIGINT events.
+   */
+  static async triggerCtrlCFromUI(): Promise<void> {
+    if (!this.isSetup) {
+      this.setup();
+    }
+    await this.handleCtrlCPress('ui');
+  }
+
+  /**
+   * Centralized Ctrl+C handling shared by both UI triggers and process signals.
+   */
+  private static async handleCtrlCPress(source: 'signal' | 'ui'): Promise<void> {
+    if (!this.firstCtrlCPressed) {
+      // First Ctrl+C: Abort current step and stop workflow gracefully
+      this.firstCtrlCPressed = true;
+      this.firstCtrlCTime = Date.now();
+      logger.debug(`[${source}] First Ctrl+C detected - aborting current step and stopping workflow gracefully`);
+
+      // Emit workflow:skip to abort the currently running step (triggers AbortController)
+      (process as NodeJS.EventEmitter).emit('workflow:skip');
+
+      // Call UI callback to update status
+      this.workflowHandlers.onStop?.();
+
+      // Don't exit - wait for second Ctrl+C
+      return;
+    }
+
+    // Check if enough time has passed since first Ctrl+C
+    const timeSinceFirst = Date.now() - this.firstCtrlCTime;
+    if (timeSinceFirst < this.CTRL_C_DEBOUNCE_MS) {
+      logger.debug(
+        `[${source}] Ignoring Ctrl+C - too soon (${timeSinceFirst}ms < ${this.CTRL_C_DEBOUNCE_MS}ms). Press Ctrl+C again to exit.`
+      );
+      return;
+    }
+
+    // Second Ctrl+C (after debounce): Run cleanup and exit
+    logger.debug(`[${source}] Second Ctrl+C detected after ${timeSinceFirst}ms - cleaning up and exiting`);
+
+    // Call UI callback to update status before exit
+    this.workflowHandlers.onExit?.();
+
+    // Give the UI a tick to render the stopped status before shutting down
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    await this.handleSignal('SIGINT', 'User interrupted (Ctrl+C)');
   }
 
   /**

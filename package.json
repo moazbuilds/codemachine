@@ -4,7 +4,8 @@
   "description": "Multi-Agent Workflow Orchestration.",
   "type": "module",
   "bin": {
-    "codemachine": "./bin/codemachine.js"
+    "codemachine": "./bin/codemachine.js",
+    "cm": "./bin/codemachine.js"
   },
   "files": [
     "bin/",
