@@ -3,10 +3,8 @@ import * as fs from 'node:fs';
 
 import type { RunWorkflowOptions } from '../templates/index.js';
 import { loadTemplateWithPath } from '../templates/index.js';
-import {
-  formatAgentLog,
-} from '../../shared/logging/index.js';
-import { debug } from '../../shared/logging/logger.js';
+import { formatAgentLog } from '../../shared/logging/index.js';
+import { debug, setDebugLogFile } from '../../shared/logging/logger.js';
 import {
   getTemplatePathFromTracking,
   getCompletedSteps,
@@ -78,10 +76,15 @@ class EngineAuthCache {
 const authCache = new EngineAuthCache();
 
 export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<void> {
+  const cwd = options.cwd ? path.resolve(options.cwd) : process.cwd();
+
+  // Redirect debug logs to file when UI is active so they don't break Ink layout
+  const shouldRedirectDebugLogs = process.stdout.isTTY && (process.env.LOG_LEVEL || '').trim().toLowerCase() === 'debug';
+  const debugLogPath = shouldRedirectDebugLogs ? path.join(cwd, '.codemachine', 'logs', 'workflow-debug.log') : null;
+  setDebugLogFile(debugLogPath);
+
   // Set up cleanup handlers for graceful shutdown
   MonitoringCleanup.setup();
-
-  const cwd = options.cwd ? path.resolve(options.cwd) : process.cwd();
 
   // Load template from .codemachine/template.json or use provided path
   const cmRoot = path.join(cwd, '.codemachine');
@@ -131,6 +134,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
   // Initialize Workflow UI Manager
   const ui = new WorkflowUIManager(template.name);
+  if (debugLogPath) {
+    ui.setDebugLogPath(debugLogPath);
+  }
 
   // Pre-populate timeline with all workflow steps BEFORE starting UI
   // This prevents duplicate renders at startup
@@ -314,25 +320,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     // Mutate current step to carry the chosen engine forward
     step.engine = engineType;
 
-    // Check if fallback should be executed before the original step
-    if (shouldExecuteFallback(step, index, notCompletedSteps)) {
-      ui.logMessage(uniqueAgentId, `Detected incomplete step. Running fallback agent first.`);
-      try {
-        await executeFallbackStep(step, cwd, workflowStartTime, engineType, ui, uniqueAgentId);
-      } catch (error) {
-        // Fallback failed, step remains in notCompletedSteps
-        console.error(
-          formatAgentLog(
-            step.agentId,
-            `Fallback failed. Skipping original step retry.`,
-          ),
-        );
-        // Don't update status to failed - just let it stay as running or retrying
-        throw error;
-      }
-    }
-
-    // Set up skip listener and abort controller for this step
+    // Set up skip listener and abort controller for this step (covers fallback + main + triggers)
     const abortController = new AbortController();
     const skipListener = () => {
       ui.logMessage(uniqueAgentId, '⏭️  Skip requested by user...');
@@ -341,6 +329,24 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     process.once('workflow:skip', skipListener);
 
     try {
+      // Check if fallback should be executed before the original step
+      if (shouldExecuteFallback(step, index, notCompletedSteps)) {
+        ui.logMessage(uniqueAgentId, `Detected incomplete step. Running fallback agent first.`);
+        try {
+          await executeFallbackStep(step, cwd, workflowStartTime, engineType, ui, uniqueAgentId, abortController.signal);
+        } catch (error) {
+          // Fallback failed, step remains in notCompletedSteps
+          console.error(
+            formatAgentLog(
+              step.agentId,
+              `Fallback failed. Skipping original step retry.`,
+            ),
+          );
+          // Don't update status to failed - just let it stay as running or retrying
+          throw error;
+        }
+      }
+
       const output = await executeStep(step, cwd, {
         logger: () => {}, // No-op: UI reads from log files
         stderrLogger: () => {}, // No-op: UI reads from log files

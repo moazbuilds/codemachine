@@ -40,6 +40,17 @@ export class MonitoringCleanup {
   }
 
   /**
+   * Terminate any running agent processes and mark them as aborted without
+   * exiting the CLI. This is invoked on the first Ctrl+C so that the workflow
+   * actually stops executing while we keep the UI alive.
+   */
+  private static async stopActiveAgents(): Promise<void> {
+    logger.debug('Stopping active agents after first Ctrl+C...');
+    killAllActiveProcesses();
+    await this.cleanup('aborted', new Error('User interrupted (Ctrl+C)'));
+  }
+
+  /**
    * Set up signal handlers for graceful cleanup
    * Should be called once at application startup
    */
@@ -107,6 +118,8 @@ export class MonitoringCleanup {
 
       // Call UI callback to update status
       this.workflowHandlers.onStop?.();
+
+      await this.stopActiveAgents();
 
       // Don't exit - wait for second Ctrl+C
       return;

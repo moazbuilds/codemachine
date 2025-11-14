@@ -9,6 +9,7 @@ export interface FallbackExecutionOptions {
   logger: (message: string) => void;
   stderrLogger: (message: string) => void;
   ui?: WorkflowUIManager;
+  abortSignal?: AbortSignal;
 }
 
 /**
@@ -34,6 +35,7 @@ export async function executeFallbackStep(
   engineType: string,
   ui?: WorkflowUIManager,
   uniqueParentAgentId?: string,
+  abortSignal?: AbortSignal,
 ): Promise<void> {
   // Only module steps can have fallback agents
   if (!isModuleStep(step)) {
@@ -91,6 +93,7 @@ export async function executeFallbackStep(
       stderrLogger: () => {}, // No-op: UI reads from log files
       ui,
       uniqueAgentId: fallbackAgentId,
+      abortSignal,
     });
 
     // Update UI status on success
