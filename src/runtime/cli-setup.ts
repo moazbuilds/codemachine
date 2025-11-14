@@ -7,25 +7,12 @@ import { runSessionShell } from '../cli/controllers/session-shell.js';
 import { runStartupFlow } from './services/index.js';
 import { registry } from '../infra/engines/index.js';
 import { bootstrapWorkspace } from './services/workspace/index.js';
+import { resolvePackageRoot } from '../shared/utils/package-json.js';
 
 const DEFAULT_SPEC_PATH = '.codemachine/inputs/specifications.md';
 
 // Resolve package root to find templates directory
-const packageRoot = (() => {
-  // For compiled binaries, use the current working directory as package root
-  if (typeof Bun !== 'undefined' && Bun.main && Bun.main.startsWith('/$bunfs/')) {
-    return process.cwd();
-  }
-
-  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
-  let current = moduleDir;
-  while (true) {
-    if (existsSync(path.join(current, 'package.json'))) return current;
-    const parent = path.dirname(current);
-    if (parent === current) return moduleDir;
-    current = parent;
-  }
-})();
+const packageRoot = resolvePackageRoot(import.meta.url, 'runtime setup');
 
 const templatesDir = path.resolve(packageRoot, 'templates', 'workflows');
 

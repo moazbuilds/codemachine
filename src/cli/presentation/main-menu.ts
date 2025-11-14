@@ -1,30 +1,14 @@
 import { createRequire } from 'node:module';
-import { existsSync } from 'node:fs';
-import { dirname, join, parse } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 import updateNotifier from 'update-notifier';
 import { formatKeyValue, palette, divider } from './layout.js';
 import { getActiveTemplate } from '../../shared/workflows/index.js';
 import { clearTerminal } from '../../shared/utils/terminal.js';
-
-function findPackageJson(moduleUrl: string): string {
-  let currentDir = dirname(fileURLToPath(moduleUrl));
-  const { root } = parse(currentDir);
-
-  while (true) {
-    const candidate = join(currentDir, 'package.json');
-    if (existsSync(candidate)) return candidate;
-    if (currentDir === root) break;
-    currentDir = dirname(currentDir);
-  }
-
-  throw new Error('Unable to locate package.json from main menu module');
-}
+import { resolvePackageJson } from '../../shared/utils/package-json.js';
 
 function getPackageInfo(): { version: string; name: string } {
   const require = createRequire(import.meta.url);
-  const packageJsonPath = findPackageJson(import.meta.url);
+  const packageJsonPath = resolvePackageJson(import.meta.url, 'main menu module');
   const pkg = require(packageJsonPath) as { version: string; name: string };
   return { version: pkg.version, name: pkg.name };
 }

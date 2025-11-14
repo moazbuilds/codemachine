@@ -2,23 +2,14 @@ import type { Command } from 'commander';
 import * as path from 'node:path';
 import { existsSync, readdirSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 import { loadWorkflowModule, isWorkflowTemplate, WorkflowTemplate } from '../../workflows/index.js';
 import { hasTemplateChanged, setActiveTemplate } from '../../shared/workflows/index.js';
 import { bootstrapWorkspace } from '../../runtime/services/workspace/index.js';
 import { selectFromMenu, type SelectionChoice } from '../presentation/selection-menu.js';
 import { isModuleStep } from '../../workflows/templates/types.js';
+import { resolvePackageRoot } from '../../shared/utils/package-json.js';
 
-const packageRoot = (() => {
-  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
-  let current = moduleDir;
-  while (true) {
-    if (existsSync(path.join(current, 'package.json'))) return current;
-    const parent = path.dirname(current);
-    if (parent === current) return moduleDir;
-    current = parent;
-  }
-})();
+const packageRoot = resolvePackageRoot(import.meta.url, 'templates command');
 
 const templatesDir = path.resolve(packageRoot, 'templates', 'workflows');
 

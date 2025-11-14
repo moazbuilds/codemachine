@@ -1,20 +1,8 @@
-import { existsSync } from 'node:fs';
 import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import { resolvePackageRoot } from '../../shared/utils/package-json.js';
 
-// Package root resolution
-const moduleDir = path.dirname(fileURLToPath(import.meta.url));
-
-export const packageRoot = (() => {
-  let current = moduleDir;
-  while (true) {
-    if (existsSync(path.join(current, 'package.json'))) return current;
-    const parent = path.dirname(current);
-    if (parent === current) return moduleDir;
-    current = parent;
-  }
-})();
+export const packageRoot = resolvePackageRoot(import.meta.url, 'workflow config');
 
 // Config types
 export interface AgentConfig {

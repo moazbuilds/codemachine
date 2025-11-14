@@ -13,10 +13,13 @@
  * - codemachine-windows-x64
  */
 
-const { spawn } = require('child_process');
-const { join, dirname } = require('path');
-const { existsSync } = require('fs');
-const { platform, arch } = require('os');
+import { spawn } from 'node:child_process';
+import { join, dirname } from 'node:path';
+import { existsSync } from 'node:fs';
+import { platform, arch } from 'node:os';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Map Node.js platform/arch to our package names
 const platformMap = {
@@ -54,6 +57,11 @@ if (!existsSync(binaryPath)) {
 const child = spawn(binaryPath, process.argv.slice(2), {
   stdio: 'inherit',
   windowsHide: false,
+  env: {
+    ...process.env,
+    CODEMACHINE_PACKAGE_ROOT: rootDir,
+    CODEMACHINE_PACKAGE_JSON: join(rootDir, 'package.json'),
+  },
 });
 
 // Forward exit code
