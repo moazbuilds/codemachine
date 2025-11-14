@@ -177,12 +177,12 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
     }
 
     // Don't update status to failed - let it stay as running/retrying
-    console.error(
-      formatAgentLog(
+    if (ui) {
+      ui.logMessage(
         sourceAgentId,
-        `Triggered agent '${triggerAgentId}' failed: ${triggerError instanceof Error ? triggerError.message : String(triggerError)}`,
-      ),
-    );
+        `Triggered agent '${triggerAgentId}' failed: ${triggerError instanceof Error ? triggerError.message : String(triggerError)}`
+      );
+    }
     // Continue with workflow even if triggered agent fails
     throw triggerError;
   }

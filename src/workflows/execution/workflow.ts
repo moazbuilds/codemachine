@@ -253,11 +253,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         : false;
       if (!isOverrideAuthed) {
         const pretty = overrideEngine?.metadata.name ?? engineType;
-        console.error(
-          formatAgentLog(
-            step.agentId,
-            `${pretty} override is not authenticated; falling back to first authenticated engine by order. Run 'codemachine auth login' to use ${pretty}.`,
-          ),
+        ui.logMessage(
+          uniqueAgentId,
+          `${pretty} override is not authenticated; falling back to first authenticated engine by order. Run 'codemachine auth login' to use ${pretty}.`
         );
 
         // Find first authenticated engine by order (with caching)
@@ -281,11 +279,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
         if (fallbackEngine) {
           engineType = fallbackEngine.metadata.id;
-          console.log(
-            formatAgentLog(
-              step.agentId,
-              `Falling back to ${fallbackEngine.metadata.name} (${engineType})`,
-            ),
+          ui.logMessage(
+            uniqueAgentId,
+            `Falling back to ${fallbackEngine.metadata.name} (${engineType})`
           );
         }
       }
@@ -325,7 +321,14 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
     // Set up skip listener and abort controller for this step (covers fallback + main + triggers)
     const abortController = new AbortController();
+    let skipRequested = false; // Prevent duplicate skip requests during async abort handling
     const skipListener = () => {
+      if (skipRequested) {
+        // Ignore duplicate skip events (user pressing Ctrl+S rapidly)
+        // This prevents multiple "Skip requested" messages during Bun.spawn's async termination
+        return;
+      }
+      skipRequested = true;
       ui.logMessage(uniqueAgentId, '⏭️  Skip requested by user...');
       abortController.abort();
     };
@@ -339,12 +342,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
           await executeFallbackStep(step, cwd, workflowStartTime, engineType, ui, uniqueAgentId, abortController.signal);
         } catch (error) {
           // Fallback failed, step remains in notCompletedSteps
-          console.error(
-            formatAgentLog(
-              step.agentId,
-              `Fallback failed. Skipping original step retry.`,
-            ),
-          );
+          ui.logMessage(uniqueAgentId, `Fallback failed. Skipping original step retry.`);
           // Don't update status to failed - just let it stay as running or retrying
           throw error;
         }
@@ -487,11 +485,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         // Continue to next step - don't throw
       } else {
         // Don't update status to failed - let it stay as running/retrying
-        console.error(
-          formatAgentLog(
-            step.agentId,
-            `${step.agentName} failed: ${error instanceof Error ? error.message : String(error)}`,
-          ),
+        ui.logMessage(
+          uniqueAgentId,
+          `${step.agentName} failed: ${error instanceof Error ? error.message : String(error)}`
         );
         throw error;
       }
@@ -532,8 +528,13 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     // Never resolves - keeps event loop alive until Ctrl+C exits process
   });
   } catch (error) {
-    // On workflow error, set status and exit
+    // On workflow error, set status, stop UI, then exit
     ui.setWorkflowStatus('stopped');
+
+    // Stop UI to restore console before logging error
+    ui.stop();
+
+    // Re-throw error to be handled by caller (will now print after UI is stopped)
     throw error;
   } finally {
     // Clean up workflow stop listener

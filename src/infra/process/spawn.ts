@@ -64,32 +64,20 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
     // Track if process was aborted to handle close event correctly
     let wasAborted = false;
     let timeoutId: Timer | undefined;
+    let abortReason: Error | undefined;
 
-    // Create combined abort controller for timeout + external signal
-    const controller = new AbortController();
-    const internalSignal = controller.signal;
+    // Use external signal directly or create internal one for timeout only
+    // This eliminates the double AbortController layer for faster abort propagation
+    const timeoutController = !signal && timeout ? new AbortController() : undefined;
+    const effectiveSignal = signal || timeoutController?.signal;
 
     // Handle timeout
-    if (timeout) {
+    if (timeout && timeoutController) {
       timeoutId = setTimeout(() => {
         logger.debug(`Process ${command} timed out after ${timeout}ms`);
-        controller.abort(new Error(`Process timed out after ${timeout}ms`));
+        abortReason = new Error(`Process timed out after ${timeout}ms`);
+        timeoutController.abort(abortReason);
       }, timeout);
-    }
-
-    // Forward external abort signal to internal controller
-    if (signal) {
-      const abortHandler = () => {
-        logger.debug(`External abort signal received for ${command}`);
-        wasAborted = true;
-        controller.abort(signal.reason || new Error('Process aborted'));
-      };
-
-      if (signal.aborted) {
-        abortHandler();
-      } else {
-        signal.addEventListener('abort', abortHandler, { once: true });
-      }
     }
 
     // Spawn the process using Bun.spawn()
@@ -112,58 +100,67 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
       if (timeoutId) clearTimeout(timeoutId);
     };
 
-    // Handle internal abort signal (from timeout or external abort)
-    internalSignal.addEventListener('abort', () => {
-      logger.debug(`Abort handler called for ${command} (PID: ${child.pid}, killed: ${child.killed})`);
-      wasAborted = true;
+    // Handle abort signal directly (no double controller layer for faster propagation)
+    if (effectiveSignal) {
+      const abortHandler = () => {
+        logger.debug(`Abort handler called for ${command} (PID: ${child.pid}, killed: ${child.killed})`);
+        wasAborted = true;
+        abortReason = effectiveSignal.reason || new Error('Process aborted');
 
-      // Kill process group on Unix (for wrapper scripts like CCR)
-      if (process.platform !== 'win32' && child.pid) {
-        try {
-          // Kill process group (negative PID kills the entire group)
-          logger.debug(`Killing process group -${child.pid} with SIGTERM`);
-          process.kill(-child.pid, 'SIGTERM');
+        // Kill process group on Unix (for wrapper scripts like CCR)
+        if (process.platform !== 'win32' && child.pid) {
+          try {
+            // Kill process group (negative PID kills the entire group)
+            logger.debug(`Killing process group -${child.pid} with SIGTERM`);
+            process.kill(-child.pid, 'SIGTERM');
 
-          // Force kill after 100ms if still running
-          setTimeout(() => {
-            try {
-              logger.debug(`Force killing process group -${child.pid} with SIGKILL`);
-              process.kill(-child.pid!, 'SIGKILL');
-            } catch (err) {
-              // Process group already dead, ignore
-              logger.debug(`Force kill failed (process already dead): ${err instanceof Error ? err.message : String(err)}`);
-            }
-          }, 100);
-        } catch (err) {
-          // Fallback to killing just the process
-          logger.debug(`Process group kill failed, falling back to child.kill(): ${err instanceof Error ? err.message : String(err)}`);
-          if (!child.killed) {
-            child.kill('SIGTERM');
-          }
-        }
-      } else if (!child.killed) {
-        // Windows or no PID: use child.kill()
-        logger.debug(`Killing process ${command} (PID: ${child.pid}) with child.kill()`);
-        try {
-          child.kill('SIGTERM');
-          // Force kill after 100ms if still running
-          setTimeout(() => {
-            try {
-              if (!child.killed) {
-                logger.debug(`Force killing process ${command} with SIGKILL`);
-                child.kill('SIGKILL');
+            // Force kill after 100ms if still running
+            setTimeout(() => {
+              try {
+                logger.debug(`Force killing process group -${child.pid} with SIGKILL`);
+                process.kill(-child.pid!, 'SIGKILL');
+              } catch (err) {
+                // Process group already dead, ignore
+                logger.debug(`Force kill failed (process already dead): ${err instanceof Error ? err.message : String(err)}`);
               }
-            } catch {
-              // Process already dead
+            }, 100);
+          } catch (err) {
+            // Fallback to killing just the process
+            logger.debug(`Process group kill failed, falling back to child.kill(): ${err instanceof Error ? err.message : String(err)}`);
+            if (!child.killed) {
+              child.kill('SIGTERM');
             }
-          }, 100);
-        } catch {
-          // Ignore kill errors
+          }
+        } else if (!child.killed) {
+          // Windows or no PID: use child.kill()
+          logger.debug(`Killing process ${command} (PID: ${child.pid}) with child.kill()`);
+          try {
+            child.kill('SIGTERM');
+            // Force kill after 100ms if still running
+            setTimeout(() => {
+              try {
+                if (!child.killed) {
+                  logger.debug(`Force killing process ${command} with SIGKILL`);
+                  child.kill('SIGKILL');
+                }
+              } catch {
+                // Process already dead
+              }
+            }, 100);
+          } catch {
+            // Ignore kill errors
+          }
+        } else {
+          logger.debug(`Process ${command} already killed, skipping manual kill`);
         }
+      };
+
+      if (effectiveSignal.aborted) {
+        abortHandler();
       } else {
-        logger.debug(`Process ${command} already killed, skipping manual kill`);
+        effectiveSignal.addEventListener('abort', abortHandler, { once: true });
       }
-    }, { once: true });
+    }
 
     // Handle stdout/stderr streaming for pipe mode
     const stdoutChunks: string[] = [];
@@ -222,7 +219,7 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
         // If process was aborted, reject the promise
         if (wasAborted) {
           logger.debug(`Process ${command} was aborted, rejecting with AbortError`);
-          reject(internalSignal.reason || new Error('Process aborted'));
+          reject(abortReason || new Error('Process aborted'));
           return;
         }
 
