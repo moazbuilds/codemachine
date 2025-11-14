@@ -13,6 +13,7 @@ export class MonitoringCleanup {
   private static firstCtrlCPressed = false;
   private static firstCtrlCTime = 0;
   private static readonly CTRL_C_DEBOUNCE_MS = 500; // Require 500ms between Ctrl+C presses
+  private static readonly EXIT_STATUS_DELAY_MS = 150; // Give UI time to render "Stopped" state
   private static workflowHandlers: {
     onStop?: () => void;
     onExit?: () => void;
@@ -126,8 +127,8 @@ export class MonitoringCleanup {
     // Call UI callback to update status before exit
     this.workflowHandlers.onExit?.();
 
-    // Give the UI a tick to render the stopped status before shutting down
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    // Give the UI a moment to render the stopped status before shutting down
+    await new Promise((resolve) => setTimeout(resolve, this.EXIT_STATUS_DELAY_MS));
 
     await this.handleSignal('SIGINT', 'User interrupted (Ctrl+C)');
   }
