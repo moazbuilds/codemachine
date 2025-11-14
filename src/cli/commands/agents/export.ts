@@ -1,5 +1,5 @@
 import { AgentMonitorService } from '../../../agents/monitoring/index.js';
-import type { AgentRegistryData } from '../../../agents/monitoring/types.js';
+import type { AgentRecord, AgentRegistryData } from '../../../agents/monitoring/types.js';
 import { getDB } from '../../../agents/monitoring/db/connection.js';
 import { writeFileSync } from 'fs';
 
@@ -15,7 +15,7 @@ export async function exportAgents(): Promise<void> {
   const lastId = result.maxId ?? 0;
 
   // Build old JSON format
-  const agentsMap: Record<number, any> = {};
+  const agentsMap: Record<number, AgentRecord> = {};
 
   for (const agent of agents) {
     agentsMap[agent.id] = {

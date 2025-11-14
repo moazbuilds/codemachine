@@ -78,9 +78,12 @@ const authCache = new EngineAuthCache();
 export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<void> {
   const cwd = options.cwd ? path.resolve(options.cwd) : process.cwd();
 
-  // Redirect debug logs to file when UI is active so they don't break Ink layout
-  const shouldRedirectDebugLogs = process.stdout.isTTY && (process.env.LOG_LEVEL || '').trim().toLowerCase() === 'debug';
-  const debugLogPath = shouldRedirectDebugLogs ? path.join(cwd, '.codemachine', 'logs', 'workflow-debug.log') : null;
+  // Redirect debug logs to file whenever LOG_LEVEL=debug (or DEBUG env is truthy) so they don't break Ink layout
+  const rawLogLevel = (process.env.LOG_LEVEL || '').trim().toLowerCase();
+  const debugFlag = (process.env.DEBUG || '').trim().toLowerCase();
+  const debugEnabled = rawLogLevel === 'debug' || (debugFlag !== '' && debugFlag !== '0' && debugFlag !== 'false');
+  const isDebugLogLevel = debugEnabled;
+  const debugLogPath = isDebugLogLevel ? path.join(cwd, '.codemachine', 'logs', 'workflow-debug.log') : null;
   setDebugLogFile(debugLogPath);
 
   // Set up cleanup handlers for graceful shutdown

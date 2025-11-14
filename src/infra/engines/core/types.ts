@@ -14,6 +14,8 @@ export interface ParsedTelemetry {
   cached?: number;
   cost?: number;
   duration?: number;
+  cacheCreationTokens?: number;
+  cacheReadTokens?: number;
 }
 
 export interface EngineRunOptions {
