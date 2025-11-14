@@ -54,6 +54,12 @@ export function killAllActiveProcesses(): void {
 export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
   const { command, args = [], cwd, env, onStdout, onStderr, signal, stdioMode = 'pipe', timeout, stdinInput } = options;
 
+  // Pre-encode stdin upfront if provided. We avoid manual piping because Bun's FileSink
+  // requires flush semantics that were dropping data in practice.
+  const stdinEncoded = stdinInput !== undefined
+    ? new TextEncoder().encode(stdinInput)
+    : undefined;
+
   return new Promise((resolve, reject) => {
     // Track if process was aborted to handle close event correctly
     let wasAborted = false;
@@ -91,7 +97,7 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
     const child = Bun.spawn([command, ...args], {
       cwd,
       env: env ? { ...process.env, ...env } : process.env,
-      stdin: stdinInput !== undefined ? 'pipe' : 'ignore',
+      stdin: stdinEncoded ?? 'ignore',
       stdout: stdioMode === 'inherit' ? 'inherit' : 'pipe',
       stderr: stdioMode === 'inherit' ? 'inherit' : 'pipe',
       // Note: Bun doesn't have detached option, but we can still kill process groups manually
@@ -158,12 +164,6 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
         logger.debug(`Process ${command} already killed, skipping manual kill`);
       }
     }, { once: true });
-
-    // Write to stdin if data is provided
-    if (stdinInput !== undefined && child.stdin) {
-      child.stdin.write(stdinInput);
-      child.stdin.end();
-    }
 
     // Handle stdout/stderr streaming for pipe mode
     const stdoutChunks: string[] = [];
