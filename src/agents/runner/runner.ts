@@ -8,6 +8,7 @@ import { loadAgentConfig } from './config.js';
 import { AgentMonitorService, AgentLoggerService } from '../monitoring/index.js';
 import type { ParsedTelemetry } from '../../infra/engines/core/types.js';
 import { formatForLogFile } from '../../shared/formatters/logFileFormatter.js';
+import { info, error } from '../../shared/logging/logger.js';
 
 /**
  * Cache for engine authentication status with TTL (shared across all subagents)
@@ -220,7 +221,7 @@ export async function executeAgent(
     }
 
     engineType = foundEngine.metadata.id;
-    console.log(`ℹ️  No engine specified for agent '${agentId}', using ${foundEngine.metadata.name} (${engineType})`);
+    info(`No engine specified for agent '${agentId}', using ${foundEngine.metadata.name} (${engineType})`);
   }
 
   // Ensure authentication
@@ -329,7 +330,7 @@ export async function executeAgent(
         // Update telemetry in monitoring (fire and forget - don't block streaming)
         if (monitor && monitoringAgentId !== undefined) {
           monitor.updateTelemetry(monitoringAgentId, telemetry).catch(err =>
-            console.error(`Failed to update telemetry: ${err}`)
+            error(`Failed to update telemetry: ${err}`)
           );
         }
 

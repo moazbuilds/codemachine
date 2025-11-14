@@ -8,6 +8,7 @@ import { useLogStream } from '../hooks/useLogStream';
 import { LineSyntaxHighlight } from '../utils/lineSyntaxHighlight';
 import { ShimmerText } from './ShimmerText';
 import { parseMarker } from '../../shared/formatters/outputMarkers.js';
+import { debug } from '../../shared/logging/logger.js';
 
 // Rotating messages shown while connecting to agent - sound like progress
 const CONNECTING_MESSAGES = [
@@ -47,9 +48,7 @@ export const OutputWindow: React.FC<OutputWindowProps> = ({
   const effectiveMaxLines = maxLines || calculatedHeight;
 
   // Debug: log width calculations
-  if (process.env.DEBUG_OUTPUT_WIDTH) {
-    console.log(`Terminal width: ${stdout?.columns}, Calculated content width: ${calculatedWidth}`);
-  }
+  debug(`Terminal width: ${stdout?.columns}, Calculated content width: ${calculatedWidth}`);
 
   // Get monitoring ID for log streaming
   const monitoringId = currentAgent ? getMonitoringId(currentAgent.id) : undefined;

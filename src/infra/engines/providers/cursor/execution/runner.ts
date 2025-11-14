@@ -6,6 +6,7 @@ import { buildCursorExecCommand } from './commands.js';
 import { metadata } from '../metadata.js';
 import { expandHomeDir } from '../../../../../shared/utils/index.js';
 import { formatThinking, formatCommand, formatResult, formatStatus } from '../../../../../shared/formatters/outputMarkers.js';
+import { debug } from '../../../../../shared/logging/logger.js';
 
 export interface RunCursorOptions {
   prompt: string;
@@ -191,11 +192,9 @@ export async function runCursor(options: RunCursorOptions): Promise<RunCursorRes
     cursorConfigDir
   });
 
-  // Debug logging only when LOG_LEVEL=debug
-  if (process.env.LOG_LEVEL === 'debug') {
-    console.error(`[DEBUG] Cursor runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
-    console.error(`[DEBUG] Cursor runner - args count: ${args.length}, model: ${model ?? 'auto'}`);
-  }
+  // Debug logging
+  debug(`Cursor runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
+  debug(`Cursor runner - args count: ${args.length}, model: ${model ?? 'auto'}`);
 
   let result;
   try {
