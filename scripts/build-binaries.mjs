@@ -1,11 +1,20 @@
 #!/usr/bin/env bun
-import { mkdirSync } from 'fs';
-import { join } from 'path';
-import { platform, arch } from 'os';
+import { mkdirSync, rmSync, cpSync, readFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { platform, arch } from 'node:os';
 
 // Detect current platform
 const currentPlatform = platform();
 const currentArch = arch();
+
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
+const mainPackage = JSON.parse(readFileSync(join(repoRoot, 'package.json'), 'utf8'));
+const mainVersion = mainPackage.version;
+
+const args = new Set(process.argv.slice(2));
+const installLocal = args.has('--install-local');
+const linkGlobal = args.has('--link-global');
 
 console.log('[build] Starting binary build...');
 console.log(`[build] Current platform: ${currentPlatform}-${currentArch}\n`);
@@ -62,11 +71,14 @@ try {
   }
 
   // Create package.json for the platform-specific package
+  const pkgName = `codemachine-${os}-${archName}`;
   const pkg = {
-    name: `codemachine-${os}-${archName}`,
-    version: "0.5.0", // TODO: Read from main package.json
+    name: pkgName,
+    version: mainVersion,
+    description: `${mainPackage.description} (prebuilt ${os}-${archName} binary)`,
     os: [os],
     cpu: [archName],
+    files: ['codemachine' + ext],
     bin: {
       codemachine: `./codemachine${ext}`
     },
@@ -78,6 +90,28 @@ try {
   );
 
   console.log(`[build] ✅ Successfully built executable: ${outdir}/codemachine${ext}`);
+
+  if (installLocal) {
+    const localPkgDir = join(repoRoot, 'node_modules', pkgName);
+    rmSync(localPkgDir, { recursive: true, force: true });
+    mkdirSync(join(repoRoot, 'node_modules'), { recursive: true });
+    cpSync(outdir, localPkgDir, { recursive: true });
+    console.log(`[build] 🔗 Installed local binary package at ${localPkgDir}`);
+  }
+
+  if (linkGlobal) {
+    console.log('[build] 🔗 Linking platform package globally via bun link...');
+    const linkProcess = Bun.spawn(['bun', 'link'], {
+      cwd: outdir,
+      stdout: 'inherit',
+      stderr: 'inherit',
+    });
+    const linkExit = await linkProcess.exited;
+    if (linkExit !== 0) {
+      console.warn('[build] ⚠️ bun link failed for platform package');
+    }
+  }
+
   console.log('[build] 🎉 Build complete!\n');
   console.log('[build] Note: This script builds for the current platform only.');
   console.log('[build] For cross-platform builds, run this script on each target platform.');

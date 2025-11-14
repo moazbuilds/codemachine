@@ -25,6 +25,8 @@
   "scripts": {
     "build": "bun build ./src/runtime/index.ts --outdir ./dist --target bun --format esm --sourcemap=external",
     "build:binaries": "bun scripts/build-binaries.mjs",
+    "build:binaries:local": "bun scripts/build-binaries.mjs --install-local",
+    "build:binaries:link": "bun scripts/build-binaries.mjs --install-local --link-global",
     "dev": "DEBUG=true bun src/runtime/cli-setup.ts",
     "debug": "REACT_DEVTOOLS=1 DEBUG=\"ink:*\" bun src/runtime/cli-setup.ts",
     "start": "bun run build && bun dist/index.js start",
