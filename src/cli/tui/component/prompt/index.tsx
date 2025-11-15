@@ -106,7 +106,8 @@ export function Prompt(props: PromptProps) {
           zIndex={100}
           borderColor={theme.border}
           border={["top", "bottom", "left", "right"]}
-          backgroundColor={theme.backgroundPanel}
+          borderStyle="rounded"
+          backgroundColor={theme.background}
         >
           <box flexDirection="column" gap={0} paddingLeft={1} paddingRight={1} paddingTop={1} paddingBottom={1}>
             <For each={filteredCommands()}>
@@ -134,6 +135,7 @@ export function Prompt(props: PromptProps) {
         <box
           borderColor={theme.border}
           border={["top", "bottom", "left", "right"]}
+          borderStyle="rounded"
           paddingLeft={1}
           paddingRight={1}
           paddingBottom={1}
@@ -144,6 +146,8 @@ export function Prompt(props: PromptProps) {
             onInput={handleInput}
             onKeyDown={handleKeyDown}
             focused
+            backgroundColor="transparent"
+            focusedBackgroundColor="transparent"
           />
         </box>
 
