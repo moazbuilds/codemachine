@@ -1,13 +1,17 @@
 /** @jsxImportSource @opentui/solid */
 import { render, useTerminalDimensions, useKeyboard, useRenderer } from "@opentui/solid"
-import { VignetteEffect, applyScanlines } from "@opentui/core"
-import { ErrorBoundary, createSignal } from "solid-js"
+import { VignetteEffect, applyScanlines, TextAttributes } from "@opentui/core"
+import { ErrorBoundary, createSignal, Show } from "solid-js"
 import { KVProvider } from "@tui/context/kv"
 import { ToastProvider } from "@tui/context/toast"
 import { ThemeProvider, useTheme } from "@tui/context/theme"
 import { DialogProvider } from "@tui/context/dialog"
-import { SessionProvider } from "@tui/context/session"
+import { SessionProvider, useSession } from "@tui/context/session"
+import { UpdateNotifierProvider, useUpdateNotifier } from "@tui/context/update-notifier"
 import { Home } from "@tui/routes/home"
+import { homedir } from "os"
+import { createRequire } from "node:module"
+import { resolvePackageJson } from "../../shared/utils/package-json.js"
 
 /**
  * Detects terminal background color by querying with OSC 11 escape sequence
@@ -119,7 +123,9 @@ function Root(props: { mode: "dark" | "light"; onExit: () => void }) {
           <ThemeProvider mode={props.mode}>
             <DialogProvider>
               <SessionProvider>
-                <App />
+                <UpdateNotifierProvider>
+                  <App />
+                </UpdateNotifierProvider>
               </SessionProvider>
             </DialogProvider>
           </ThemeProvider>
@@ -130,11 +136,13 @@ function Root(props: { mode: "dark" | "light"; onExit: () => void }) {
 }
 
 /**
- * Main App component - wraps Home with full-screen background
+ * Main App component - wraps Home with full-screen background and footer
  */
 function App() {
   const dimensions = useTerminalDimensions()
   const { theme } = useTheme()
+  const session = useSession()
+  const updateNotifier = useUpdateNotifier()
   const renderer = useRenderer()
 
   // Global Ctrl+C handler to exit gracefully
@@ -146,9 +154,56 @@ function App() {
     }
   })
 
+  // Get version from package.json
+  const getVersion = () => {
+    const require = createRequire(import.meta.url)
+    const packageJsonPath = resolvePackageJson(import.meta.url, "app component")
+    const pkg = require(packageJsonPath) as { version: string }
+    return pkg.version
+  }
+
+  // CWD with home directory replacement
+  const cwd = () => {
+    const home = homedir()
+    return process.cwd().replace(home, "~")
+  }
+
   return (
-    <box width={dimensions().width} height={dimensions().height} backgroundColor={theme.background}>
-      <Home />
+    <box
+      width={dimensions().width}
+      height={dimensions().height}
+      backgroundColor={theme.background}
+      flexDirection="column"
+    >
+      {/* Main content area */}
+      <box flexGrow={1}>
+        <Home />
+      </box>
+
+      {/* Footer - fixed height */}
+      <box height={1} flexShrink={0} backgroundColor={theme.backgroundPanel}>
+        <box flexDirection="row" justifyContent="space-between" paddingLeft={1} paddingRight={1}>
+          {/* Left: Branding + Version + Update + CWD */}
+          <box flexDirection="row" gap={1}>
+            <box paddingLeft={1} paddingRight={1} backgroundColor={theme.backgroundElement}>
+              <text fg={theme.text}>
+                Code<span style={{ bold: true }}>Machine</span>
+              </text>
+            </box>
+            <text fg={theme.textMuted}>v{getVersion()}</text>
+            <Show when={updateNotifier.updateAvailable}>
+              <text fg={theme.warning}>• Update: v{String(updateNotifier.latestVersion)}</text>
+            </Show>
+            <text fg={theme.textMuted}>{cwd()}</text>
+          </box>
+
+          {/* Right: Template badge */}
+          <box flexDirection="row">
+            <text fg={theme.textMuted}>Template: </text>
+            <text fg={theme.primary} attributes={TextAttributes.BOLD}>{String(session.templateName).toUpperCase()}</text>
+          </box>
+        </box>
+      </box>
     </box>
   )
 }

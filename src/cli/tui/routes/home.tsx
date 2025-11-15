@@ -8,7 +8,6 @@ import { Toast } from "@tui/ui/toast"
 import { DialogWrapper } from "@tui/ui/dialog-wrapper"
 import { useToast } from "@tui/context/toast"
 import { useDialog } from "@tui/context/dialog"
-import { useSession } from "@tui/context/session"
 import { useRenderer } from "@opentui/solid"
 import { registry } from "../../../infra/engines/index.js"
 import { handleLogin, handleLogout } from "../../commands/auth.command.js"
@@ -20,19 +19,8 @@ import { resolvePackageJson } from "../../../shared/utils/package-json.js"
 export function Home() {
   const toast = useToast()
   const dialog = useDialog()
-  const session = useSession()
   const renderer = useRenderer()
 
-  const statusHint = () => {
-    const parts = []
-    parts.push(`Template: ${session.templateName.toUpperCase()}`)
-    parts.push(`${session.workflowCount} workflows`)
-    if (session.lastRun) {
-      const ago = Math.floor((Date.now() - session.lastRun.getTime()) / 1000 / 60)
-      parts.push(`Last run: ${ago} minutes ago`)
-    }
-    return parts.join(" • ")
-  }
 
   const getVersion = () => {
     const require = createRequire(import.meta.url)
@@ -191,7 +179,7 @@ export function Home() {
         <HelpRow command="help" description="Show available commands" />
       </box>
 
-      <Prompt onSubmit={handleCommand} hint={statusHint()} />
+      <Prompt onSubmit={handleCommand} />
 
       <Toast />
 
