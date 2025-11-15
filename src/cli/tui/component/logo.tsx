@@ -38,7 +38,7 @@ export function Logo() {
       <For each={CODE_TEXT}>
         {(line) => (
           <box>
-            <text fg={theme.textMuted}>{line}</text>
+            <text fg={theme.primary}>{line}</text>
           </box>
         )}
       </For>
@@ -46,7 +46,7 @@ export function Logo() {
       <For each={MACHINE_TEXT}>
         {(line) => (
           <box>
-            <text fg={theme.text} attributes={TextAttributes.BOLD}>
+            <text fg={theme.primary} attributes={TextAttributes.BOLD}>
               {line}
             </text>
           </box>
