@@ -187,7 +187,7 @@ export function Home() {
       <Logo />
 
       <box width={60}>
-        <text fg={theme.border}>{'═'.repeat(60)}</text>
+        <text fg={theme.textMuted}>{'═'.repeat(60)}</text>
       </box>
 
       <box width={60} flexDirection="column" gap={0}>
@@ -198,7 +198,7 @@ export function Home() {
       </box>
 
       <box width={60}>
-        <text fg={theme.border}>{'═'.repeat(60)}</text>
+        <text fg={theme.textMuted}>{'═'.repeat(60)}</text>
       </box>
 
       <Prompt onSubmit={handleCommand} hint={statusHint()} />

@@ -1,5 +1,5 @@
 /** @jsxImportSource @opentui/solid */
-import { render, useTerminalDimensions } from "@opentui/solid"
+import { render, useTerminalDimensions, useKeyboard, useRenderer } from "@opentui/solid"
 import { VignetteEffect, applyScanlines } from "@opentui/core"
 import { ErrorBoundary, createSignal } from "solid-js"
 import { KVProvider } from "@tui/context/kv"
@@ -24,6 +24,8 @@ async function getTerminalBackgroundColor(): Promise<"dark" | "light"> {
       process.stdin.setRawMode(false)
       process.stdin.removeListener("data", handler)
       clearTimeout(timeout)
+      // Pause stdin to drain any buffered input before OpenTUI takes over
+      process.stdin.pause()
     }
 
     const handler = (data: Buffer) => {
@@ -81,8 +83,12 @@ export async function startTUI(): Promise<void> {
   return new Promise<void>(async (resolve) => {
     const mode = await getTerminalBackgroundColor()
 
-    // Create vignette effect instance (strength: 0.3)
-    const vignetteEffect = new VignetteEffect(0.3)
+    // Wait for stdin to settle after background detection
+    // This prevents focus/mouse events from leaking through before OpenTUI's filters are active
+    await new Promise((r) => setTimeout(r, 100))
+
+    // Create vignette effect instance with visible strength
+    const vignetteEffect = new VignetteEffect(0.8)
 
     render(
       () => <Root mode={mode} onExit={resolve} />,
@@ -91,11 +97,12 @@ export async function startTUI(): Promise<void> {
         gatherStats: false,
         exitOnCtrlC: false,
         useKittyKeyboard: true,
+        useMouse: false, // Disable mouse tracking to prevent escape sequences
         postProcessFns: [
           // Apply vignette for professional focus on center
           (buffer) => vignetteEffect.apply(buffer),
-          // Apply light scanlines for retro "machine" character
-          (buffer) => applyScanlines(buffer, 0.85, 2), // strength 0.85 (darker = 0.15 transparency)
+          // Apply scanlines for retro "machine" character
+          (buffer) => applyScanlines(buffer, 0.6, 2), // strength 0.6 (40% darkening)
         ],
       }
     )
@@ -129,6 +136,16 @@ function Root(props: { mode: "dark" | "light"; onExit: () => void }) {
 function App() {
   const dimensions = useTerminalDimensions()
   const { theme } = useTheme()
+  const renderer = useRenderer()
+
+  // Global Ctrl+C handler to exit gracefully
+  useKeyboard((evt) => {
+    if (evt.ctrl && evt.name === "c") {
+      evt.preventDefault()
+      renderer.destroy()
+      process.exit(0)
+    }
+  })
 
   return (
     <box width={dimensions().width} height={dimensions().height} backgroundColor={theme.background}>
