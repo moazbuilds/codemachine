@@ -21,7 +21,7 @@ export async function runCodemachineCli(argv: string[] = process.argv): Promise<
     .description('Codemachine multi-agent CLI orchestrator')
     .option('-d, --dir <path>', 'Target workspace directory', process.cwd())
     .option('--spec <path>', 'Path to the planning specification file', DEFAULT_SPEC_PATH)
-    .action(async (options) => {
+    .action(async (_options) => {
       // Default action: Launch OpenTUI home screen
       await startTUI();
     });

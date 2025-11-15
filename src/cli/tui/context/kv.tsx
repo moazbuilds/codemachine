@@ -9,7 +9,7 @@ export const { use: useKV, provider: KVProvider } = createSimpleContext({
   name: "KV",
   init: () => {
     const [ready, setReady] = createSignal(false)
-    const [kvStore, setKvStore] = createStore<Record<string, any>>({})
+    const [kvStore, setKvStore] = createStore<Record<string, unknown>>({})
     const statePath = path.join(homedir(), ".codemachine", "state")
     const file = Bun.file(path.join(statePath, "kv.json"))
 
@@ -46,10 +46,10 @@ export const { use: useKV, provider: KVProvider } = createSimpleContext({
           },
         ] as const
       },
-      get(key: string, defaultValue?: any) {
-        return kvStore[key] ?? defaultValue
+      get<T = unknown>(key: string, defaultValue?: T): T | undefined {
+        return (kvStore[key] as T) ?? defaultValue
       },
-      set(key: string, value: any) {
+      set<T = unknown>(key: string, value: T) {
         setKvStore(key, value)
         Bun.write(file, JSON.stringify(kvStore, null, 2))
       },

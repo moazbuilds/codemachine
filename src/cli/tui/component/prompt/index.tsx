@@ -3,6 +3,7 @@ import { createSignal, Show, For } from "solid-js"
 import { useTheme } from "@tui/context/theme"
 import { useTerminalDimensions } from "@opentui/solid"
 import type { PromptProps, SlashCommand } from "./types"
+import type { BoxRenderable } from "@opentui/core"
 
 const SLASH_COMMANDS: SlashCommand[] = [
   { command: "start", description: "Start workflow with current template" },
@@ -15,6 +16,8 @@ const SLASH_COMMANDS: SlashCommand[] = [
 ]
 
 export function Prompt(props: PromptProps) {
+  let anchor: BoxRenderable | undefined
+
   const { theme } = useTheme()
   const dimensions = useTerminalDimensions()
   const [input, setInput] = createSignal("")
@@ -35,7 +38,8 @@ export function Prompt(props: PromptProps) {
 
   const handleInput = (value: string) => {
     setInput(value)
-    setShowAutocomplete(value.startsWith("/") && filteredCommands().length > 0)
+    const shouldShow = value.startsWith("/") && filteredCommands().length > 0
+    setShowAutocomplete(shouldShow)
     setSelectedIndex(0)
   }
 
@@ -48,7 +52,7 @@ export function Prompt(props: PromptProps) {
     props.onSubmit(value.trim())
   }
 
-  const handleKeyDown = (evt: any) => {
+  const handleKeyDown = (evt: { name?: string }) => {
     if (showAutocomplete() && filteredCommands().length > 0) {
       if (evt.name === "up") {
         setSelectedIndex((prev) => Math.max(0, prev - 1))
@@ -58,15 +62,16 @@ export function Prompt(props: PromptProps) {
           Math.min(filteredCommands().length - 1, prev + 1)
         )
         return
-      } else if (evt.name === "tab" || evt.name === "return") {
-        if (evt.name === "tab") {
-          const selected = filteredCommands()[selectedIndex()]
-          if (selected) {
-            setInput(`/${selected.command}`)
-            setShowAutocomplete(false)
-            return
-          }
+      } else if (evt.name === "tab") {
+        const selected = filteredCommands()[selectedIndex()]
+        if (selected) {
+          setInput(`/${selected.command}`)
+          setShowAutocomplete(false)
+          return
         }
+      } else if (evt.name === "escape") {
+        setShowAutocomplete(false)
+        return
       }
     }
 
@@ -75,36 +80,35 @@ export function Prompt(props: PromptProps) {
     }
   }
 
-  return (
-    <box flexDirection="column" gap={0} width={promptWidth()}>
-      <box
-        borderColor={theme.border}
-        border={["top", "bottom", "left", "right"]}
-        paddingLeft={1}
-        paddingRight={1}
-        paddingBottom={1}
-      >
-        <input
-          value={input()}
-          placeholder={props.placeholder || "Type /start to see the magic"}
-          onInput={handleInput}
-          onKeyDown={handleKeyDown}
-          focused
-        />
-      </box>
+  // Calculate autocomplete dropdown height
+  const autocompleteHeight = () => Math.min(10, filteredCommands().length)
 
+  // Get anchor position reactively - this will update when layout changes
+  const anchorPosition = () => {
+    if (!anchor) return { x: 0, y: 0, width: promptWidth() }
+    // Accessing these properties directly makes them reactive to layout changes
+    return {
+      x: anchor.x,
+      y: anchor.y,
+      width: anchor.width,
+    }
+  }
+
+  return (
+    <>
+      {/* Autocomplete dropdown - absolutely positioned, rendered as sibling */}
       <Show when={showAutocomplete() && filteredCommands().length > 0}>
         <box
-          marginTop={1}
+          position="absolute"
+          top={anchorPosition().y - autocompleteHeight() - 4}
+          left={anchorPosition().x}
+          width={anchorPosition().width}
+          zIndex={100}
           borderColor={theme.border}
           border={["top", "bottom", "left", "right"]}
-          paddingLeft={1}
-          paddingRight={1}
-          paddingTop={1}
-          paddingBottom={1}
           backgroundColor={theme.backgroundPanel}
         >
-          <box flexDirection="column" gap={0}>
+          <box flexDirection="column" gap={0} paddingLeft={1} paddingRight={1} paddingTop={1} paddingBottom={1}>
             <For each={filteredCommands()}>
               {(cmd, index) => {
                 const isSelected = () => index() === selectedIndex()
@@ -125,11 +129,30 @@ export function Prompt(props: PromptProps) {
         </box>
       </Show>
 
-      <Show when={props.hint}>
-        <box marginTop={1}>
-          <text fg={theme.textMuted}>{props.hint}</text>
+      {/* Input box - the anchor */}
+      <box ref={(r) => (anchor = r)} flexDirection="column" gap={0} width={promptWidth()}>
+        <box
+          borderColor={theme.border}
+          border={["top", "bottom", "left", "right"]}
+          paddingLeft={1}
+          paddingRight={1}
+          paddingBottom={1}
+        >
+          <input
+            value={input()}
+            placeholder={props.placeholder || "Type /start to see the magic"}
+            onInput={handleInput}
+            onKeyDown={handleKeyDown}
+            focused
+          />
         </box>
-      </Show>
-    </box>
+
+        <Show when={props.hint}>
+          <box marginTop={1}>
+            <text fg={theme.textMuted}>{props.hint}</text>
+          </box>
+        </Show>
+      </box>
+    </>
   )
 }

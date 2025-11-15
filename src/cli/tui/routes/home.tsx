@@ -6,7 +6,6 @@ import { Prompt } from "@tui/component/prompt"
 import { SelectMenu } from "@tui/component/select-menu"
 import { Toast } from "@tui/ui/toast"
 import { DialogWrapper } from "@tui/ui/dialog-wrapper"
-import { useTheme } from "@tui/context/theme"
 import { useToast } from "@tui/context/toast"
 import { useDialog } from "@tui/context/dialog"
 import { useSession } from "@tui/context/session"
@@ -19,7 +18,6 @@ import { createRequire } from "node:module"
 import { resolvePackageJson } from "../../../shared/utils/package-json.js"
 
 export function Home() {
-  const { theme } = useTheme()
   const toast = useToast()
   const dialog = useDialog()
   const session = useSession()
