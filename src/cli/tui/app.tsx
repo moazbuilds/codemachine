@@ -87,8 +87,8 @@ export async function startTUI(): Promise<void> {
     // This prevents focus/mouse events from leaking through before OpenTUI's filters are active
     await new Promise((r) => setTimeout(r, 100))
 
-    // Create vignette effect instance with visible strength
-    const vignetteEffect = new VignetteEffect(0.8)
+    // Create vignette effect with refined, subtle strength
+    const vignetteEffect = new VignetteEffect(0.35)
 
     render(
       () => <Root mode={mode} onExit={resolve} />,
@@ -101,8 +101,8 @@ export async function startTUI(): Promise<void> {
         postProcessFns: [
           // Apply vignette for professional focus on center
           (buffer) => vignetteEffect.apply(buffer),
-          // Apply scanlines for retro "machine" character
-          (buffer) => applyScanlines(buffer, 0.6, 2), // strength 0.6 (40% darkening)
+          // Apply subtle scanlines for refined CRT aesthetic
+          (buffer) => applyScanlines(buffer, 0.92, 2), // Very subtle (8% darkening) every 2nd line
         ],
       }
     )

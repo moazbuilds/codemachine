@@ -19,6 +19,8 @@ export type Theme = {
   border: RGBA
   borderActive: RGBA
   borderSubtle: RGBA
+  mutedBlue: RGBA
+  purple: RGBA
 }
 
 type HexColor = `#${string}`

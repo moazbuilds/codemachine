@@ -1,6 +1,7 @@
 /** @jsxImportSource @opentui/solid */
 import { createSignal, Show, For } from "solid-js"
 import { useTheme } from "@tui/context/theme"
+import { useTerminalDimensions } from "@opentui/solid"
 import type { PromptProps, SlashCommand } from "./types"
 
 const SLASH_COMMANDS: SlashCommand[] = [
@@ -15,9 +16,13 @@ const SLASH_COMMANDS: SlashCommand[] = [
 
 export function Prompt(props: PromptProps) {
   const { theme } = useTheme()
+  const dimensions = useTerminalDimensions()
   const [input, setInput] = createSignal("")
   const [showAutocomplete, setShowAutocomplete] = createSignal(false)
   const [selectedIndex, setSelectedIndex] = createSignal(0)
+
+  // Calculate responsive width (80% of terminal width, max 100, min 50)
+  const promptWidth = () => Math.min(100, Math.max(50, Math.floor(dimensions().width * 0.8)))
 
   const filteredCommands = () => {
     const value = input()
@@ -71,12 +76,13 @@ export function Prompt(props: PromptProps) {
   }
 
   return (
-    <box flexDirection="column" gap={0} width="100%" maxWidth={75}>
+    <box flexDirection="column" gap={0} width={promptWidth()}>
       <box
         borderColor={theme.border}
         border={["top", "bottom", "left", "right"]}
         paddingLeft={1}
         paddingRight={1}
+        paddingBottom={1}
       >
         <input
           value={input()}

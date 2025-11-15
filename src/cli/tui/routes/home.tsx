@@ -186,19 +186,11 @@ export function Home() {
     <box flexGrow={1} justifyContent="center" alignItems="center" paddingLeft={2} paddingRight={2} gap={1}>
       <Logo />
 
-      <box width={60}>
-        <text fg={theme.textMuted}>{'═'.repeat(60)}</text>
-      </box>
-
       <box width={60} flexDirection="column" gap={0}>
         <HelpRow command="start" description="Start workflow with current template" />
         <HelpRow command="templates" description="Select and configure workflow templates" />
         <HelpRow command="login" description="Authenticate with AI providers" />
         <HelpRow command="help" description="Show available commands" />
-      </box>
-
-      <box width={60}>
-        <text fg={theme.textMuted}>{'═'.repeat(60)}</text>
       </box>
 
       <Prompt onSubmit={handleCommand} hint={statusHint()} />
