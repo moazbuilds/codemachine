@@ -3,7 +3,7 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "rootDir": "src",
     "outDir": "dist",
@@ -15,7 +15,10 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "types": ["bun", "node", "react"]
+    "types": ["bun", "node"],
+    "paths": {
+      "@tui/*": ["./src/cli/tui/*"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist", "tests"]

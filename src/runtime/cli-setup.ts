@@ -3,8 +3,7 @@ import { existsSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 import { registerCli } from '../cli/index.js';
-import { runSessionShell } from '../cli/controllers/session-shell.js';
-import { runStartupFlow } from './services/index.js';
+import { startTUI } from '../cli/tui/app.js';
 import { registry } from '../infra/engines/index.js';
 import { bootstrapWorkspace } from './services/workspace/index.js';
 import { resolvePackageRoot } from '../shared/utils/package-json.js';
@@ -23,13 +22,8 @@ export async function runCodemachineCli(argv: string[] = process.argv): Promise<
     .option('-d, --dir <path>', 'Target workspace directory', process.cwd())
     .option('--spec <path>', 'Path to the planning specification file', DEFAULT_SPEC_PATH)
     .action(async (options) => {
-      // Default action: Run interactive session mode
-      const cwd = process.env.CODEMACHINE_CWD || process.cwd();
-      const specDisplayPath = options.spec ?? DEFAULT_SPEC_PATH;
-      const specificationPath = path.resolve(cwd, specDisplayPath);
-
-      const { mainMenuDisplayed } = await runStartupFlow(specDisplayPath);
-      await runSessionShell({ cwd, specificationPath, specDisplayPath, showIntro: !mainMenuDisplayed });
+      // Default action: Launch OpenTUI home screen
+      await startTUI();
     });
 
   program.hook('preAction', async () => {
