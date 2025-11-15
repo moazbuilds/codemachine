@@ -1,5 +1,5 @@
 /** @jsxImportSource @opentui/solid */
-import { createSignal, For, onMount } from "solid-js"
+import { createSignal, For } from "solid-js"
 import { useTheme } from "@tui/context/theme"
 import { useKeyboard } from "@opentui/solid"
 import type { SelectMenuProps } from "./types"

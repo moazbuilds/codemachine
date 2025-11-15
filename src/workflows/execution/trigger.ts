@@ -4,7 +4,6 @@ import { getEngine, registry } from '../../infra/engines/index.js';
 import { loadAgentConfig, loadAgentTemplate } from '../../agents/runner/index.js';
 import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
 import { MemoryStore } from '../../agents/index.js';
-import { formatAgentLog } from '../../shared/logging/index.js';
 import { processPromptString } from '../../shared/prompts/index.js';
 import type { WorkflowUIManager } from '../../ui/index.js';
 import { AgentMonitorService, AgentLoggerService } from '../../agents/monitoring/index.js';

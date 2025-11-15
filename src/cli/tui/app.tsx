@@ -18,7 +18,10 @@ async function getTerminalBackgroundColor(): Promise<"dark" | "light"> {
   if (!process.stdin.isTTY) return "dark"
 
   return new Promise((resolve) => {
-    let timeout: NodeJS.Timeout
+    const timeout: NodeJS.Timeout = setTimeout(() => {
+      cleanup()
+      resolve("dark") // Default to dark if no response
+    }, 1000)
 
     const cleanup = () => {
       process.stdin.setRawMode(false)
@@ -30,6 +33,7 @@ async function getTerminalBackgroundColor(): Promise<"dark" | "light"> {
 
     const handler = (data: Buffer) => {
       const str = data.toString()
+      // eslint-disable-next-line no-control-regex
       const match = str.match(/\x1b]11;([^\x07\x1b]+)/)
       if (match) {
         cleanup()
@@ -67,11 +71,6 @@ async function getTerminalBackgroundColor(): Promise<"dark" | "light"> {
     process.stdin.setRawMode(true)
     process.stdin.on("data", handler)
     process.stdout.write("\x1b]11;?\x07")
-
-    timeout = setTimeout(() => {
-      cleanup()
-      resolve("dark") // Default to dark if no response
-    }, 1000)
   })
 }
 
@@ -80,13 +79,13 @@ async function getTerminalBackgroundColor(): Promise<"dark" | "light"> {
  * Detects terminal background and launches OpenTUI renderer
  */
 export async function startTUI(): Promise<void> {
-  return new Promise<void>(async (resolve) => {
-    const mode = await getTerminalBackgroundColor()
+  const mode = await getTerminalBackgroundColor()
 
-    // Wait for stdin to settle after background detection
-    // This prevents focus/mouse events from leaking through before OpenTUI's filters are active
-    await new Promise((r) => setTimeout(r, 100))
+  // Wait for stdin to settle after background detection
+  // This prevents focus/mouse events from leaking through before OpenTUI's filters are active
+  await new Promise((r) => setTimeout(r, 100))
 
+  return new Promise<void>((resolve) => {
     // Create vignette effect with refined, subtle strength
     const vignetteEffect = new VignetteEffect(0.35)
 

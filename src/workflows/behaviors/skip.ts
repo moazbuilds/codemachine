@@ -1,6 +1,5 @@
 import type { WorkflowStep } from '../templates/index.js';
 import { isModuleStep } from '../templates/types.js';
-import { formatAgentLog } from '../../shared/logging/index.js';
 import type { WorkflowUIManager } from '../../ui/index.js';
 import { debug } from '../../shared/logging/logger.js';
 

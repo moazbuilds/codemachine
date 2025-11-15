@@ -1,6 +1,6 @@
 /** @jsxImportSource @opentui/solid */
-import { TextAttributes } from "@opentui/core"
-import { For, Show } from "solid-js"
+import { TextAttributes, RGBA } from "@opentui/core"
+import { For, Show, type JSX } from "solid-js"
 import { useTheme } from "@tui/context/theme"
 import { useTerminalDimensions } from "@opentui/solid"
 import { createRequire } from 'node:module'
@@ -40,8 +40,8 @@ function getVersion(): string {
 }
 
 // Helper to render a line with two-tone coloring using spans
-function ColoredLine(props: { line: string; blockColor: any; borderColor: any; bold?: boolean }) {
-  const segments: any[] = []
+function ColoredLine(props: { line: string; blockColor: RGBA; borderColor: RGBA; bold?: boolean }) {
+  const segments: JSX.Element[] = []
   let currentSegment = ''
   let currentType: 'block' | 'border' | null = null
 
@@ -153,7 +153,7 @@ export function Logo() {
       <box height={1} />
       <box justifyContent="center">
         <text fg={theme.textMuted}>
-          Bun Migration Edition • v{getVersion()}
+          Bun Runtime Edition • v{getVersion()}
         </text>
       </box>
     </box>

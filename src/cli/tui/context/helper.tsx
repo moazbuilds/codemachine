@@ -1,6 +1,9 @@
 /** @jsxImportSource @opentui/solid */
 import { createContext, Show, useContext, type ParentProps } from "solid-js"
 
+type WithOptionalReady = { ready?: boolean }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createSimpleContext<T, Props extends Record<string, any>>(input: {
   name: string
   init: ((input: Props) => T) | (() => T)
@@ -10,8 +13,9 @@ export function createSimpleContext<T, Props extends Record<string, any>>(input:
   return {
     provider: (props: ParentProps<Props>) => {
       const init = input.init(props)
+      const initWithReady = init as T & WithOptionalReady
       return (
-        <Show when={(init as any).ready === undefined || (init as any).ready === true}>
+        <Show when={initWithReady.ready === undefined || initWithReady.ready === true}>
           <ctx.Provider value={init}>{props.children}</ctx.Provider>
         </Show>
       )
