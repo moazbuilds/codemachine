@@ -185,13 +185,6 @@ export function Logo() {
         </Show>
         </Show>
       </Show>
-
-      <box height={1} />
-      <box justifyContent="center">
-        <text fg={theme.textMuted}>
-          🥟 Bun Runtime Edition • v{getVersion()}
-        </text>
-      </box>
     </box>
   )
 }

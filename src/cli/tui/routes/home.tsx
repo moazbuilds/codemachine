@@ -6,7 +6,9 @@ import { SelectMenu } from "@tui/component/select-menu"
 import { Toast } from "@tui/ui/toast"
 import { useToast } from "@tui/context/toast"
 import { useDialog } from "@tui/context/dialog"
+import { useTheme } from "@tui/context/theme"
 import { useRenderer } from "@opentui/solid"
+import { TextAttributes } from "@opentui/core"
 import { registry } from "../../../infra/engines/index.js"
 import { handleLogin, handleLogout } from "../../commands/auth.command.js"
 import { getAvailableTemplates, selectTemplateByNumber } from "../../commands/templates.command.js"
@@ -20,6 +22,7 @@ export function Home(props: { initialToast?: InitialToast }) {
   const toast = useToast()
   const dialog = useDialog()
   const renderer = useRenderer()
+  const { theme } = useTheme()
 
   // Show initial toast if provided (e.g., after auth restart)
   onMount(() => {
@@ -186,23 +189,6 @@ export function Home(props: { initialToast?: InitialToast }) {
       return
     }
 
-    if (cmd === "/version") {
-      toast.show({
-        variant: "info",
-        message: `CodeMachine v${getVersion()}`,
-      })
-      return
-    }
-
-    if (cmd === "/help" || cmd === "/h") {
-      toast.show({
-        variant: "info",
-        message: "Available commands: /start, /templates, /login, /logout, /version, /help, /exit",
-        duration: 5000,
-      })
-      return
-    }
-
     if (cmd === "/exit" || cmd === "/quit") {
       process.exit(0)
     }
@@ -222,10 +208,14 @@ export function Home(props: { initialToast?: InitialToast }) {
       <Logo />
 
       <box width={60} flexDirection="column" gap={0}>
+        <box flexDirection="row" gap={0} marginBottom={1}>
+          <text fg={theme.textMuted}>🥟 </text>
+          <text fg={theme.text} attributes={TextAttributes.BOLD}>Bun Runtime Edition</text>
+          <text fg={theme.textMuted}> • v{getVersion()}</text>
+        </box>
         <HelpRow command="start" description="Start workflow with current template" />
         <HelpRow command="templates" description="Select and configure workflow templates" />
         <HelpRow command="login" description="Authenticate with AI providers" />
-        <HelpRow command="help" description="Show available commands" />
       </box>
 
       <Prompt onSubmit={handleCommand} disabled={isDialogOpen()} />
