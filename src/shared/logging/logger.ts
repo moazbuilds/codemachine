@@ -74,9 +74,8 @@ export function debug(message: string, ...args: unknown[]): void {
 
 export function info(message: string, ...args: unknown[]): void {
   if (shouldLog('info')) {
-    // Write directly to stderr to bypass console hijacking
-    const formatted = formatMessage(`[INFO] ${message}`, ...args);
-    process.stderr.write(formatted + '\n');
+    // Write to debug log file only (not to UI)
+    writeDebugLog(message, ...args);
   }
 }
 

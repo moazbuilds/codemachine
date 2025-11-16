@@ -7,6 +7,7 @@ import { Toast } from "@tui/ui/toast"
 import { useToast } from "@tui/context/toast"
 import { useDialog } from "@tui/context/dialog"
 import { useTheme } from "@tui/context/theme"
+import { useSession } from "@tui/context/session"
 import { useRenderer } from "@opentui/solid"
 import { TextAttributes } from "@opentui/core"
 import { registry } from "../../../infra/engines/index.js"
@@ -16,6 +17,7 @@ import { runWorkflowQueue } from "../../../workflows/index.js"
 import { createRequire } from "node:module"
 import { resolvePackageJson } from "../../../shared/utils/package-json.js"
 import { onMount } from "solid-js"
+import * as path from "node:path"
 import type { InitialToast } from "../app"
 
 export function Home(props: { initialToast?: InitialToast }) {
@@ -23,6 +25,7 @@ export function Home(props: { initialToast?: InitialToast }) {
   const dialog = useDialog()
   const renderer = useRenderer()
   const { theme } = useTheme()
+  const session = useSession()
 
   // Show initial toast if provided (e.g., after auth restart)
   onMount(() => {
@@ -75,7 +78,16 @@ export function Home(props: { initialToast?: InitialToast }) {
           onSelect={async (templateNumber: number) => {
             dialog.close()
             try {
+              const selectedTemplate = templates[templateNumber - 1]
               await selectTemplateByNumber(templateNumber)
+
+              // Update session with new template display name
+              const displayName = path.basename(selectedTemplate.value, ".workflow.js")
+                .split("-")
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")
+              session.updateTemplate(displayName)
+
               toast.show({
                 variant: "success",
                 message: "Template activated!",

@@ -1,6 +1,9 @@
 /** @jsxImportSource solid-js */
 import { createStore } from "solid-js/store"
 import { createSimpleContext } from "./helper"
+import { getActiveTemplate } from "../../../shared/workflows/template.js"
+import { onMount } from "solid-js"
+import * as path from "node:path"
 
 export const { use: useSession, provider: SessionProvider } = createSimpleContext({
   name: "Session",
@@ -9,6 +12,22 @@ export const { use: useSession, provider: SessionProvider } = createSimpleContex
       templateName: "default",
       workflowCount: 0,
       lastRun: null as Date | null,
+    })
+
+    // Load active template from .codemachine/template.json
+    onMount(async () => {
+      const cwd = process.env.CODEMACHINE_CWD || process.cwd()
+      const cmRoot = path.join(cwd, ".codemachine")
+      const activeTemplate = await getActiveTemplate(cmRoot)
+
+      if (activeTemplate) {
+        // Convert filename to display name: "default.workflow.js" -> "Default"
+        const displayName = path.basename(activeTemplate, ".workflow.js")
+          .split("-")
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ")
+        setStore("templateName", displayName)
+      }
     })
 
     return {
