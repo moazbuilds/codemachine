@@ -13,11 +13,24 @@ import { getAvailableTemplates, selectTemplateByNumber } from "../../commands/te
 import { runWorkflowQueue } from "../../../workflows/index.js"
 import { createRequire } from "node:module"
 import { resolvePackageJson } from "../../../shared/utils/package-json.js"
+import { onMount } from "solid-js"
+import type { InitialToast } from "../app"
 
-export function Home() {
+export function Home(props: { initialToast?: InitialToast }) {
   const toast = useToast()
   const dialog = useDialog()
   const renderer = useRenderer()
+
+  // Show initial toast if provided (e.g., after auth restart)
+  onMount(() => {
+    if (props.initialToast) {
+      toast.show({
+        variant: props.initialToast.variant,
+        message: props.initialToast.message,
+        duration: props.initialToast.duration || 15000,
+      })
+    }
+  })
 
 
   const getVersion = () => {
@@ -89,19 +102,13 @@ export function Home() {
           message="Choose authentication provider to login:"
           choices={providers}
           onSelect={async (providerId: string) => {
-            const result = await dialog.handleInteractiveCommand(
+            await dialog.handleAuthCommand(
               `${providers.find((p) => p.value === providerId)?.title} Authentication`,
               async () => {
                 await handleLogin(providerId)
               }
             )
-            dialog.close()
-            if (result.success) {
-              toast.show({
-                variant: "success",
-                message: "Logged in successfully!",
-              })
-            }
+            // Note: Toast will be shown automatically by handleAuthCommand after restart
           }}
           onCancel={() => dialog.close()}
         />
@@ -121,20 +128,13 @@ export function Home() {
           message="Choose authentication provider to logout:"
           choices={providers}
           onSelect={async (providerId: string) => {
-            try {
-              await handleLogout(providerId)
-              dialog.close()
-              toast.show({
-                variant: "success",
-                message: "Logged out successfully!",
-              })
-            } catch (error) {
-              dialog.close()
-              toast.show({
-                variant: "error",
-                message: error instanceof Error ? error.message : String(error),
-              })
-            }
+            await dialog.handleAuthCommand(
+              `${providers.find((p) => p.value === providerId)?.title} Logout`,
+              async () => {
+                await handleLogout(providerId)
+              }
+            )
+            // Note: Toast will be shown automatically by handleAuthCommand after restart
           }}
           onCancel={() => dialog.close()}
         />
