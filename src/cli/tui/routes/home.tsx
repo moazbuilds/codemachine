@@ -19,9 +19,6 @@ export function Home() {
   const dialog = useDialog()
   const renderer = useRenderer()
 
-  // Log TUI startup for debugging
-  console.log("TUI Home component mounted")
-
 
   const getVersion = () => {
     const require = createRequire(import.meta.url)

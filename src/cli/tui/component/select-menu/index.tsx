@@ -6,7 +6,6 @@ import type { SelectMenuProps } from "./types"
 
 export function SelectMenu<T = string>(props: SelectMenuProps<T>) {
   const { theme } = useTheme()
-  console.log("SelectMenu theme", theme)
   const [selectedIndex, setSelectedIndex] = createSignal(0)
 
   useKeyboard((evt) => {
