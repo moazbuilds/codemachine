@@ -1,13 +1,57 @@
 /** @jsxImportSource @opentui/solid */
-import { createSignal, For } from "solid-js"
+import { createSignal, createMemo, createEffect, For } from "solid-js"
 import { useTheme } from "@tui/context/theme"
-import { useKeyboard } from "@opentui/solid"
+import { useKeyboard, useTerminalDimensions } from "@opentui/solid"
 import type { SelectMenuProps } from "./types"
+import type { ScrollBoxRenderable } from "@opentui/core"
 
 export function SelectMenu<T = string>(props: SelectMenuProps<T>) {
   const { theme } = useTheme()
+  const dimensions = useTerminalDimensions()
   const [selectedIndex, setSelectedIndex] = createSignal(0)
   const [isActive, setIsActive] = createSignal(true)
+  let scrollRef: ScrollBoxRenderable | undefined
+
+  // Calculate max height for scrollbox based on terminal size
+  const maxHeight = createMemo(() => {
+    // Each choice takes ~3 lines (bullet + title + description)
+    // Reserve space for message (3 lines) + help text (2 lines) + padding (5 lines)
+    const availableHeight = dimensions().height - 10
+    return Math.max(5, Math.floor(availableHeight))
+  })
+
+  // Auto-scroll selected item into view (including its full height with description)
+  const scrollToSelected = () => {
+    if (!scrollRef) return
+    const children = scrollRef.getChildren()
+    const target = children[selectedIndex()]
+    if (!target) return
+
+    // Calculate positions relative to scrollbox
+    const itemTop = target.y - scrollRef.y
+    const itemBottom = itemTop + target.height
+
+    // Scroll down if bottom of item is below viewport
+    if (itemBottom > scrollRef.height) {
+      scrollRef.scrollBy(itemBottom - scrollRef.height)
+    }
+    // Scroll up if top of item is above viewport
+    else if (itemTop < 0) {
+      scrollRef.scrollBy(itemTop)
+    }
+  }
+
+  // Scroll when selection changes
+  createEffect(() => {
+    selectedIndex() // Track dependency
+    scrollToSelected()
+  })
+
+  // Re-scroll when terminal dimensions change to keep selected item visible
+  createEffect(() => {
+    dimensions() // Track terminal size changes
+    scrollToSelected()
+  })
 
   useKeyboard((evt) => {
     // Ignore keyboard events if component is no longer active
@@ -33,33 +77,40 @@ export function SelectMenu<T = string>(props: SelectMenuProps<T>) {
   })
 
   return (
-    <box flexDirection="column" gap={1}>
+    <box flexDirection="column" gap={1} flexShrink={1}>
       <box marginBottom={1}>
         <text fg={theme.primary}>◆ {props.message}</text>
       </box>
 
-      <For each={props.choices}>
-        {(choice, index) => {
-          const isSelected = () => index() === selectedIndex()
-          return (
-            <box flexDirection="column" gap={0}>
-              <box flexDirection="row" gap={1}>
-                <text fg={isSelected() ? theme.primary : theme.textMuted}>
-                  {isSelected() ? "●" : "○"}
-                </text>
-                <text fg={isSelected() ? theme.primary : theme.text}>
-                  {choice.title}
-                </text>
-              </box>
-              {choice.description && (
-                <box marginLeft={3}>
-                  <text fg={theme.textMuted}>{choice.description}</text>
+      <scrollbox
+        ref={(r: ScrollBoxRenderable) => (scrollRef = r)}
+        maxHeight={maxHeight()}
+        scrollbarOptions={{ visible: false }}
+      >
+        <For each={props.choices}>
+          {(choice, index) => {
+            const isSelected = () => index() === selectedIndex()
+            const isLast = () => index() === props.choices.length - 1
+            return (
+              <box flexDirection="column" gap={0} marginBottom={isLast() ? 0 : 1}>
+                <box flexDirection="row" gap={1}>
+                  <text fg={isSelected() ? theme.primary : theme.textMuted}>
+                    {isSelected() ? "●" : "○"}
+                  </text>
+                  <text fg={isSelected() ? theme.primary : theme.text}>
+                    {choice.title}
+                  </text>
                 </box>
-              )}
-            </box>
-          )
-        }}
-      </For>
+                {choice.description && (
+                  <box marginLeft={3}>
+                    <text fg={theme.textMuted}>{choice.description}</text>
+                  </box>
+                )}
+              </box>
+            )
+          }}
+        </For>
+      </scrollbox>
 
       <box marginTop={1}>
         <text fg={theme.textMuted}>
