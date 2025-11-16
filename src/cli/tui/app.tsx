@@ -79,23 +79,37 @@ async function getTerminalBackgroundColor(): Promise<"dark" | "light"> {
   })
 }
 
+export type InitialToast = {
+  variant: "success" | "error" | "info" | "warning"
+  message: string
+  duration?: number
+}
+
 /**
  * Main TUI entry point
  * Detects terminal background and launches OpenTUI renderer
  */
-export async function startTUI(): Promise<void> {
-  const mode = await getTerminalBackgroundColor()
+export async function startTUI(
+  skipBackgroundDetection: boolean = false,
+  knownMode?: "dark" | "light",
+  initialToast?: InitialToast
+): Promise<void> {
+  const mode = skipBackgroundDetection && knownMode
+    ? knownMode
+    : await getTerminalBackgroundColor()
 
   // Wait for stdin to settle after background detection
   // This prevents focus/mouse events from leaking through before OpenTUI's filters are active
-  await new Promise((r) => setTimeout(r, 100))
+  if (!skipBackgroundDetection) {
+    await new Promise((r) => setTimeout(r, 100))
+  }
 
   return new Promise<void>((resolve) => {
     // Create vignette effect with refined, subtle strength
     const vignetteEffect = new VignetteEffect(0.35)
 
     render(
-      () => <Root mode={mode} onExit={() => {
+      () => <Root mode={mode} initialToast={initialToast} onExit={() => {
         closeTUILogger()
         resolve()
       }} />,
@@ -124,7 +138,7 @@ export async function startTUI(): Promise<void> {
 /**
  * Root component with all providers
  */
-function Root(props: { mode: "dark" | "light"; onExit: () => void }) {
+function Root(props: { mode: "dark" | "light"; initialToast?: InitialToast; onExit: () => void }) {
   return (
     <ErrorBoundary fallback={(error) => <ErrorComponent error={error} onExit={props.onExit} />}>
       <KVProvider>
@@ -133,7 +147,7 @@ function Root(props: { mode: "dark" | "light"; onExit: () => void }) {
             <DialogProvider>
               <SessionProvider>
                 <UpdateNotifierProvider>
-                  <App />
+                  <App initialToast={props.initialToast} />
                 </UpdateNotifierProvider>
               </SessionProvider>
             </DialogProvider>
@@ -147,7 +161,7 @@ function Root(props: { mode: "dark" | "light"; onExit: () => void }) {
 /**
  * Main App component - wraps Home with full-screen background and footer
  */
-function App() {
+function App(props: { initialToast?: InitialToast }) {
   const dimensions = useTerminalDimensions()
   const { theme } = useTheme()
   const session = useSession()
@@ -186,7 +200,7 @@ function App() {
     >
       {/* Main content area */}
       <box flexGrow={1}>
-        <Home />
+        <Home initialToast={props.initialToast} />
       </box>
 
       {/* Footer - fixed height */}
