@@ -63,10 +63,11 @@ export function DialogProvider(props: ParentProps) {
         // Stop the TUI session
         renderer.suspend()
 
-        // Completely clear the terminal
+        // Aggressive terminal clear (multiple methods)
         console.clear()
-        // Additional clear for some terminals
-        process.stdout.write('\x1Bc')
+        process.stdout.write('\x1Bc')              // Reset terminal
+        process.stdout.write('\x1b[2J\x1b[H')      // Clear screen + home
+        process.stdout.write('\x1b[3J')            // Clear scrollback
 
         // Show banner
         console.log(`\n${"═".repeat(60)}\n  ${title}\n${"═".repeat(60)}\n`)

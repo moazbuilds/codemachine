@@ -102,8 +102,38 @@ export function Home(props: { initialToast?: InitialToast }) {
           message="Choose authentication provider to login:"
           choices={providers}
           onSelect={async (providerId: string) => {
+            const providerName = providers.find((p) => p.value === providerId)?.title || "Provider"
+            const engine = registry.get(providerId)
+
+            if (!engine) {
+              dialog.close()
+              toast.show({
+                variant: "error",
+                message: `Unknown provider: ${providerId}`,
+              })
+              return
+            }
+
+            // Close dialog first
+            dialog.close()
+            await new Promise((resolve) => setTimeout(resolve, 200))
+
+            // Check if already authenticated via filesystem
+            const isAuthenticated = await engine.auth.isAuthenticated()
+
+            if (isAuthenticated) {
+              // Already authenticated - just show toast
+              toast.show({
+                variant: "info",
+                message: `${providerName} is already authenticated. Use /logout to sign out.`,
+                duration: 15000,
+              })
+              return
+            }
+
+            // Not authenticated - destroy session, clear terminal, run auth, restart
             await dialog.handleAuthCommand(
-              `${providers.find((p) => p.value === providerId)?.title} Authentication`,
+              `${providerName} Authentication`,
               async () => {
                 await handleLogin(providerId)
               }
@@ -128,13 +158,27 @@ export function Home(props: { initialToast?: InitialToast }) {
           message="Choose authentication provider to logout:"
           choices={providers}
           onSelect={async (providerId: string) => {
-            await dialog.handleAuthCommand(
-              `${providers.find((p) => p.value === providerId)?.title} Logout`,
-              async () => {
-                await handleLogout(providerId)
-              }
-            )
-            // Note: Toast will be shown automatically by handleAuthCommand after restart
+            const providerName = providers.find((p) => p.value === providerId)?.title || "Provider"
+
+            // Close dialog first
+            dialog.close()
+            await new Promise((resolve) => setTimeout(resolve, 200))
+
+            // Logout is just a filesystem operation - no need to suspend session
+            try {
+              await handleLogout(providerId)
+              toast.show({
+                variant: "success",
+                message: `${providerName} signed out successfully!`,
+                duration: 15000,
+              })
+            } catch (error) {
+              toast.show({
+                variant: "error",
+                message: `Logout failed: ${error instanceof Error ? error.message : String(error)}`,
+                duration: 15000,
+              })
+            }
           }}
           onCancel={() => dialog.close()}
         />
