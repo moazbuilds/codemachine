@@ -1,79 +1,83 @@
-/** @jsxImportSource solid-js */
+/** @jsxImportSource @opentui/solid */
+import { Show, createContext, useContext, type JSX, type ParentProps } from "solid-js"
 import { createStore } from "solid-js/store"
-import { createSimpleContext } from "./helper"
 import { useRenderer } from "@opentui/solid"
 import { useToast } from "./toast"
-import type { JSX } from "solid-js"
+import { DialogWrapper } from "@tui/ui/dialog-wrapper"
 
-export const { use: useDialog, provider: DialogProvider } = createSimpleContext({
-  name: "Dialog",
-  init: () => {
-    const [store, setStore] = createStore<{
-      current: JSX.Element | null
-    }>({
-      current: null,
-    })
+type DialogContent = JSX.Element | (() => JSX.Element)
 
-    const renderer = useRenderer()
-    const toast = useToast()
+type DialogContextValue = {
+  readonly current: DialogContent | null
+  show(content: DialogContent): void
+  close(): void
+  handleInteractiveCommand(
+    title: string,
+    command: () => Promise<void>
+  ): Promise<{ success: boolean; error?: Error }>
+}
 
-    return {
-      get current() {
-        return store.current
-      },
-      show(content: JSX.Element) {
-        setStore("current", content)
-      },
-      close() {
-        setStore("current", null)
-      },
-      /**
-       * Handles interactive external commands by suspending the TUI,
-       * running the command in a clean terminal, then resuming the TUI.
-       *
-       * This is critical for commands like `codex login` that need
-       * full terminal control.
-       */
-      async handleInteractiveCommand(
-        title: string,
-        command: () => Promise<void>
-      ): Promise<{ success: boolean; error?: Error }> {
-        try {
-          // Suspend TUI - release terminal control
-          renderer.suspend()
+const DialogContext = createContext<DialogContextValue>()
 
-          // Clear screen and show header
-          console.clear()
-          console.log(`\n${'═'.repeat(60)}\n  ${title}\n${'═'.repeat(60)}\n`)
+export function DialogProvider(props: ParentProps) {
+  const [store, setStore] = createStore<{ current: DialogContent | null }>({
+    current: null,
+  })
+  const renderer = useRenderer()
+  const toast = useToast()
 
-          // Run the external command
-          await command()
+  const value: DialogContextValue = {
+    get current() {
+      return store.current
+    },
+    show(content) {
+      setStore("current", content)
+    },
+    close() {
+      setStore("current", null)
+    },
+    async handleInteractiveCommand(title, command) {
+      try {
+        renderer.suspend()
+        console.clear()
+        console.log(`\n${"═".repeat(60)}\n  ${title}\n${"═".repeat(60)}\n`)
+        await command()
+        console.log(`\n✓ Complete!\nReturning to CodeMachine...\n`)
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        renderer.resume()
+        return { success: true }
+      } catch (error) {
+        const err = error as Error
+        console.error(`\n✗ Failed: ${err.message}\n`)
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        renderer.resume()
+        toast.show({
+          variant: "error",
+          message: `Failed: ${err.message}`,
+        })
+        return { success: false, error: err }
+      }
+    },
+  }
 
-          // Show completion message
-          console.log(`\n✓ Complete!\nReturning to CodeMachine...\n`)
-          await new Promise(resolve => setTimeout(resolve, 1000))
+  const renderContent = (content: DialogContent) => {
+    return typeof content === "function" ? content() : content
+  }
 
-          // Resume TUI
-          renderer.resume()
+  return (
+    <DialogContext.Provider value={value}>
+      {props.children}
+      <Show when={store.current} keyed>
+        {(content) => <DialogWrapper>{renderContent(content)}</DialogWrapper>}
+      </Show>
+    </DialogContext.Provider>
+  )
+}
 
-          return { success: true }
-        } catch (error) {
-          const err = error as Error
-          console.error(`\n✗ Failed: ${err.message}\n`)
-          await new Promise(resolve => setTimeout(resolve, 2000))
-
-          // Always resume TUI even on error
-          renderer.resume()
-
-          // Show error toast
-          toast.show({
-            variant: "error",
-            message: `Failed: ${err.message}`,
-          })
-
-          return { success: false, error: err }
-        }
-      },
-    }
-  },
-})
+export function useDialog() {
+  const value = useContext(DialogContext)
+  if (!value) {
+    throw new Error("Dialog context must be used within a context provider")
+  }
+  return value
+}

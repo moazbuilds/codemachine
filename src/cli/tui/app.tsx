@@ -12,6 +12,7 @@ import { Home } from "@tui/routes/home"
 import { homedir } from "os"
 import { createRequire } from "node:module"
 import { resolvePackageJson } from "../../shared/utils/package-json.js"
+import { initTUILogger, closeTUILogger } from "@tui/utils/tui-logger"
 
 /**
  * Detects terminal background color by querying with OSC 11 escape sequence
@@ -94,7 +95,10 @@ export async function startTUI(): Promise<void> {
     const vignetteEffect = new VignetteEffect(0.35)
 
     render(
-      () => <Root mode={mode} onExit={resolve} />,
+      () => <Root mode={mode} onExit={() => {
+        closeTUILogger()
+        resolve()
+      }} />,
       {
         targetFps: 60,
         gatherStats: false,
@@ -109,6 +113,11 @@ export async function startTUI(): Promise<void> {
         ],
       }
     )
+
+    // Initialize logger AFTER render starts (OpenTUI console capture is now active)
+    setTimeout(() => {
+      initTUILogger()
+    }, 200)
   })
 }
 

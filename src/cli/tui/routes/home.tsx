@@ -1,11 +1,9 @@
 /** @jsxImportSource @opentui/solid */
-import { Show } from "solid-js"
 import { Logo } from "@tui/component/logo"
 import { HelpRow } from "@tui/component/help-row"
 import { Prompt } from "@tui/component/prompt"
 import { SelectMenu } from "@tui/component/select-menu"
 import { Toast } from "@tui/ui/toast"
-import { DialogWrapper } from "@tui/ui/dialog-wrapper"
 import { useToast } from "@tui/context/toast"
 import { useDialog } from "@tui/context/dialog"
 import { useRenderer } from "@opentui/solid"
@@ -21,6 +19,9 @@ export function Home() {
   const dialog = useDialog()
   const renderer = useRenderer()
 
+  // Log TUI startup for debugging
+  console.log("TUI Home component mounted")
+
 
   const getVersion = () => {
     const require = createRequire(import.meta.url)
@@ -31,6 +32,7 @@ export function Home() {
 
   const handleCommand = async (command: string) => {
     const cmd = command.toLowerCase()
+    console.log(`Executing command: ${cmd}`)
 
     if (cmd === "/start") {
       // Unmount OpenTUI to release terminal control
@@ -53,7 +55,7 @@ export function Home() {
         description: t.description,
       }))
 
-      dialog.show(
+      dialog.show(() => (
         <SelectMenu
           message="Choose a workflow template:"
           choices={choices}
@@ -74,7 +76,7 @@ export function Home() {
           }}
           onCancel={() => dialog.close()}
         />
-      )
+      ))
       return
     }
 
@@ -85,7 +87,7 @@ export function Home() {
         description: engine.metadata.description,
       }))
 
-      dialog.show(
+      dialog.show(() => (
         <SelectMenu
           message="Choose authentication provider to login:"
           choices={providers}
@@ -104,7 +106,7 @@ export function Home() {
           }}
           onCancel={() => dialog.close()}
         />
-      )
+      ))
       return
     }
 
@@ -115,7 +117,7 @@ export function Home() {
         description: engine.metadata.description,
       }))
 
-      dialog.show(
+      dialog.show(() => (
         <SelectMenu
           message="Choose authentication provider to logout:"
           choices={providers}
@@ -136,7 +138,7 @@ export function Home() {
           }}
           onCancel={() => dialog.close()}
         />
-      )
+      ))
       return
     }
 
@@ -182,10 +184,6 @@ export function Home() {
       <Prompt onSubmit={handleCommand} />
 
       <Toast />
-
-      <Show when={dialog.current}>
-        <DialogWrapper>{dialog.current}</DialogWrapper>
-      </Show>
     </box>
   )
 }
