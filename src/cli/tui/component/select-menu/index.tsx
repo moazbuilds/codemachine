@@ -14,10 +14,22 @@ export function SelectMenu<T = string>(props: SelectMenuProps<T>) {
 
   // Calculate max height for scrollbox based on terminal size
   const maxHeight = createMemo(() => {
+    const dims = dimensions()
+    const termHeight = dims?.height ?? 24 // Fallback to 24 if undefined/null
+
+    // Guard against invalid dimensions during resize
+    if (!termHeight || termHeight < 15 || !isFinite(termHeight)) {
+      return 10 // Safe fallback
+    }
+
     // Each choice takes ~3 lines (bullet + title + description)
     // Reserve space for message (3 lines) + help text (2 lines) + padding (5 lines)
-    const availableHeight = dimensions().height - 10
-    return Math.max(5, Math.floor(availableHeight))
+    const availableHeight = termHeight - 10
+    // Ensure we always return a valid positive integer (min 5, max terminal height)
+    const calculated = Math.max(5, Math.min(Math.floor(availableHeight), termHeight - 5))
+
+    // Final safety check - must be positive integer
+    return isFinite(calculated) && calculated > 0 ? calculated : 10
   })
 
   // Auto-scroll selected item into view (including its full height with description)
