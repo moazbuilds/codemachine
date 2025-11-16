@@ -170,6 +170,9 @@ export function Home() {
     })
   }
 
+  // Check if dialog is open
+  const isDialogOpen = () => dialog.current !== null
+
   return (
     <box flexGrow={1} justifyContent="center" alignItems="center" paddingLeft={2} paddingRight={2} gap={1}>
       <Logo />
@@ -181,7 +184,7 @@ export function Home() {
         <HelpRow command="help" description="Show available commands" />
       </box>
 
-      <Prompt onSubmit={handleCommand} />
+      <Prompt onSubmit={handleCommand} disabled={isDialogOpen()} />
 
       <Toast />
     </box>

@@ -37,6 +37,7 @@ export function Prompt(props: PromptProps) {
   }
 
   const handleInput = (value: string) => {
+    if (props.disabled) return
     setInput(value)
     const shouldShow = value.startsWith("/") && filteredCommands().length > 0
     setShowAutocomplete(shouldShow)
@@ -44,6 +45,7 @@ export function Prompt(props: PromptProps) {
   }
 
   const handleSubmit = () => {
+    if (props.disabled) return
     const value = input()
     if (!value.trim()) return
 
@@ -53,6 +55,7 @@ export function Prompt(props: PromptProps) {
   }
 
   const handleKeyDown = (evt: { name?: string }) => {
+    if (props.disabled) return
     if (showAutocomplete() && filteredCommands().length > 0) {
       if (evt.name === "up") {
         setSelectedIndex((prev) => Math.max(0, prev - 1))
@@ -152,10 +155,10 @@ export function Prompt(props: PromptProps) {
         >
           <input
             value={input()}
-            placeholder={props.placeholder || "Type /start to see the magic"}
+            placeholder={props.disabled ? "Dialog open..." : (props.placeholder || "Type /start to see the magic")}
             onInput={handleInput}
             onKeyDown={handleKeyDown}
-            focused
+            focused={!props.disabled}
             backgroundColor="transparent"
             focusedBackgroundColor="transparent"
           />
