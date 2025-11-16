@@ -28,7 +28,8 @@ export function DialogWrapper(props: DialogWrapperProps) {
       zIndex={2000}
     >
       <box
-        width={Math.min(70, dimensions().width - 4)}
+        maxWidth={Math.min(70, dimensions().width - 4)}
+        maxHeight={dimensions().height - 6}
         backgroundColor={theme.background}
         borderColor={theme.border}
         border={["top", "bottom", "left", "right"]}
