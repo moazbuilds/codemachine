@@ -3,6 +3,7 @@ import { Logo } from "@tui/component/logo"
 import { HelpRow } from "@tui/component/help-row"
 import { Prompt } from "@tui/component/prompt"
 import { SelectMenu } from "@tui/component/select-menu"
+import { FadeIn } from "@tui/component/fade-in"
 import { Toast } from "@tui/ui/toast"
 import { useToast } from "@tui/context/toast"
 import { useDialog } from "@tui/context/dialog"
@@ -10,10 +11,6 @@ import { useTheme } from "@tui/context/theme"
 import { useSession } from "@tui/context/session"
 import { useRenderer } from "@opentui/solid"
 import { TextAttributes } from "@opentui/core"
-import { registry } from "../../../infra/engines/index.js"
-import { handleLogin, handleLogout } from "../../commands/auth.command.js"
-import { getAvailableTemplates, selectTemplateByNumber } from "../../commands/templates.command.js"
-import { runWorkflowQueue } from "../../../workflows/index.js"
 import { createRequire } from "node:module"
 import { resolvePackageJson } from "../../../shared/utils/package-json.js"
 import { onMount } from "solid-js"
@@ -54,6 +51,9 @@ export function Home(props: { initialToast?: InitialToast }) {
       // Unmount OpenTUI to release terminal control
       renderer.destroy()
 
+      // Lazy load workflow runner
+      const { runWorkflowQueue } = await import("../../../workflows/index.js")
+
       // Run workflow with Ink UI
       const cwd = process.env.CODEMACHINE_CWD || process.cwd()
       const specificationPath = "" // Will be determined by workflow runner
@@ -64,6 +64,9 @@ export function Home(props: { initialToast?: InitialToast }) {
     }
 
     if (cmd === "/templates" || cmd === "/template") {
+      // Lazy load templates command
+      const { getAvailableTemplates, selectTemplateByNumber } = await import("../../commands/templates.command.js")
+
       const templates = await getAvailableTemplates()
       const choices = templates.map((t, index) => ({
         title: t.title,
@@ -106,6 +109,10 @@ export function Home(props: { initialToast?: InitialToast }) {
     }
 
     if (cmd === "/login") {
+      // Lazy load registry and auth commands
+      const { registry } = await import("../../../infra/engines/index.js")
+      const { handleLogin } = await import("../../commands/auth.command.js")
+
       const providers = registry.getAll().map((engine) => ({
         title: engine.metadata.name,
         value: engine.metadata.id,
@@ -162,6 +169,10 @@ export function Home(props: { initialToast?: InitialToast }) {
     }
 
     if (cmd === "/logout") {
+      // Lazy load registry and auth commands
+      const { registry } = await import("../../../infra/engines/index.js")
+      const { handleLogout } = await import("../../commands/auth.command.js")
+
       const providers = registry.getAll().map((engine) => ({
         title: engine.metadata.name,
         value: engine.metadata.id,
@@ -202,6 +213,13 @@ export function Home(props: { initialToast?: InitialToast }) {
     }
 
     if (cmd === "/exit" || cmd === "/quit") {
+      renderer.destroy()
+
+      // Clean terminal completely before exit
+      if (process.stdout.isTTY) {
+        process.stdout.write('\x1b[2J\x1b[H\x1b[?25h') // Clear screen, home cursor, show cursor
+      }
+
       process.exit(0)
     }
 
@@ -216,23 +234,25 @@ export function Home(props: { initialToast?: InitialToast }) {
   const isDialogOpen = () => dialog.current !== null
 
   return (
-    <box flexGrow={1} justifyContent="center" alignItems="center" paddingLeft={2} paddingRight={2} gap={1}>
-      <Logo />
+    <FadeIn duration={600}>
+      <box flexGrow={1} justifyContent="center" alignItems="center" paddingLeft={2} paddingRight={2} gap={1}>
+        <Logo />
 
-      <box width={60} flexDirection="column" gap={0}>
-        <box flexDirection="row" gap={0} marginBottom={1}>
-          <text fg={theme.textMuted}>🥟 </text>
-          <text fg={theme.text} attributes={TextAttributes.BOLD}>Bun Runtime Edition</text>
-          <text fg={theme.textMuted}> • v{getVersion()}</text>
+        <box width={60} flexDirection="column" gap={0}>
+          <box flexDirection="row" gap={0} marginBottom={1}>
+            <text fg={theme.textMuted}>🥟 </text>
+            <text fg={theme.text} attributes={TextAttributes.BOLD}>Bun Runtime Edition</text>
+            <text fg={theme.textMuted}> • v{getVersion()}</text>
+          </box>
+          <HelpRow command="start" description="Start workflow with current template" />
+          <HelpRow command="templates" description="Select and configure workflow templates" />
+          <HelpRow command="login" description="Authenticate with AI providers" />
         </box>
-        <HelpRow command="start" description="Start workflow with current template" />
-        <HelpRow command="templates" description="Select and configure workflow templates" />
-        <HelpRow command="login" description="Authenticate with AI providers" />
+
+        <Prompt onSubmit={handleCommand} disabled={isDialogOpen()} />
+
+        <Toast />
       </box>
-
-      <Prompt onSubmit={handleCommand} disabled={isDialogOpen()} />
-
-      <Toast />
-    </box>
+    </FadeIn>
   )
 }
