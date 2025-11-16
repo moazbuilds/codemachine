@@ -3,7 +3,7 @@ import { render, useTerminalDimensions, useKeyboard, useRenderer } from "@opentu
 import { VignetteEffect, applyScanlines, TextAttributes } from "@opentui/core"
 import { ErrorBoundary, createSignal, Show } from "solid-js"
 import { KVProvider } from "@tui/context/kv"
-import { ToastProvider } from "@tui/context/toast"
+import { ToastProvider, useToast } from "@tui/context/toast"
 import { ThemeProvider, useTheme } from "@tui/context/theme"
 import { DialogProvider } from "@tui/context/dialog"
 import { SessionProvider, useSession } from "@tui/context/session"
@@ -104,6 +104,11 @@ export async function startTUI(
     await new Promise((r) => setTimeout(r, 100))
   }
 
+  // Clear terminal before OpenTUI takes over (removes splash)
+  if (process.stdout.isTTY) {
+    process.stdout.write('\x1b[2J\x1b[H\x1b[?25h') // Clear screen, home cursor, show cursor
+  }
+
   return new Promise<void>((resolve) => {
     // Create vignette effect with refined, subtle strength
     const vignetteEffect = new VignetteEffect(0.35)
@@ -111,6 +116,12 @@ export async function startTUI(
     render(
       () => <Root mode={mode} initialToast={initialToast} onExit={() => {
         closeTUILogger()
+
+        // Clean terminal completely before exit
+        if (process.stdout.isTTY) {
+          process.stdout.write('\x1b[2J\x1b[H\x1b[?25h') // Clear screen, home cursor, show cursor
+        }
+
         resolve()
       }} />,
       {
@@ -167,13 +178,44 @@ function App(props: { initialToast?: InitialToast }) {
   const session = useSession()
   const updateNotifier = useUpdateNotifier()
   const renderer = useRenderer()
+  const toast = useToast()
 
-  // Global Ctrl+C handler to exit gracefully
+  // Track Ctrl+C presses for confirmation
+  let ctrlCPressed = false
+  let ctrlCTimeout: NodeJS.Timeout | null = null
+
+  // Global Ctrl+C handler with confirmation
   useKeyboard((evt) => {
     if (evt.ctrl && evt.name === "c") {
       evt.preventDefault()
-      renderer.destroy()
-      process.exit(0)
+
+      if (ctrlCPressed) {
+        // Second Ctrl+C within timeout - actually exit
+        if (ctrlCTimeout) clearTimeout(ctrlCTimeout)
+
+        renderer.destroy()
+
+        // Clean terminal completely before exit
+        if (process.stdout.isTTY) {
+          process.stdout.write('\x1b[2J\x1b[H\x1b[?25h') // Clear screen, home cursor, show cursor
+        }
+
+        process.exit(0)
+      } else {
+        // First Ctrl+C - show warning toast
+        ctrlCPressed = true
+        toast.show({
+          variant: "warning",
+          message: "Press Ctrl+C again to exit",
+          duration: 3000,
+        })
+
+        // Reset after 3 seconds
+        ctrlCTimeout = setTimeout(() => {
+          ctrlCPressed = false
+          ctrlCTimeout = null
+        }, 3000)
+      }
     }
   })
 
@@ -252,6 +294,14 @@ function ErrorComponent(props: { error: Error; onExit: () => void }) {
     }
   }
 
+  const handleExit = () => {
+    // Clean terminal before exit
+    if (process.stdout.isTTY) {
+      process.stdout.write('\x1b[2J\x1b[H\x1b[?25h')
+    }
+    props.onExit()
+  }
+
   return (
     <box flexDirection="column" gap={1} padding={2}>
       <box flexDirection="row" gap={2} alignItems="center">
@@ -263,7 +313,7 @@ function ErrorComponent(props: { error: Error; onExit: () => void }) {
       </box>
       <box flexDirection="row" gap={2}>
         <text>Press Ctrl+C to exit</text>
-        <box onMouseUp={props.onExit} backgroundColor="#565f89" padding={1}>
+        <box onMouseUp={handleExit} backgroundColor="#565f89" padding={1}>
           <text>Exit Now</text>
         </box>
       </box>
