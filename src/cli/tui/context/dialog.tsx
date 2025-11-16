@@ -1,15 +1,15 @@
 /** @jsxImportSource @opentui/solid */
-import { Show, createContext, useContext, type JSX, type ParentProps } from "solid-js"
+import { Show, createContext, useContext, type JSX, type ParentProps, getOwner, runWithOwner } from "solid-js"
 import { createStore } from "solid-js/store"
 import { useRenderer } from "@opentui/solid"
 import { useToast } from "./toast"
 import { DialogWrapper } from "@tui/ui/dialog-wrapper"
 
-type DialogContent = JSX.Element | (() => JSX.Element)
+type DialogContent = (() => JSX.Element) | JSX.Element
 
 type DialogContextValue = {
   readonly current: DialogContent | null
-  show(content: DialogContent): void
+  show(content: () => JSX.Element): void
   close(): void
   handleInteractiveCommand(
     title: string,
@@ -26,12 +26,17 @@ export function DialogProvider(props: ParentProps) {
   const renderer = useRenderer()
   const toast = useToast()
 
+  // Capture the provider's reactive owner
+  const owner = getOwner()
+
   const value: DialogContextValue = {
     get current() {
       return store.current
     },
     show(content) {
-      setStore("current", content)
+      // Execute content function in provider's owner context
+      const element = owner ? runWithOwner(owner, content) : content()
+      setStore("current", element)
     },
     close() {
       setStore("current", null)
@@ -60,15 +65,11 @@ export function DialogProvider(props: ParentProps) {
     },
   }
 
-  const renderContent = (content: DialogContent) => {
-    return typeof content === "function" ? content() : content
-  }
-
   return (
     <DialogContext.Provider value={value}>
       {props.children}
-      <Show when={store.current} keyed>
-        {(content) => <DialogWrapper>{renderContent(content)}</DialogWrapper>}
+      <Show when={store.current}>
+        <DialogWrapper>{store.current as JSX.Element}</DialogWrapper>
       </Show>
     </DialogContext.Provider>
   )
