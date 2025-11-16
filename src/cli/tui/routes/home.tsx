@@ -89,17 +89,19 @@ export function Home() {
           message="Choose authentication provider to login:"
           choices={providers}
           onSelect={async (providerId: string) => {
-            dialog.close()
-            await dialog.handleInteractiveCommand(
+            const result = await dialog.handleInteractiveCommand(
               `${providers.find((p) => p.value === providerId)?.title} Authentication`,
               async () => {
                 await handleLogin(providerId)
               }
             )
-            toast.show({
-              variant: "success",
-              message: "Logged in successfully!",
-            })
+            dialog.close()
+            if (result.success) {
+              toast.show({
+                variant: "success",
+                message: "Logged in successfully!",
+              })
+            }
           }}
           onCancel={() => dialog.close()}
         />
@@ -119,14 +121,15 @@ export function Home() {
           message="Choose authentication provider to logout:"
           choices={providers}
           onSelect={async (providerId: string) => {
-            dialog.close()
             try {
               await handleLogout(providerId)
+              dialog.close()
               toast.show({
                 variant: "success",
                 message: "Logged out successfully!",
               })
             } catch (error) {
+              dialog.close()
               toast.show({
                 variant: "error",
                 message: error instanceof Error ? error.message : String(error),

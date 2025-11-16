@@ -7,19 +7,26 @@ import type { SelectMenuProps } from "./types"
 export function SelectMenu<T = string>(props: SelectMenuProps<T>) {
   const { theme } = useTheme()
   const [selectedIndex, setSelectedIndex] = createSignal(0)
+  const [isActive, setIsActive] = createSignal(true)
 
   useKeyboard((evt) => {
+    // Ignore keyboard events if component is no longer active
+    if (!isActive()) return
+
     if (evt.name === "up") {
       setSelectedIndex((prev) => Math.max(0, prev - 1))
     } else if (evt.name === "down") {
       setSelectedIndex((prev) => Math.min(props.choices.length - 1, prev + 1))
     } else if (evt.name === "return") {
+      setIsActive(false)
       props.onSelect(props.choices[selectedIndex()].value)
     } else if (evt.name === "escape") {
+      setIsActive(false)
       props.onCancel?.()
     } else if (evt.name && /^[1-9]$/.test(evt.name)) {
       const num = parseInt(evt.name, 10)
       if (num >= 1 && num <= props.choices.length) {
+        setIsActive(false)
         props.onSelect(props.choices[num - 1].value)
       }
     }
