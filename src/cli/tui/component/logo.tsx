@@ -1,18 +1,40 @@
 /** @jsxImportSource @opentui/solid */
 import { TextAttributes, RGBA } from "@opentui/core"
-import { For, Show, type JSX } from "solid-js"
+import { For, Show, createSignal, onCleanup, type JSX } from "solid-js"
 import { useTheme } from "@tui/context/theme"
 import { useTerminalDimensions } from "@opentui/solid"
 import { createRequire } from 'node:module'
 import { resolvePackageJson } from '../../../shared/utils/package-json.js'
 
-const CODE_TEXT = [
-  '   ██████╗ ██████╗ ██████╗ ███████╗',
-  '  ██╔════╝██╔═══██╗██╔══██╗██╔════╝',
-  '  ██║     ██║   ██║██║↓ ██║█████╗  ',
-  '  ██║     ██║   ██║██║↓ ██║██╔══╝  ',
-  '  ╚██████╗╚██████╔╝██████╔╝███████╗',
-  '   ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝',
+// Base CODE_TEXT frames for animation (single arrow moving down)
+const CODE_TEXT_FRAMES = [
+  // Frame 0: arrow at top position
+  [
+    '   ██████╗ ██████╗ ██████╗ ███████╗',
+    '  ██╔════╝██╔═══██╗██╔══██╗██╔════╝',
+    '  ██║     ██║   ██║██║↓ ██║█████╗  ',
+    '  ██║     ██║   ██║██║  ██║██╔══╝  ',
+    '  ╚██████╗╚██████╔╝██████╔╝███████╗',
+    '   ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝',
+  ],
+  // Frame 1: arrow at middle position
+  [
+    '   ██████╗ ██████╗ ██████╗ ███████╗',
+    '  ██╔════╝██╔═══██╗██╔══██╗██╔════╝',
+    '  ██║     ██║   ██║██║  ██║█████╗  ',
+    '  ██║     ██║   ██║██║↓ ██║██╔══╝  ',
+    '  ╚██████╗╚██████╔╝██████╔╝███████╗',
+    '   ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝',
+  ],
+  // Frame 2: arrow at bottom (fade out)
+  [
+    '   ██████╗ ██████╗ ██████╗ ███████╗',
+    '  ██╔════╝██╔═══██╗██╔══██╗██╔════╝',
+    '  ██║     ██║   ██║██║  ██║█████╗  ',
+    '  ██║     ██║   ██║██║  ██║██╔══╝  ',
+    '  ╚██████╗╚██████╔╝██████╔╝███████╗',
+    '   ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝',
+  ],
 ]
 
 const MACHINE_TEXT = [
@@ -81,6 +103,20 @@ export function Logo() {
   const { theme } = useTheme()
   const dimensions = useTerminalDimensions()
 
+  // Animation state for arrow movement
+  // TEMPORARY: Animation disabled to reduce debug logging
+  const [currentFrame] = createSignal(0)
+
+  // Cycle through frames every 400ms
+  // const intervalId = setInterval(() => {
+  //   setCurrentFrame((prev) => (prev + 1) % CODE_TEXT_FRAMES.length)
+  // }, 400)
+
+  // onCleanup(() => clearInterval(intervalId))
+
+  // Get current CODE_TEXT based on animation frame
+  const CODE_TEXT = () => CODE_TEXT_FRAMES[currentFrame()]
+
   // Check if width is narrow
   const isNarrow = () => dimensions().width < 100
   // Check if height is short
@@ -120,7 +156,7 @@ export function Logo() {
           fallback={
             // Short terminal: side-by-side to save vertical space
             <>
-              <For each={CODE_TEXT}>
+              <For each={CODE_TEXT()}>
                 {(codeLine, index) => (
                   <box flexDirection="row" gap={2}>
                     <ColoredLine line={codeLine} blockColor={theme.primary} borderColor={theme.purple} />
@@ -132,14 +168,14 @@ export function Logo() {
               </For>
               {/* Render the arrow line (7th line of MACHINE_TEXT) */}
               <box flexDirection="row" gap={2}>
-                <box width={CODE_TEXT[0].length} />
+                <box width={CODE_TEXT()[0].length} />
                 <ColoredLine line={MACHINE_TEXT[6]} blockColor={theme.primary} borderColor={theme.purple} bold />
               </box>
             </>
           }
         >
           {/* Tall terminal: stacked vertically (normal) */}
-          <For each={CODE_TEXT}>
+          <For each={CODE_TEXT()}>
             {(line) => <ColoredLine line={line} blockColor={theme.primary} borderColor={theme.purple} />}
           </For>
           <box height={1} />
@@ -153,7 +189,7 @@ export function Logo() {
       <box height={1} />
       <box justifyContent="center">
         <text fg={theme.textMuted}>
-          Bun Runtime Edition • v{getVersion()}
+          🥟 Bun Runtime Edition • v{getVersion()}
         </text>
       </box>
     </box>

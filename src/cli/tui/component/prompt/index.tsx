@@ -69,6 +69,16 @@ export function Prompt(props: PromptProps) {
           setShowAutocomplete(false)
           return
         }
+      } else if (evt.name === "return") {
+        // Auto-complete and execute the selected command
+        const selected = filteredCommands()[selectedIndex()]
+        if (selected) {
+          const fullCommand = `/${selected.command}`
+          setInput("")
+          setShowAutocomplete(false)
+          props.onSubmit(fullCommand)
+          return
+        }
       } else if (evt.name === "escape") {
         setShowAutocomplete(false)
         return
