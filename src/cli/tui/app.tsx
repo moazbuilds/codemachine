@@ -180,8 +180,8 @@ function App(props: { initialToast?: InitialToast }) {
   const renderer = useRenderer()
   const toast = useToast()
 
-  // Track Ctrl+C presses for confirmation
-  let ctrlCPressed = false
+  // Track Ctrl+C presses for confirmation using signals
+  const [ctrlCPressed, setCtrlCPressed] = createSignal(false)
   let ctrlCTimeout: NodeJS.Timeout | null = null
 
   // Global Ctrl+C handler with confirmation
@@ -189,7 +189,7 @@ function App(props: { initialToast?: InitialToast }) {
     if (evt.ctrl && evt.name === "c") {
       evt.preventDefault()
 
-      if (ctrlCPressed) {
+      if (ctrlCPressed()) {
         // Second Ctrl+C within timeout - actually exit
         if (ctrlCTimeout) clearTimeout(ctrlCTimeout)
 
@@ -203,7 +203,7 @@ function App(props: { initialToast?: InitialToast }) {
         process.exit(0)
       } else {
         // First Ctrl+C - show warning toast
-        ctrlCPressed = true
+        setCtrlCPressed(true)
         toast.show({
           variant: "warning",
           message: "Press Ctrl+C again to exit",
@@ -212,7 +212,7 @@ function App(props: { initialToast?: InitialToast }) {
 
         // Reset after 3 seconds
         ctrlCTimeout = setTimeout(() => {
-          ctrlCPressed = false
+          setCtrlCPressed(false)
           ctrlCTimeout = null
         }, 3000)
       }
