@@ -48,10 +48,8 @@ const MACHINE_TEXT = [
 ]
 
 const SIMPLE_TEXT = [
-  ' _____         _       _____            _    _           ',
-  '|     | ___  _| | ___ |     | ___  ___ | |_ |_| ___  ___ ',
-  '|   --|| . || . || -_|| | | || .\'||  _||   || ||   || -_|',
-  '|_____||___||___||___||_|_|_||__,||___||_|_||_||_|_||___|'
+  '█▀▀ █▀█ █▀▄ █▀▀ █▀▄▀█ ▄▀█ █▀▀ █ █ █ █▄ █ █▀▀',
+  '█▄▄ █▄█ █▄▀ ██▄ █ ▀ █ █▀█ █▄▄ █▀█ █ █ ▀█ ██▄'
 ]
 
 function getVersion(): string {
@@ -129,19 +127,11 @@ export function Logo() {
 
   return (
     <box flexDirection="column" gap={0}>
-      <Show
-        when={!isVeryNarrow() && !isVeryShort()}
-        fallback={
-          // Very narrow or very short: show minimal text
-          <box justifyContent="center">
-            <text fg={theme.primary} attributes={TextAttributes.BOLD}>CODEMACHINE</text>
-          </box>
-        }
-      >
+      <Show when={dimensions().height >= 13}>
         <Show
           when={!isNarrow() && !isShort()}
           fallback={
-            // Narrow or short terminal: show simple ASCII text
+            // Narrow or short terminal: show tiny font (SIMPLE_TEXT)
             <box flexDirection="column" gap={0} alignItems="center">
               <For each={SIMPLE_TEXT}>
                 {(line) => (
