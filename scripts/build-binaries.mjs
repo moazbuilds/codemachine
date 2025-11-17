@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 import { mkdirSync, rmSync, cpSync, readFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { platform, arch } from 'node:os';
 
@@ -18,6 +18,10 @@ const linkGlobal = args.has('--link-global');
 
 console.log('[build] Starting binary build...');
 console.log(`[build] Current platform: ${currentPlatform}-${currentArch}\n`);
+
+// Load OpenTUI solid plugin for JSX transformation
+const solidPluginPath = resolve(repoRoot, 'node_modules/@opentui/solid/scripts/solid-plugin.ts');
+const solidPlugin = (await import(solidPluginPath)).default;
 
 // Map platform/arch to target names
 const platformMap = {
@@ -43,30 +47,27 @@ console.log(`[build] Building compiled executable for ${target}...`);
 mkdirSync(outdir, { recursive: true });
 
 try {
-  // Build standalone executable with embedded Bun runtime using CLI
+  // Build standalone executable with embedded Bun runtime using Bun.build() API
   const binaryPath = join(outdir, `codemachine${ext}`);
 
-  // Use the current Bun executable path
-  const bunPath = process.execPath;
-
-  const proc = Bun.spawn([
-    bunPath,
-    'build',
-    '--compile',
-    '--outfile',
-    binaryPath,
-    `--target=${target}`,
-    '--minify',
-    './src/runtime/index.ts'
-  ], {
-    stdout: 'inherit',
-    stderr: 'inherit',
+  const result = await Bun.build({
+    conditions: ['browser'],
+    tsconfig: './tsconfig.json',
+    plugins: [solidPlugin],
+    sourcemap: 'external',
+    minify: true,
+    compile: {
+      target: target,
+      outfile: binaryPath,
+    },
+    entrypoints: ['./src/runtime/index.ts'],
   });
 
-  const exitCode = await proc.exited;
-
-  if (exitCode !== 0) {
-    console.error(`[build] ❌ Build failed with exit code ${exitCode}`);
+  if (!result.success) {
+    console.error('[build] ❌ Build failed:');
+    for (const log of result.logs) {
+      console.error(log);
+    }
     process.exit(1);
   }
 

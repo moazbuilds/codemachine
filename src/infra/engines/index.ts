@@ -1,5 +1,6 @@
 // Export core functionality
 export * from './core/index.js';
+export { registry } from './core/index.js';
 
 // Export provider-specific items with namespace
 export * as codex from './providers/codex/index.js';
