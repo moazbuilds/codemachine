@@ -30,7 +30,7 @@
     "build:binaries:link": "bun scripts/build-binaries.mjs --install-local --link-global",
     "dev": "DEBUG=true bun --conditions=browser src/runtime/cli-setup.ts",
     "debug": "REACT_DEVTOOLS=1 DEBUG=\"ink:*\" bun --conditions=browser src/runtime/cli-setup.ts",
-    "start": "bun run build && bun dist/index.js start",
+    "start": "bun --conditions=browser src/runtime/cli-setup.ts",
     "lint": "eslint --max-warnings=0 \"{src,tests}/**/*.{ts,tsx}\"",
     "test": "bun test",
     "test:watch": "bun test --watch",
