@@ -12,6 +12,7 @@ import { useSession } from "@tui/context/session"
 import { useRenderer } from "@opentui/solid"
 import { TextAttributes } from "@opentui/core"
 import { createRequire } from "node:module"
+import { fileURLToPath } from "node:url"
 import { resolvePackageJson } from "../../../shared/utils/package-json.js"
 import { onMount } from "solid-js"
 import * as path from "node:path"
@@ -106,7 +107,7 @@ export function Home(props: { initialToast?: InitialToast }) {
 
       if (isDev) {
         // Development mode - use TypeScript source file
-        const runnerPath = new URL("../../../workflows/runner-process.ts", import.meta.url).pathname
+        const runnerPath = fileURLToPath(new URL("../../../workflows/runner-process.ts", import.meta.url))
         command = "bun"
         args = [runnerPath, cwd, ""]
       } else {
