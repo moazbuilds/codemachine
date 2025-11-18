@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { mkdirSync, rmSync, cpSync, readFileSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { platform, arch } from 'node:os';
 
 // Detect current platform
@@ -150,7 +150,8 @@ try {
       console.warn('[build] ⚠️ bun link failed for platform package');
     } else {
       console.log('[build] 🔗 Installing global shim via bun install...');
-      const installProcess = Bun.spawn(['bun', 'install', '--global', resolve(outdir)], {
+      const installTarget = pathToFileURL(resolve(outdir)).href;
+      const installProcess = Bun.spawn(['bun', 'install', '--global', installTarget], {
         stdout: 'inherit',
         stderr: 'inherit',
       });
