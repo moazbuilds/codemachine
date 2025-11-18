@@ -105,6 +105,12 @@ try {
 
   // Create package.json for the platform-specific package
   const pkgName = `codemachine-${os}-${archName}`;
+  const binEntries = {
+    codemachine: `./codemachine${ext}`,
+    'codemachine-workflow': `./codemachine-workflow${ext}`,
+    cm: `./codemachine${ext}`,
+  };
+
   const pkg = {
     name: pkgName,
     version: mainVersion,
@@ -112,10 +118,7 @@ try {
     os: [os],
     cpu: [archName],
     files: ['codemachine' + ext, 'codemachine-workflow' + ext],
-    bin: {
-      codemachine: `./codemachine${ext}`,
-      'codemachine-workflow': `./codemachine-workflow${ext}`
-    },
+    bin: binEntries,
   };
 
   await Bun.write(
