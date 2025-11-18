@@ -85,7 +85,8 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
     const child = Bun.spawn([command, ...args], {
       cwd,
       env: env ? { ...process.env, ...env } : process.env,
-      stdin: stdinEncoded ?? 'ignore',
+      // When inheriting stdio, inherit stdin too (needed for interactive TUI apps like Ink)
+      stdin: stdinEncoded ?? (stdioMode === 'inherit' ? 'inherit' : 'ignore'),
       stdout: stdioMode === 'inherit' ? 'inherit' : 'pipe',
       stderr: stdioMode === 'inherit' ? 'inherit' : 'pipe',
       // Note: Bun doesn't have detached option, but we can still kill process groups manually

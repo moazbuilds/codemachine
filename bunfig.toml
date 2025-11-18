@@ -1,5 +1,5 @@
-# Global preload for OpenTUI JSX runtime
-preload = ["@opentui/solid/preload"]
+# Global preload removed - now scoped to TUI via src/cli/tui/launcher.ts
+# This prevents the SolidJS transform from affecting React/Ink components
 
 [test]
 # Test setup file (equivalent to vitest setupFiles)

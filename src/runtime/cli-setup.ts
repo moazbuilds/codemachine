@@ -1,5 +1,7 @@
-// IMMEDIATE SPLASH - Must be first thing that executes (before any imports)
-if (process.stdout.isTTY) {
+// IMMEDIATE SPLASH - Only show for main TUI (no subcommands)
+// Show splash if: no arguments OR only options (starting with -)
+const hasSubcommand = process.argv.length > 2 && !process.argv[2].startsWith('-');
+if (process.stdout.isTTY && !hasSubcommand) {
   const { rows = 24, columns = 80 } = process.stdout;
   const centerY = Math.floor(rows / 2);
   const centerX = Math.floor(columns / 2);
@@ -67,7 +69,8 @@ export async function runCodemachineCli(argv: string[] = process.argv): Promise<
       });
 
       // Launch TUI immediately - don't wait for background init
-      const { startTUI } = await import('../cli/tui/app.js');
+      // Import via launcher to scope SolidJS transform to TUI only
+      const { startTUI } = await import('../cli/tui/launcher.js');
       await startTUI();
     });
 
