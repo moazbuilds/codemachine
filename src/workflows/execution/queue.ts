@@ -18,6 +18,11 @@ export async function runWorkflowQueue(options: RunWorkflowQueueOptions = {}): P
   const specificationPath = options.specificationPath || path.resolve(cwd, '.codemachine', 'inputs', 'specifications.md');
 
   await validateSpecification(specificationPath);
+
+  if (process.stdout.isTTY) {
+    process.stdout.write('\x1b[2J\x1b[H');
+  }
+
   await runWorkflow(options);
 }
 
