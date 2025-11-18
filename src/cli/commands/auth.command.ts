@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { homedir } from 'node:os';
 import { confirm, isCancel } from '@clack/prompts';
 import { registry } from '../../infra/engines/index.js';
-import { selectFromMenu, type SelectionChoice } from '../presentation/selection-menu.js';
+import { selectFromMenu, type SelectionChoice } from '../utils/selection-menu.js';
 import { expandHomeDir } from '../../shared/utils/index.js';
 
 interface AuthProviderChoice extends SelectionChoice<string> {

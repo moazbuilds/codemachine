@@ -5,7 +5,7 @@ import { rm } from 'node:fs/promises';
 import { loadWorkflowModule, isWorkflowTemplate, WorkflowTemplate } from '../../workflows/index.js';
 import { hasTemplateChanged, setActiveTemplate } from '../../shared/workflows/index.js';
 import { bootstrapWorkspace } from '../../runtime/services/workspace/index.js';
-import { selectFromMenu, type SelectionChoice } from '../presentation/selection-menu.js';
+import { selectFromMenu, type SelectionChoice } from '../utils/selection-menu.js';
 import { isModuleStep } from '../../workflows/templates/types.js';
 import { resolvePackageRoot } from '../../shared/utils/package-json.js';
 

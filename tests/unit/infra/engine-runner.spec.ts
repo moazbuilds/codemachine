@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import * as spawnModule from '../../../src/infra/process/spawn.js';
-import { runCodex } from '../../../src/infra/engines/providers/codex/index.js';
+import { runCodex } from '../../../src/infra/engines/providers/codex/execution/runner.js';
 
 describe('Engine Runner', () => {
   const workingDir = '/tmp/workspace/project';
@@ -51,6 +51,9 @@ describe('Engine Runner', () => {
     expect(callOptions?.stdinInput).toBe('Hello Engine');
     expect(callOptions?.onStdout).toBeTypeOf('function');
     expect(callOptions?.onStderr).toBeTypeOf('function');
+    expect(callOptions?.signal).toBeUndefined();
+    expect(callOptions?.stdioMode).toBe('pipe');
+    expect(callOptions?.timeout).toBe(1800000);
   });
 
   it('throws when the engine CLI exits with a non-zero status code', async () => {
