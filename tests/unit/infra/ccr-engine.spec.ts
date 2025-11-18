@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import * as spawnModule from '../../../src/infra/process/spawn.js';
-import { runCcr } from '../../../src/infra/engines/providers/ccr/index.js';
+import { runCcr } from '../../../src/infra/engines/providers/ccr/execution/runner.js';
 
 describe('CCR Engine Runner', () => {
   const workingDir = '/tmp/workspace/project';

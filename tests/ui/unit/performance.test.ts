@@ -99,11 +99,7 @@ describe('Performance Utilities', () => {
   });
 
   describe('BatchUpdater', () => {
-    beforeEach(() => {
-      mock.useFakeTimers();
-    });
-
-    it('should batch updates', () => {
+    it('should batch updates', async () => {
       const updater = new BatchUpdater(50);
       const fn1 = mock();
       const fn2 = mock();
@@ -114,7 +110,8 @@ describe('Performance Utilities', () => {
       expect(fn1).not.toHaveBeenCalled();
       expect(fn2).not.toHaveBeenCalled();
 
-      mock.advanceTimersByTime(50);
+      // Wait for batch to execute
+      await new Promise(resolve => setTimeout(resolve, 60));
 
       expect(fn1).toHaveBeenCalledTimes(1);
       expect(fn2).toHaveBeenCalledTimes(1);
@@ -131,14 +128,14 @@ describe('Performance Utilities', () => {
       expect(fn).toHaveBeenCalledTimes(1);
     });
 
-    it('should clear pending updates', () => {
-      const updater = new BatchUpdater(100);
+    it('should clear pending updates', async () => {
+      const updater = new BatchUpdater(50);
       const fn = mock();
 
       updater.schedule(fn);
       updater.clear();
 
-      mock.advanceTimersByTime(100);
+      await new Promise(resolve => setTimeout(resolve, 60));
       expect(fn).not.toHaveBeenCalled();
     });
   });

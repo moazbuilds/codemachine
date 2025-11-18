@@ -18,13 +18,11 @@ const readPersistedEntries = async (directory: string, agentId: string): Promise
 
 describe('MemoryStore', () => {
   beforeEach(() => {
-    mock.useFakeTimers();
-    mock.setSystemTime(new Date('2024-05-01T12:00:00Z'));
+    // Timer mocking not needed for these tests
   });
 
   afterEach(async () => {
     mock.restore();
-    mock.useRealTimers();
     await fs.rm(tempRoot, { recursive: true, force: true });
   });
 

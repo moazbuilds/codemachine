@@ -208,7 +208,8 @@ describe('bootstrapWorkspace', () => {
   it('creates template.json when templatePath is provided', async () => {
     const projectRoot = await createProject(tempDir);
     const desiredCwd = join(tempDir, 'projects', 'template-test');
-    const templatePath = join(projectRoot, '../../../templates/workflows/codemachine.workflow.js');
+    // Use import.meta.dir to construct absolute path to the template file
+    const templatePath = join(import.meta.dir, '../../../templates/workflows/codemachine.workflow.js');
 
     await bootstrapWorkspace({ projectRoot, cwd: desiredCwd, templatePath });
 
