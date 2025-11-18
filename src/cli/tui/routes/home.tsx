@@ -43,11 +43,40 @@ export function Home(props: { initialToast?: InitialToast }) {
     return pkg.version
   }
 
+  const getSpecPath = () => {
+    const cwd = process.env.CODEMACHINE_CWD || process.cwd()
+    const fullPath = path.join(cwd, '.codemachine', 'inputs', 'specifications.md')
+    // Show relative path if it's in current directory, otherwise show full path
+    const relativePath = path.relative(process.cwd(), fullPath)
+    return relativePath.startsWith('..') ? fullPath : relativePath
+  }
+
   const handleCommand = async (command: string) => {
     const cmd = command.toLowerCase()
     console.log(`Executing command: ${cmd}`)
 
     if (cmd === "/start") {
+      // Validate spec file BEFORE destroying the TUI
+      const cwd = process.env.CODEMACHINE_CWD || process.cwd()
+      const specPath = path.join(cwd, '.codemachine', 'inputs', 'specifications.md')
+
+      try {
+        const { validateSpecification, ValidationError } = await import("../../../workflows/execution/queue.js")
+        await validateSpecification(specPath)
+      } catch (error) {
+        // Show validation error as info toast (instructional, not error) and keep TUI running
+        if (error instanceof Error) {
+          toast.show({
+            variant: "info",
+            message: error.message,
+            duration: 10000, // Longer duration since it contains instructions
+          })
+        }
+        return // Don't destroy TUI or spawn workflow
+      }
+
+      // Validation passed - now destroy TUI and spawn workflow
+
       // Unmount OpenTUI to release terminal control
       renderer.destroy()
 
@@ -67,7 +96,6 @@ export function Home(props: { initialToast?: InitialToast }) {
 
       // Spawn workflow in separate process (WITHOUT SolidJS transform)
       // This prevents JSX conflicts between OpenTUI (SolidJS) and workflow UI (React/Ink)
-      const cwd = process.env.CODEMACHINE_CWD || process.cwd()
 
       // Determine command based on environment:
       // - Dev mode: bun runner-process.ts
@@ -92,6 +120,10 @@ export function Home(props: { initialToast?: InitialToast }) {
       const result = await spawnProcess({
         command,
         args,
+        // Pass CODEMACHINE_INSTALL_DIR from parent process to child
+        env: process.env.CODEMACHINE_INSTALL_DIR ? {
+          CODEMACHINE_INSTALL_DIR: process.env.CODEMACHINE_INSTALL_DIR
+        } : undefined,
         stdioMode: "inherit", // Let workflow process take full terminal control
       })
 
@@ -283,6 +315,11 @@ export function Home(props: { initialToast?: InitialToast }) {
           <HelpRow command="start" description="Start workflow with current template" />
           <HelpRow command="templates" description="Select and configure workflow templates" />
           <HelpRow command="login" description="Authenticate with AI providers" />
+        </box>
+
+        <box flexDirection="row" gap={0} marginTop={1} marginBottom={0}>
+          <text fg={theme.textMuted}>Write your specifications in </text>
+          <text fg={theme.primary} attributes={TextAttributes.BOLD}>{getSpecPath()}</text>
         </box>
 
         <Prompt onSubmit={handleCommand} disabled={isDialogOpen()} />

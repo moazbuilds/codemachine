@@ -36,11 +36,18 @@ export function registerStartCommand(program: Command): void {
       if (isDev) {
         // Development mode - directly import and run (SolidJS preload not active)
         const { runWorkflowQueue } = await import('../../workflows/index.js');
+        const { ValidationError } = await import('../../runtime/services/validation.js');
         try {
           await runWorkflowQueue({ cwd, specificationPath });
           console.log('\n✓ Workflow completed successfully');
           process.exit(0);
         } catch (error) {
+          // Show friendly instructional message for validation errors (no stack trace)
+          if (error instanceof ValidationError) {
+            console.log(`\n${error.message}\n`);
+            process.exit(1);
+          }
+          // Show detailed error for other failures
           console.error('\n✗ Workflow failed:', error instanceof Error ? error.message : String(error));
           process.exit(1);
         }
@@ -53,6 +60,10 @@ export function registerStartCommand(program: Command): void {
           const result = await spawnProcess({
             command: 'codemachine-workflow',
             args: [cwd, specificationPath],
+            // Pass CODEMACHINE_INSTALL_DIR from parent process to child
+            env: process.env.CODEMACHINE_INSTALL_DIR ? {
+              CODEMACHINE_INSTALL_DIR: process.env.CODEMACHINE_INSTALL_DIR
+            } : undefined,
             stdioMode: 'inherit', // Let workflow take full terminal control
           });
 

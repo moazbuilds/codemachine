@@ -29,7 +29,7 @@ export async function bootstrapWorkspace(options?: WorkspaceBootstrapOptions): P
     new Set([
       options?.projectRoot,
       workspaceRoot,
-      ...CLI_ROOT_CANDIDATES
+      ...(CLI_ROOT_CANDIDATES ?? [])
     ].filter((root): root is string => Boolean(root)))
   );
 
