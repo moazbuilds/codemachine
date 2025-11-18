@@ -150,7 +150,7 @@ try {
       console.warn('[build] ⚠️ bun link failed for platform package');
     } else {
       console.log('[build] 🔗 Installing global shim via bun install...');
-      const installProcess = Bun.spawn(['bun', 'install', '--global', outdir], {
+      const installProcess = Bun.spawn(['bun', 'install', '--global', resolve(outdir)], {
         stdout: 'inherit',
         stderr: 'inherit',
       });
