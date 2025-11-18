@@ -37,18 +37,6 @@ function shouldApplyDefault(key: string, overrides?: NodeJS.ProcessEnv): boolean
 function resolveRunnerEnv(env?: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const runnerEnv: NodeJS.ProcessEnv = { ...process.env, ...(env ?? {}) };
 
-  if (shouldApplyDefault('OPENCODE_PERMISSION', env)) {
-    runnerEnv.OPENCODE_PERMISSION = DEFAULT_PERMISSION_POLICY;
-  }
-
-  if (shouldApplyDefault('OPENCODE_DISABLE_LSP_DOWNLOAD', env)) {
-    runnerEnv.OPENCODE_DISABLE_LSP_DOWNLOAD = '1';
-  }
-
-  if (shouldApplyDefault('OPENCODE_DISABLE_DEFAULT_PLUGINS', env)) {
-    runnerEnv.OPENCODE_DISABLE_DEFAULT_PLUGINS = '1';
-  }
-
   // Set all three XDG environment variables to subdirectories under OPENCODE_HOME
   // This centralizes all OpenCode data under ~/.codemachine/opencode by default
   const opencodeHome = resolveOpenCodeHome(runnerEnv.OPENCODE_HOME);
