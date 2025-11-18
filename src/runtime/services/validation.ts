@@ -8,6 +8,24 @@ const DEFAULT_SPEC_TEMPLATE = `# Project Specifications
 - This file is created by workspace bootstrap and can be safely edited.
 `;
 
+/**
+ * Custom error class for specification validation failures.
+ * Used to distinguish validation errors from other errors for better error handling.
+ */
+export class ValidationError extends Error {
+  public readonly specPath: string;
+
+  constructor(message: string, specPath: string) {
+    super(message);
+    this.name = 'ValidationError';
+    this.specPath = specPath;
+    // Maintains proper stack trace for where error was thrown (only available on V8)
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, ValidationError);
+    }
+  }
+}
+
 export async function validateSpecification(specificationPath: string): Promise<void> {
   const absolute = path.resolve(specificationPath);
   let specificationContents: string;
@@ -18,13 +36,16 @@ export async function validateSpecification(specificationPath: string): Promise<
     // File doesn't exist - create it with default template
     await mkdir(path.dirname(absolute), { recursive: true });
     await writeFile(absolute, DEFAULT_SPEC_TEMPLATE, { encoding: 'utf8' });
-    throw new Error('Please write your spec file before starting');
+
+    const message = `Spec file created at:\n${absolute}\n\nPlease add your project requirements:\n1. Open the file in your editor\n2. Describe your goals and constraints\n3. Save and run /start again`;
+    throw new ValidationError(message, absolute);
   }
 
   const trimmed = specificationContents.trim();
 
   // Check if empty or still has default template content
   if (trimmed.length === 0 || trimmed === DEFAULT_SPEC_TEMPLATE.trim()) {
-    throw new Error('Please write your spec file before starting');
+    const message = `Spec file is empty:\n${absolute}\n\nPlease add your project requirements:\n1. Open the file in your editor\n2. Describe your goals and constraints\n3. Save and run /start again`;
+    throw new ValidationError(message, absolute);
   }
 }
