@@ -148,6 +148,16 @@ try {
     const linkExit = await linkProcess.exited;
     if (linkExit !== 0) {
       console.warn('[build] ⚠️ bun link failed for platform package');
+    } else {
+      console.log('[build] 🔗 Installing global shim via bun install...');
+      const installProcess = Bun.spawn(['bun', 'install', '--global', outdir], {
+        stdout: 'inherit',
+        stderr: 'inherit',
+      });
+      const installExit = await installProcess.exited;
+      if (installExit !== 0) {
+        console.warn('[build] ⚠️ bun install --global failed for platform package');
+      }
     }
   }
 
