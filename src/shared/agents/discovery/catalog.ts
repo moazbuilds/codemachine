@@ -42,12 +42,20 @@ const CLI_PACKAGE_ROOT = (() => {
   return undefined;
 })();
 
+const envRootCandidates = [
+  process.env.CODEMACHINE_INSTALL_DIR,
+  process.env.CODEMACHINE_PACKAGE_ROOT,
+  process.env.CODEMACHINE_PACKAGE_JSON
+    ? path.dirname(process.env.CODEMACHINE_PACKAGE_JSON)
+    : undefined,
+  CLI_PACKAGE_ROOT,
+  CLI_BUNDLE_DIR
+].filter((root): root is string => Boolean(root));
+
 const CLI_ROOT_CANDIDATES = Array.from(
-  new Set([
-    CLI_BUNDLE_DIR,
-    CLI_PACKAGE_ROOT,
-    CLI_PACKAGE_ROOT ? path.join(CLI_PACKAGE_ROOT, 'dist') : undefined
-  ].filter((root): root is string => Boolean(root)))
+  new Set(
+    envRootCandidates.flatMap((root) => (root ? [root, path.join(root, 'dist')] : []))
+  )
 );
 
 export function resolveProjectRoot(projectRoot?: string): string {
