@@ -26,6 +26,32 @@ export interface SpawnResult {
  */
 const activeProcesses = new Set<Subprocess>();
 
+function resolveCommandExecutable(command: string): string {
+  // If command already specifies a path (relative or absolute), use it as-is
+  const hasPathSeparator = command.includes('/') || command.includes('\\');
+  if (hasPathSeparator) {
+    return command;
+  }
+
+  const resolved = (() => {
+    try {
+      return Bun.which(command) ?? undefined;
+    } catch {
+      return undefined;
+    }
+  })();
+
+  if (resolved) {
+    return resolved;
+  }
+
+  if (command === 'bun' && typeof process.execPath === 'string' && process.execPath.length > 0) {
+    return process.execPath;
+  }
+
+  return command;
+}
+
 /**
  * Kill all active child processes
  * Called during cleanup to ensure no orphaned processes
@@ -82,7 +108,8 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
 
     // Spawn the process using Bun.spawn()
     // Bun automatically handles .cmd files on Windows (like cross-spawn)
-    const child = Bun.spawn([command, ...args], {
+    const executable = resolveCommandExecutable(command);
+    const child = Bun.spawn([executable, ...args], {
       cwd,
       env: env ? { ...process.env, ...env } : process.env,
       // When inheriting stdio, inherit stdin too (needed for interactive TUI apps like Ink)
