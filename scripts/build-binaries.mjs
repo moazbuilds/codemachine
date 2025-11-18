@@ -43,17 +43,21 @@ if (!platformConfig) {
 const { target, os, arch: archName, ext } = platformConfig;
 const outdir = join('./binaries', `codemachine-${os}-${archName}`);
 
-console.log(`[build] Building compiled executable for ${target}...`);
+console.log(`[build] Building compiled executables for ${target}...`);
 mkdirSync(outdir, { recursive: true });
 
 try {
-  // Build standalone executable with embedded Bun runtime using Bun.build() API
+  // Build TWO separate executables to prevent JSX runtime conflicts:
+  // 1. Main TUI executable (with SolidJS transform)
+  // 2. Workflow runner executable (NO SolidJS transform, React/Ink only)
+
+  console.log('[build] Building main TUI executable...');
   const binaryPath = join(outdir, `codemachine${ext}`);
 
   const result = await Bun.build({
     conditions: ['browser'],
     tsconfig: './tsconfig.json',
-    plugins: [solidPlugin],
+    plugins: [solidPlugin], // SolidJS transform for TUI
     sourcemap: 'external',
     minify: true,
     compile: {
@@ -64,24 +68,53 @@ try {
   });
 
   if (!result.success) {
-    console.error('[build] ❌ Build failed:');
+    console.error('[build] ❌ Main TUI build failed:');
     for (const log of result.logs) {
       console.error(log);
     }
     process.exit(1);
   }
 
+  console.log('[build] ✅ Main TUI executable built');
+  console.log('[build] Building workflow runner executable...');
+
+  const workflowBinaryPath = join(outdir, `codemachine-workflow${ext}`);
+
+  const workflowResult = await Bun.build({
+    conditions: ['browser'],
+    tsconfig: './tsconfig.json',
+    // NO SolidJS plugin - React/Ink JSX only
+    sourcemap: 'external',
+    minify: true,
+    compile: {
+      target: target,
+      outfile: workflowBinaryPath,
+    },
+    entrypoints: ['./src/workflows/runner-process.ts'],
+  });
+
+  if (!workflowResult.success) {
+    console.error('[build] ❌ Workflow runner build failed:');
+    for (const log of workflowResult.logs) {
+      console.error(log);
+    }
+    process.exit(1);
+  }
+
+  console.log('[build] ✅ Workflow runner executable built');
+
   // Create package.json for the platform-specific package
   const pkgName = `codemachine-${os}-${archName}`;
   const pkg = {
     name: pkgName,
     version: mainVersion,
-    description: `${mainPackage.description} (prebuilt ${os}-${archName} binary)`,
+    description: `${mainPackage.description} (prebuilt ${os}-${archName} binaries)`,
     os: [os],
     cpu: [archName],
-    files: ['codemachine' + ext],
+    files: ['codemachine' + ext, 'codemachine-workflow' + ext],
     bin: {
-      codemachine: `./codemachine${ext}`
+      codemachine: `./codemachine${ext}`,
+      'codemachine-workflow': `./codemachine-workflow${ext}`
     },
   };
 
@@ -90,7 +123,9 @@ try {
     JSON.stringify(pkg, null, 2)
   );
 
-  console.log(`[build] ✅ Successfully built executable: ${outdir}/codemachine${ext}`);
+  console.log(`[build] ✅ Successfully built executables:`);
+  console.log(`[build]   - ${outdir}/codemachine${ext} (TUI)`);
+  console.log(`[build]   - ${outdir}/codemachine-workflow${ext} (Workflow runner)`);
 
   if (installLocal) {
     const localPkgDir = join(repoRoot, 'node_modules', pkgName);

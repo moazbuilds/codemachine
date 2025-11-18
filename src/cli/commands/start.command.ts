@@ -1,7 +1,6 @@
 import * as path from 'node:path';
 import type { Command } from 'commander';
 
-import { runWorkflowQueue } from '../../workflows/index.js';
 import { debug } from '../../shared/logging/logger.js';
 import { clearTerminal } from '../../shared/utils/terminal.js';
 
@@ -29,13 +28,45 @@ export function registerStartCommand(program: Command): void {
       // Comprehensive terminal clearing
       clearTerminal();
 
-      try {
-        await runWorkflowQueue({ cwd, specificationPath });
-        console.log('\n✓ Workflow completed successfully');
-        process.exit(0);
-      } catch (error) {
-        console.error('\n✗ Workflow failed:', error instanceof Error ? error.message : String(error));
-        process.exit(1);
+      // Determine execution method based on environment:
+      // - Dev mode: Import and run workflow directly (no SolidJS preload in dev)
+      // - Production: Spawn workflow binary (prevents JSX conflicts)
+      const isDev = import.meta.url.includes('/src/')
+
+      if (isDev) {
+        // Development mode - directly import and run (SolidJS preload not active)
+        const { runWorkflowQueue } = await import('../../workflows/index.js');
+        try {
+          await runWorkflowQueue({ cwd, specificationPath });
+          console.log('\n✓ Workflow completed successfully');
+          process.exit(0);
+        } catch (error) {
+          console.error('\n✗ Workflow failed:', error instanceof Error ? error.message : String(error));
+          process.exit(1);
+        }
+      } else {
+        // Production mode - spawn workflow binary to avoid JSX conflicts
+        // The main binary has SolidJS transform, so we must use separate workflow binary
+        const { spawnProcess } = await import('../../infra/process/spawn.js');
+
+        try {
+          const result = await spawnProcess({
+            command: 'codemachine-workflow',
+            args: [cwd, specificationPath],
+            stdioMode: 'inherit', // Let workflow take full terminal control
+          });
+
+          if (result.exitCode === 0) {
+            console.log('\n✓ Workflow completed successfully');
+            process.exit(0);
+          } else {
+            console.error(`\n✗ Workflow failed with exit code ${result.exitCode}`);
+            process.exit(result.exitCode);
+          }
+        } catch (error) {
+          console.error('\n✗ Failed to spawn workflow:', error instanceof Error ? error.message : String(error));
+          process.exit(1);
+        }
       }
     });
 }

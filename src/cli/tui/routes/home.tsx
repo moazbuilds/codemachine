@@ -51,16 +51,52 @@ export function Home(props: { initialToast?: InitialToast }) {
       // Unmount OpenTUI to release terminal control
       renderer.destroy()
 
-      // Lazy load workflow runner
-      const { runWorkflowQueue } = await import("../../../workflows/index.js")
+      // CRITICAL: Restore stdin to normal (cooked) mode before spawning subprocess
+      // OpenTUI puts stdin in raw mode, but Ink (in subprocess) needs to set it itself
+      if (process.stdin.isTTY && process.stdin.setRawMode) {
+        process.stdin.setRawMode(false)
+      }
 
-      // Run workflow with Ink UI
+      // Clear terminal and restore cursor before spawning subprocess
+      if (process.stdout.isTTY) {
+        process.stdout.write('\x1b[2J\x1b[H\x1b[?25h') // Clear screen, home cursor, show cursor
+      }
+
+      // Small delay to ensure terminal state changes take effect
+      await new Promise(resolve => setTimeout(resolve, 50))
+
+      // Spawn workflow in separate process (WITHOUT SolidJS transform)
+      // This prevents JSX conflicts between OpenTUI (SolidJS) and workflow UI (React/Ink)
       const cwd = process.env.CODEMACHINE_CWD || process.cwd()
-      const specificationPath = "" // Will be determined by workflow runner
-      await runWorkflowQueue({ cwd, specificationPath })
 
-      // Workflow completes -> process.exit()
-      return
+      // Determine command based on environment:
+      // - Dev mode: bun runner-process.ts
+      // - Production: codemachine-workflow binary
+      const isDev = import.meta.url.includes('/src/')
+      let command: string
+      let args: string[]
+
+      if (isDev) {
+        // Development mode - use TypeScript source file
+        const runnerPath = new URL("../../../workflows/runner-process.ts", import.meta.url).pathname
+        command = "bun"
+        args = [runnerPath, cwd, ""]
+      } else {
+        // Production mode - use compiled workflow binary
+        // Binary should be in same directory or in PATH
+        command = "codemachine-workflow"
+        args = [cwd, ""]
+      }
+
+      const { spawnProcess } = await import("../../../infra/process/spawn.js")
+      const result = await spawnProcess({
+        command,
+        args,
+        stdioMode: "inherit", // Let workflow process take full terminal control
+      })
+
+      // Workflow completes -> exit with its exit code
+      process.exit(result.exitCode)
     }
 
     if (cmd === "/templates" || cmd === "/template") {
