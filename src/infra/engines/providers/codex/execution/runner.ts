@@ -226,14 +226,15 @@ export async function runCodex(options: RunCodexOptions): Promise<RunCodexResult
   if (result.exitCode !== 0) {
     const errorOutput = result.stderr.trim() || result.stdout.trim() || 'no error output';
     const lines = errorOutput.split('\n').slice(0, 10);
+    const preview = lines.join('\n');
 
     console.error('[ERROR] Codex CLI execution failed', {
       exitCode: result.exitCode,
-      error: lines.join('\n'),
+      error: preview,
       command: `${command} ${args.join(' ')}`,
     });
 
-    throw new Error(`Codex CLI exited with code ${result.exitCode}`);
+    throw new Error(`Codex CLI exited with code ${result.exitCode}\n\n${preview}`);
   }
 
   // Log captured telemetry
