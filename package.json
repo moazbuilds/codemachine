@@ -29,7 +29,7 @@
     "debug": "REACT_DEVTOOLS=1 DEBUG=\"ink:*\" bun --conditions=browser src/runtime/cli-setup.ts",
     "start": "bun --conditions=browser src/runtime/cli-setup.ts",
     "_comment_build": "Production: Build platform-specific executables",
-    "build": "echo '❌ DEPRECATED: Use build:binaries instead (see BUILD.md)' && exit 1",
+    "build": "echo '❌ DEPRECATED: Use build:binaries instead' && exit 1",
     "build:binaries": "bun scripts/build-binaries.mjs",
     "build:binaries:local": "bun scripts/build-binaries.mjs --install-local",
     "build:binaries:link": "bun scripts/build-binaries.mjs --install-local --link-global",

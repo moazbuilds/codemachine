@@ -71,8 +71,6 @@ bun run build:binaries  # Build on each platform
 npm publish             # Publish platform packages, then main package
 ```
 
-📖 **See [BUILD.md](./BUILD.md) for complete build documentation**, including troubleshooting, architecture details, and all available commands.
-
 ### **Initializing a Project**
 
  CodeMachine initializes a `.codemachine/` workspace. To start **add your specs** to the `inputs/specifications.md` file, then **run `/start`** and watch the magic happen, CodeMachine will:
