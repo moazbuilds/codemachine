@@ -10,7 +10,10 @@ import { metadata } from './metadata.js';
  */
 async function isCliInstalled(command: string): Promise<boolean> {
   try {
-    const proc = Bun.spawn([command, '--version'], {
+    // Resolve command using Bun.which() to handle Windows .cmd files
+    const resolvedCommand = Bun.which(command) ?? command;
+
+    const proc = Bun.spawn([resolvedCommand, '--version'], {
       stdout: 'pipe',
       stderr: 'pipe',
       stdin: 'ignore',
@@ -141,7 +144,10 @@ export async function ensureAuth(options?: ClaudeAuthOptions): Promise<boolean> 
   console.log(`Config directory: ${configDir}\n`);
 
   try {
-    const proc = Bun.spawn(['claude', 'setup-token'], {
+    // Resolve claude command to handle Windows .cmd files
+    const resolvedClaude = Bun.which('claude') ?? 'claude';
+
+    const proc = Bun.spawn([resolvedClaude, 'setup-token'], {
       env: { ...process.env, CLAUDE_CONFIG_DIR: configDir },
       stdio: ['inherit', 'inherit', 'inherit'],
     });

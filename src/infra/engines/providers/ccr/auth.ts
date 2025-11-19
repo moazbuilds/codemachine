@@ -10,8 +10,11 @@ import { metadata } from './metadata.js';
  */
 async function isCliInstalled(command: string): Promise<boolean> {
   try {
+    // Resolve command using Bun.which() to handle Windows .cmd files
+    const resolvedCommand = Bun.which(command) ?? command;
+
     // Try -v first (CCR uses -v instead of --version)
-    const proc = Bun.spawn([command, '-v'], {
+    const proc = Bun.spawn([resolvedCommand, '-v'], {
       stdout: 'pipe',
       stderr: 'pipe',
       stdin: 'ignore',

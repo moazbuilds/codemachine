@@ -26,7 +26,10 @@ function getSentinelPath(opencodeHome: string): string {
 
 async function isCliInstalled(command: string): Promise<boolean> {
   try {
-    const proc = Bun.spawn([command, '--version'], {
+    // Resolve command using Bun.which() to handle Windows .cmd files
+    const resolvedCommand = Bun.which(command) ?? command;
+
+    const proc = Bun.spawn([resolvedCommand, '--version'], {
       stdout: 'pipe',
       stderr: 'pipe',
       stdin: 'ignore',
@@ -132,7 +135,10 @@ export async function ensureAuth(forceLogin = false): Promise<boolean> {
 
   // Run interactive login via OpenCode CLI
   try {
-    const proc = Bun.spawn(['opencode', 'auth', 'login'], {
+    // Resolve opencode command to handle Windows .cmd files
+    const resolvedOpenCode = Bun.which('opencode') ?? 'opencode';
+
+    const proc = Bun.spawn([resolvedOpenCode, 'auth', 'login'], {
       env: xdgEnv,
       stdio: ['inherit', 'inherit', 'inherit'],
     });

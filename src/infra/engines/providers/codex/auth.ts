@@ -20,7 +20,10 @@ async function resolveCodexHome(codexHome?: string): Promise<string> {
  */
 async function isCliInstalled(command: string): Promise<boolean> {
   try {
-    const proc = Bun.spawn([command, '--version'], {
+    // Resolve command using Bun.which() to handle Windows .cmd files
+    const resolvedCommand = Bun.which(command) ?? command;
+
+    const proc = Bun.spawn([resolvedCommand, '--version'], {
       stdout: 'pipe',
       stderr: 'pipe',
       stdin: 'ignore',
@@ -93,7 +96,10 @@ export async function ensureAuth(): Promise<boolean> {
 
   // Run interactive login via Codex CLI with proper env.
   try {
-    const proc = Bun.spawn(['codex', 'login'], {
+    // Resolve codex command to handle Windows .cmd files
+    const resolvedCodex = Bun.which('codex') ?? 'codex';
+
+    const proc = Bun.spawn([resolvedCodex, 'login'], {
       env: { ...process.env, CODEX_HOME: codexHome },
       stdio: ['inherit', 'inherit', 'inherit'],
     });
