@@ -68,6 +68,7 @@
     "react-devtools-core": "^6.1.5",
     "tsup": "^8.5.0",
     "tsx": "^4.7.2",
+    "typedoc": "^0.28.14",
     "typescript": "^5.4.5",
     "typescript-eslint": "^8.44.1",
     "vitest": "^3.2.4"
