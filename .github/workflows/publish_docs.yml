@@ -36,22 +36,19 @@ jobs:
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
 
-      # Strategy:
-      # 1. If on main, deploy as "dev" (unstable)
-      # 2. If a tag, deploy as the tag name and update "latest"
-- name: Deploy documentation
-        run: |
-          # 1. If pushing to main, deploy to 'dev' (don't change default)
-          if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
-            uv run mike deploy dev --push
-            
-          # 2. If pushing a Tag (v1.0), deploy as tag AND 'latest', then set default
-          elif [[ $GITHUB_REF == refs/tags/* ]]; then
-            TAG_NAME=${GITHUB_REF#refs/tags/}
-            
-            # Deploy the tag and update the 'latest' alias
-            uv run mike deploy $TAG_NAME latest --update-aliases --push
-            
-            # FORCE the root URL to redirect to 'latest'
-            uv run mike set-default latest --push
-          fi
+      - name: Deploy documentation
+              run: |
+                # 1. If pushing to main, deploy to 'dev' (don't change default)
+                if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
+                  uv run mike deploy dev --push
+                  
+                # 2. If pushing a Tag (v1.0), deploy as tag AND 'latest', then set default
+                elif [[ $GITHUB_REF == refs/tags/* ]]; then
+                  TAG_NAME=${GITHUB_REF#refs/tags/}
+                  
+                  # Deploy the tag and update the 'latest' alias
+                  uv run mike deploy $TAG_NAME latest --update-aliases --push
+                  
+                  # FORCE the root URL to redirect to 'latest'
+                  uv run mike set-default latest --push
+                fi
