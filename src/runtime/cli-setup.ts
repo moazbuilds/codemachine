@@ -118,8 +118,14 @@ async function initializeInBackground(cwd: string): Promise<void> {
 }
 
 export async function runCodemachineCli(argv: string[] = process.argv): Promise<void> {
+  // Get version from package.json
+  const { resolvePackageJson } = await import('../shared/utils/package-json.js');
+  const packageJsonPath = resolvePackageJson(import.meta.url, 'cli setup');
+  const { version } = JSON.parse((await import('node:fs')).readFileSync(packageJsonPath, 'utf8'));
+
   const program = new Command()
     .name('codemachine')
+    .version(version)
     .description('Codemachine multi-agent CLI orchestrator')
     .option('-d, --dir <path>', 'Target workspace directory', process.cwd())
     .option('--spec <path>', 'Path to the planning specification file', DEFAULT_SPEC_PATH)
