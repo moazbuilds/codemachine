@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://moazbuilds.github.io/CodeMachine-CLI/0.6.0/</loc>
+         <lastmod>2025-11-19</lastmod>
+    </url>
+    <url>
+         <loc>https://moazbuilds.github.io/CodeMachine-CLI/0.6.0/architecture/</loc>
+         <lastmod>2025-11-19</lastmod>
+    </url>
+    <url>
+         <loc>https://moazbuilds.github.io/CodeMachine-CLI/0.6.0/cli-reference/</loc>
+         <lastmod>2025-11-19</lastmod>
+    </url>
+    <url>
+         <loc>https://moazbuilds.github.io/CodeMachine-CLI/0.6.0/customizing-workflows/</loc>
+         <lastmod>2025-11-19</lastmod>
+    </url>
+    <url>
+         <loc>https://moazbuilds.github.io/CodeMachine-CLI/0.6.0/specification-schema/</loc>
+         <lastmod>2025-11-19</lastmod>
+    </url>
+    <url>
+         <loc>https://moazbuilds.github.io/CodeMachine-CLI/0.6.0/case-studies/sustaina/</loc>
+         <lastmod>2025-11-19</lastmod>
+    </url>
+</urlset>
