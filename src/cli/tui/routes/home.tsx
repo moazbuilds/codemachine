@@ -111,9 +111,9 @@ export function Home(props: { initialToast?: InitialToast }) {
         command = "bun"
         args = [runnerPath, cwd, ""]
       } else {
-        // Production mode - use compiled workflow binary
-        // Binary should be in same directory or in PATH
-        command = "codemachine-workflow"
+        // Production mode - use compiled workflow binary from same directory
+        const { resolveWorkflowBinary } = await import("../../../shared/utils/resolve-workflow-binary.js")
+        command = resolveWorkflowBinary()
         args = [cwd, ""]
       }
 
