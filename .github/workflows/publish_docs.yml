@@ -34,6 +34,6 @@ jobs:
             uv run mike deploy dev --push
           elif [[ $GITHUB_REF == refs/tags/* ]]; then
             TAG_NAME=${GITHUB_REF#refs/tags/}
-            uv run mike deploy $TAG_NAME latest --update-aliases --push
+            uv run mike deploy $TAG_NAME latest --update-aliases --push --cname docs.codemachine.co
             uv run mike set-default latest --push
           fi
