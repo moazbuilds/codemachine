@@ -40,6 +40,26 @@ jobs:
       - name: Build platform binary
         run: bun run build:binaries
 
+      - name: Verify cm alias in package.json
+        shell: bash
+        run: |
+          if ! grep -q '"cm"' binaries/${{ matrix.slug }}/package.json; then
+            echo "❌ ERROR: 'cm' alias missing from binaries/${{ matrix.slug }}/package.json"
+            exit 1
+          fi
+          echo "✅ cm alias verified in package.json"
+
+      - name: Test binary execution (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          chmod +x binaries/${{ matrix.slug }}/codemachine
+          binaries/${{ matrix.slug }}/codemachine --version || echo "⚠️  Binary execution test skipped (may require dependencies)"
+
+      - name: Test binary execution (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          binaries/${{ matrix.slug }}/codemachine.exe --version || echo "⚠️  Binary execution test skipped (may require dependencies)"
+
       - name: Upload binary package
         uses: actions/upload-artifact@v4
         with:

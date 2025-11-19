@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { mkdirSync, rmSync, cpSync, readFileSync } from 'node:fs';
+import { mkdirSync, rmSync, cpSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { platform, arch } from 'node:os';
@@ -9,7 +9,8 @@ const currentPlatform = platform();
 const currentArch = arch();
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
-const mainPackage = JSON.parse(readFileSync(join(repoRoot, 'package.json'), 'utf8'));
+const packageJsonPath = join(repoRoot, 'package.json');
+const mainPackage = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
 const mainVersion = mainPackage.version;
 
 const args = new Set(process.argv.slice(2));
@@ -17,6 +18,37 @@ const installLocal = args.has('--install-local');
 const linkGlobal = args.has('--link-global');
 
 console.log('[build] Starting binary build...');
+console.log(`[build] Main package version: ${mainVersion}`);
+
+// Auto-sync platform package versions before building
+if (mainPackage.optionalDependencies) {
+  let needsSync = false;
+  const outdated = [];
+
+  for (const [pkgName, version] of Object.entries(mainPackage.optionalDependencies)) {
+    if (version !== mainVersion) {
+      needsSync = true;
+      outdated.push(`${pkgName}: ${version} → ${mainVersion}`);
+    }
+  }
+
+  if (needsSync) {
+    console.log('[build] 🔄 Syncing platform package versions...');
+    for (const update of outdated) {
+      console.log(`[build]   ${update}`);
+    }
+
+    for (const pkgName of Object.keys(mainPackage.optionalDependencies)) {
+      mainPackage.optionalDependencies[pkgName] = mainVersion;
+    }
+
+    writeFileSync(packageJsonPath, JSON.stringify(mainPackage, null, 2) + '\n');
+    console.log('[build] ✅ Version sync complete\n');
+  } else {
+    console.log('[build] ✅ Platform package versions already synced\n');
+  }
+}
+
 console.log(`[build] Current platform: ${currentPlatform}-${currentArch}\n`);
 
 // Load OpenTUI solid plugin for JSX transformation
