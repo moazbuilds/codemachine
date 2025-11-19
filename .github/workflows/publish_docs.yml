@@ -20,17 +20,8 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v1
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-      
-      - name: Install Node dependencies
-        run: npm install
-
       - name: Install dependencies
-        run: uv sync --all-extras
+        run: uv sync
 
       - name: Configure Git user
         run: |
