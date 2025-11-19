@@ -49,6 +49,6 @@ plugins:
   - mkdocstrings:
       handlers:
         # This handler will process your TypeScript files
-        - typescript:
-            tsconfig: "./tsconfig.json"            
-            paths: ["src"]
+        typescript:
+          tsconfig: "./tsconfig.json"
+          paths: ["src"]

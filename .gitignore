@@ -25,3 +25,4 @@ src/runtime/version.ts
 
 # MkDocs build output
 site/
+.venv/
