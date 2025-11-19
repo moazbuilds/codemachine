@@ -55,10 +55,11 @@ export function registerStartCommand(program: Command): void {
         // Production mode - spawn workflow binary to avoid JSX conflicts
         // The main binary has SolidJS transform, so we must use separate workflow binary
         const { spawnProcess } = await import('../../infra/process/spawn.js');
+        const { resolveWorkflowBinary } = await import('../../shared/utils/resolve-workflow-binary.js');
 
         try {
           const result = await spawnProcess({
-            command: 'codemachine-workflow',
+            command: resolveWorkflowBinary(),
             args: [cwd, specificationPath],
             // Pass CODEMACHINE_INSTALL_DIR from parent process to child
             env: process.env.CODEMACHINE_INSTALL_DIR ? {
