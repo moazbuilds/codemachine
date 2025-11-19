@@ -58,10 +58,16 @@ if (!process.env.CODEMACHINE_INSTALL_DIR) {
 
 }
 
-// IMMEDIATE SPLASH - Only show for main TUI (no subcommands)
-// Show splash if: no arguments OR only options (starting with -)
-const hasSubcommand = process.argv.length > 2 && !process.argv[2].startsWith('-');
-if (process.stdout.isTTY && !hasSubcommand) {
+// IMMEDIATE SPLASH - Only show for main TUI session
+// Skip splash for: subcommands, help flags, or version flags
+const args = process.argv.slice(2);
+const hasSubcommand = args.length > 0 && !args[0].startsWith('-');
+const hasHelpOrVersion = args.some(arg =>
+  arg === '--help' || arg === '-h' || arg === '--version' || arg === '-V'
+);
+const shouldSkipSplash = hasSubcommand || hasHelpOrVersion;
+
+if (process.stdout.isTTY && !shouldSkipSplash) {
   const { rows = 24, columns = 80 } = process.stdout;
   const centerY = Math.floor(rows / 2);
   const centerX = Math.floor(columns / 2);
