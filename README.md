@@ -51,16 +51,27 @@ Then, simply run `codemachine` in your project directory to get started.
 codemachine
 ```
 
-### Building native binaries (maintainers)
+### Building from Source
 
-CodeMachine ships precompiled binaries per platform. During development you can run the CLI directly with Bun (for example `bun src/runtime/cli-setup.ts`), but when preparing a release:
+CodeMachine ships precompiled binaries for all platforms. For development, testing, or contributing:
 
-1. `bun run build` – bundles the CLI into `dist/index.js`.
-2. `bun run build:binaries` – compiles the current platform into `binaries/codemachine-<os>-<arch>/codemachine` and writes an npm-ready `package.json` that inherits the root version.
-3. `bun run build:binaries:local` – also copies the freshly built package into `node_modules/codemachine-<os>-<arch>` so `bin/codemachine.js` can spawn it immediately.
-4. `bun run build:binaries:link` – same as above, plus runs `bun link` inside the platform package to register the binary globally for manual testing.
+**Development:**
+```bash
+bun run dev  # Run from source (no build needed)
+```
 
-Repeat step 2 on each target platform (Linux, macOS arm64/x64, Windows) and publish every `binaries/codemachine-<platform>` folder before publishing the main `codemachine` package. End users then only need `npm i -g codemachine`; the wrapper automatically downloads and executes the correct binary.
+**Testing Locally:**
+```bash
+bun run build:binaries:local  # Build + test locally
+```
+
+**Publishing:**
+```bash
+bun run build:binaries  # Build on each platform
+npm publish             # Publish platform packages, then main package
+```
+
+📖 **See [BUILD.md](./BUILD.md) for complete build documentation**, including troubleshooting, architecture details, and all available commands.
 
 ### **Initializing a Project**
 
