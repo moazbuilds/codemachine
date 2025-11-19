@@ -18,10 +18,10 @@
     "bun": ">=1.0.0"
   },
   "optionalDependencies": {
-    "codemachine-linux-x64": "0.5.0",
-    "codemachine-darwin-arm64": "0.5.0",
-    "codemachine-darwin-x64": "0.5.0",
-    "codemachine-windows-x64": "0.5.0"
+    "codemachine-linux-x64": "0.6.0",
+    "codemachine-darwin-arm64": "0.6.0",
+    "codemachine-darwin-x64": "0.6.0",
+    "codemachine-windows-x64": "0.6.0"
   },
   "scripts": {
     "build": "bun build ./src/runtime/index.ts --outdir ./dist --target bun --format esm --sourcemap=external",
