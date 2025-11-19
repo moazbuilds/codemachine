@@ -22,3 +22,6 @@ package-lock.json
 .codemachine/agents
 .codemachine/template.json
 src/runtime/version.ts
+
+# MkDocs build output
+site/

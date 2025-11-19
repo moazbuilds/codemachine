@@ -1,0 +1,47 @@
+name: Publish Docs
+on:
+  push:
+    branches:
+      - main
+      - 'v*' # Trigger on version tags like v0.5.0, v0.6.0
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Important for mike to read history
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      
+      - name: Install Node dependencies
+        run: npm install
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Configure Git user
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+
+      - name: Deploy documentation
+        run: |
+          if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
+            uv run mike deploy dev --push
+          elif [[ $GITHUB_REF == refs/tags/* ]]; then
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+            uv run mike deploy $TAG_NAME latest --update-aliases --push
+            uv run mike set-default latest --push
+          fi
