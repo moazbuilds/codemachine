@@ -90,7 +90,6 @@ try {
     conditions: ['browser'],
     tsconfig: './tsconfig.json',
     plugins: [solidPlugin], // SolidJS transform for TUI
-    sourcemap: 'external',
     minify: true,
     compile: {
       target: target,
@@ -116,7 +115,6 @@ try {
     conditions: ['browser'],
     tsconfig: './tsconfig.json',
     // NO SolidJS plugin - React/Ink JSX only
-    sourcemap: 'external',
     minify: true,
     compile: {
       target: target,
