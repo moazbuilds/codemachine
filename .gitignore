@@ -21,4 +21,4 @@ package-lock.json
 .codemachine/prompts
 .codemachine/agents
 .codemachine/template.json
-bun-migration/
+bun-migration//src/runtime/version.ts
