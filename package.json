@@ -88,6 +88,7 @@
     "ink-testing-library": "^4.0.0",
     "prettier": "^3.2.5",
     "react-devtools-core": "^6.1.5",
+    "typedoc": "^0.28.14",
     "typescript": "^5.4.5",
     "typescript-eslint": "^8.44.1"
   }
