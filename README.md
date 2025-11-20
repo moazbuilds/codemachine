@@ -61,15 +61,26 @@ CodeMachine ships precompiled binaries for all platforms. For development, testi
 bun run dev  # Run from source (no build needed)
 ```
 
-**Testing Locally:**
+**Building Binaries:**
 ```bash
-bun run build:binaries:local  # Build + test locally
+bun run build  # Compile binaries for your current platform
 ```
+
+After building, the CLI shim automatically resolves the local binary when run from this repo.  
+To invoke the binary from **any** directory (without publishing), point the shim at the compiled executable:
+
+```bash
+export CODEMACHINE_BIN_PATH="$(pwd)/binaries/codemachine-<os>-<arch>/codemachine"
+codemachine --version
+```
+
+> Replace `<os>` / `<arch>` with the folder Bun created (for example `codemachine-linux-x64`).  
+> On Windows, use `set CODEMACHINE_BIN_PATH=...` and point to `codemachine.exe`.
 
 **Publishing:**
 ```bash
-bun run build:binaries  # Build on each platform
-npm publish             # Publish platform packages, then main package
+bun run build  # Run on each target platform
+npm publish    # Publish platform packages, then the main package
 ```
 
 ### **Initializing a Project**

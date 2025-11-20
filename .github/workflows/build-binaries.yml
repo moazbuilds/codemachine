@@ -35,7 +35,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Build platform binary
-        run: bun run build:binaries
+        run: bun run build
 
       - name: Verify cm alias in package.json
         shell: bash

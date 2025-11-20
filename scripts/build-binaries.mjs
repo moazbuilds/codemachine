@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { mkdirSync, rmSync, cpSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { platform, arch } from 'node:os';
 import { generateEmbeddedResources } from './generate-embedded-resources.mjs';
 
@@ -13,10 +13,6 @@ const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const packageJsonPath = join(repoRoot, 'package.json');
 const mainPackage = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
 const mainVersion = mainPackage.version;
-
-const args = new Set(process.argv.slice(2));
-const installLocal = args.has('--install-local');
-const linkGlobal = args.has('--link-global');
 
 console.log('[build] Starting binary build...');
 console.log(`[build] Main package version: ${mainVersion}`);
@@ -170,37 +166,15 @@ try {
   console.log(`[build]   - ${outdir}/codemachine${ext} (TUI)`);
   console.log(`[build]   - ${outdir}/codemachine-workflow${ext} (Workflow runner)`);
 
-  if (installLocal) {
-    const localPkgDir = join(repoRoot, 'node_modules', pkgName);
-    rmSync(localPkgDir, { recursive: true, force: true });
-    mkdirSync(join(repoRoot, 'node_modules'), { recursive: true });
-    cpSync(outdir, localPkgDir, { recursive: true });
-    console.log(`[build] 🔗 Installed local binary package at ${localPkgDir}`);
-  }
+  const localPkgDir = join(repoRoot, 'node_modules', pkgName);
+  rmSync(localPkgDir, { recursive: true, force: true });
+  mkdirSync(join(repoRoot, 'node_modules'), { recursive: true });
+  cpSync(outdir, localPkgDir, { recursive: true });
+  console.log(`[build] 🔗 Installed local binary package at ${localPkgDir}`);
 
-  if (linkGlobal) {
-    console.log('[build] 🔗 Linking platform package globally via bun link...');
-    const linkProcess = Bun.spawn(['bun', 'link'], {
-      cwd: outdir,
-      stdout: 'inherit',
-      stderr: 'inherit',
-    });
-    const linkExit = await linkProcess.exited;
-    if (linkExit !== 0) {
-      console.warn('[build] ⚠️ bun link failed for platform package');
-    } else {
-      console.log('[build] 🔗 Installing global shim via bun install...');
-      const installTarget = pathToFileURL(resolve(outdir)).href;
-      const installProcess = Bun.spawn(['bun', 'install', '--global', installTarget], {
-        stdout: 'inherit',
-        stderr: 'inherit',
-      });
-      const installExit = await installProcess.exited;
-      if (installExit !== 0) {
-        console.warn('[build] ⚠️ bun install --global failed for platform package');
-      }
-    }
-  }
+  const absoluteBinaryPath = resolve(outdir, `codemachine${ext}`);
+  console.log('[build] ℹ️  Use this build globally by running:');
+  console.log(`               export CODEMACHINE_BIN_PATH="${absoluteBinaryPath}"`);
 
   console.log('[build] 🎉 Build complete!\n');
   console.log('[build] Note: This script builds for the current platform only.');
