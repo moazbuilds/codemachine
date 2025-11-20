@@ -2,14 +2,14 @@ export default {
   name: 'CodeMachine Workflow',
   steps: [
     resolveStep('init', { executeOnce: true, engine: 'codex', model: 'gpt-5', modelReasoningEffort: 'low' }), // Initialize development environment
-    resolveStep('principal-analyst', { executeOnce: true, engine: 'opencode', model: 'opencode/grok-code'}), // Review specifications and identify critical ambiguities
+    resolveStep('principal-analyst', { executeOnce: true, engine: 'claude' }), // Review specifications and identify critical ambiguities
     resolveUI("∴ Planning Phase ∴"),
     resolveStep('blueprint-orchestrator', { executeOnce: true }), // Orchestrate architecture blueprint generation
     resolveStep('plan-agent', { executeOnce: true, engine: 'codex', notCompletedFallback: 'plan-fallback' }), // Generate comprehensive iterative development plan with architectural artifacts
-    resolveStep('task-breakdown', { executeOnce: true, engine: 'opencode' }), // Extract and structure tasks from project plan into JSON format
+    resolveStep('task-breakdown', { executeOnce: true, engine: 'codex' }), // Extract and structure tasks from project plan into JSON format
     resolveStep('git-commit', { executeOnce: true, engine: 'cursor' }), // Commit the task breakdown to git
     resolveUI("⟲ Development Cycle ⟲"),
-    resolveStep('context-manager', { engine: 'opencode' }), // Gather and prepare relevant context from architecture, plan, and codebase for task execution
+    resolveStep('context-manager', { engine: 'codex' }), // Gather and prepare relevant context from architecture, plan, and codebase for task execution
     resolveStep('code-generation', { engine: 'claude' }), // Generate code implementation based on task specifications and design artifacts
     resolveStep('runtime-prep', { executeOnce: true, engine: 'claude' }), // Generate robust shell scripts for project automation (install, run, lint, test)
     resolveStep('task-sanity-check', { engine: 'claude' }), // Verify generated code against task requirements and acceptance criteria
