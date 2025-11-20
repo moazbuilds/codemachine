@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+import { describe, it, expect } from 'vitest';
+=======
 import { describe, it, expect } from 'bun:test';
+>>>>>>> origin/main
 import { getStatusIcon, getStatusColor } from '../../../src/ui/utils/statusIcons';
 
 describe('StatusIcons', () => {

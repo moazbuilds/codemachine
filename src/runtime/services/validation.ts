@@ -8,6 +8,8 @@ const DEFAULT_SPEC_TEMPLATE = `# Project Specifications
 - This file is created by workspace bootstrap and can be safely edited.
 `;
 
+<<<<<<< HEAD
+=======
 /**
  * Custom error class for specification validation failures.
  * Used to distinguish validation errors from other errors for better error handling.
@@ -26,6 +28,7 @@ export class ValidationError extends Error {
   }
 }
 
+>>>>>>> origin/main
 export async function validateSpecification(specificationPath: string): Promise<void> {
   const absolute = path.resolve(specificationPath);
   let specificationContents: string;

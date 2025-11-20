@@ -34,4 +34,21 @@ export async function registerCli(program: Command): Promise<void> {
   registerAgentsCommand(program);
   await registerRunCommand(program);
   await registerStepCommand(program);
+<<<<<<< HEAD
+}
+
+function findPackageJson(moduleUrl: string): string {
+  let currentDir = dirname(fileURLToPath(moduleUrl));
+  const { root } = parse(currentDir);
+
+  while (true) {
+    const candidate = join(currentDir, 'package.json');
+    if (existsSync(candidate)) return candidate;
+    if (currentDir === root) break;
+    currentDir = dirname(currentDir);
+  }
+
+  throw new Error('Unable to locate package.json from CLI module');
+=======
+>>>>>>> origin/main
 }

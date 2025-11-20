@@ -1,6 +1,10 @@
 import { stat, rm, writeFile, mkdir } from 'node:fs/promises';
 import * as path from 'node:path';
 import { homedir } from 'node:os';
+<<<<<<< HEAD
+import { execa } from 'execa';
+=======
+>>>>>>> origin/main
 
 import { expandHomeDir } from '../../../../shared/utils/index.js';
 import { metadata } from './metadata.js';
@@ -10,6 +14,11 @@ import { metadata } from './metadata.js';
  */
 async function isCliInstalled(command: string): Promise<boolean> {
   try {
+<<<<<<< HEAD
+    // Try -v first (CCR uses -v instead of --version)
+    const result = await execa(command, ['-v'], { timeout: 3000, reject: false });
+    const out = `${result.stdout ?? ''}\n${result.stderr ?? ''}`;
+=======
     // Resolve command using Bun.which() to handle Windows .cmd files
     const resolvedCommand = Bun.which(command) ?? command;
 
@@ -29,6 +38,7 @@ async function isCliInstalled(command: string): Promise<boolean> {
     const stdout = await new Response(proc.stdout).text();
     const stderr = await new Response(proc.stderr).text();
     const out = `${stdout}\n${stderr}`;
+>>>>>>> origin/main
 
     // Check for error messages indicating command not found
     if (/not recognized as an internal or external command/i.test(out)) return false;
@@ -36,7 +46,11 @@ async function isCliInstalled(command: string): Promise<boolean> {
     if (/No such file or directory/i.test(out)) return false;
 
     // If exit code is 0, CLI is installed
+<<<<<<< HEAD
+    if (typeof result.exitCode === 'number' && result.exitCode === 0) return true;
+=======
     if (typeof exitCode === 'number' && exitCode === 0) return true;
+>>>>>>> origin/main
 
     // For CCR, check if output contains version info (even with non-zero exit code)
     if (/version:\s*\d+\.\d+\.\d+/i.test(out)) return true;

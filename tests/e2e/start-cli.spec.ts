@@ -146,8 +146,12 @@ afterEach(() => {
 
 describe('codemachine CLI smoke', () => {
   it('shows the interactive start menu', async () => {
+<<<<<<< HEAD
+    const result = await runCommand('node', ['dist/index.js'], {
+=======
     // Use 'bun' instead of 'node' since the CLI uses bun:sqlite and other Bun-specific features
     const result = await runCommand('bun', ['dist/index.js'], {
+>>>>>>> origin/main
       env: {
         CODEX_HOME: engineFixturesDir,
       },

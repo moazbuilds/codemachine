@@ -1,6 +1,10 @@
 import { stat, rm, writeFile, mkdir, readFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { homedir } from 'node:os';
+<<<<<<< HEAD
+import { execa } from 'execa';
+=======
+>>>>>>> origin/main
 
 import { expandHomeDir } from '../../../../shared/utils/index.js';
 import { metadata } from './metadata.js';
@@ -26,6 +30,16 @@ function getSentinelPath(opencodeHome: string): string {
 
 async function isCliInstalled(command: string): Promise<boolean> {
   try {
+<<<<<<< HEAD
+    const result = await execa(command, ['--version'], { timeout: 3000, reject: false });
+    if (typeof result.exitCode === 'number' && result.exitCode === 0) {
+      return true;
+    }
+    const output = `${result.stdout ?? ''}\n${result.stderr ?? ''}`;
+    if (/not recognized as an internal or external command/i.test(output)) return false;
+    if (/command not found/i.test(output)) return false;
+    if (/No such file or directory/i.test(output)) return false;
+=======
     // Resolve command using Bun.which() to handle Windows .cmd files
     const resolvedCommand = Bun.which(command) ?? command;
 
@@ -49,6 +63,7 @@ async function isCliInstalled(command: string): Promise<boolean> {
     if (/not recognized as an internal or external command/i.test(out)) return false;
     if (/command not found/i.test(out)) return false;
     if (/No such file or directory/i.test(out)) return false;
+>>>>>>> origin/main
     return false;
   } catch {
     return false;
@@ -135,6 +150,12 @@ export async function ensureAuth(forceLogin = false): Promise<boolean> {
 
   // Run interactive login via OpenCode CLI
   try {
+<<<<<<< HEAD
+    await execa('opencode', ['auth', 'login'], {
+      env: xdgEnv,
+      stdio: 'inherit',
+    });
+=======
     // Resolve opencode command to handle Windows .cmd files
     const resolvedOpenCode = Bun.which('opencode') ?? 'opencode';
 
@@ -143,6 +164,7 @@ export async function ensureAuth(forceLogin = false): Promise<boolean> {
       stdio: ['inherit', 'inherit', 'inherit'],
     });
     await proc.exited;
+>>>>>>> origin/main
   } catch (error) {
     const err = error as unknown as { code?: string; stderr?: string; message?: string };
     const stderr = err?.stderr ?? '';

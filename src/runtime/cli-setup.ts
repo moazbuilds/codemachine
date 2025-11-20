@@ -82,6 +82,25 @@ import { Command } from 'commander';
 import { existsSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
+<<<<<<< HEAD
+import { registerCli } from '../cli/index.js';
+import { runSessionShell } from '../cli/controllers/session-shell.js';
+import { runStartupFlow } from './services/index.js';
+import { registry } from '../infra/engines/index.js';
+import { bootstrapWorkspace } from './services/workspace/index.js';
+
+const DEFAULT_SPEC_PATH = '.codemachine/inputs/specifications.md';
+
+// Resolve package root to find templates directory
+const packageRoot = (() => {
+  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  let current = moduleDir;
+  while (true) {
+    if (existsSync(path.join(current, 'package.json'))) return current;
+    const parent = path.dirname(current);
+    if (parent === current) return moduleDir;
+    current = parent;
+=======
 
 const DEFAULT_SPEC_PATH = '.codemachine/inputs/specifications.md';
 
@@ -103,6 +122,7 @@ async function initializeInBackground(cwd: string): Promise<void> {
     const defaultTemplate = path.join(templatesDir, 'codemachine.workflow.js');
 
     await bootstrapWorkspace({ cwd, templatePath: defaultTemplate });
+>>>>>>> origin/main
   }
 
   // Lazy load and initialize engine registry
@@ -128,9 +148,20 @@ export async function runCodemachineCli(argv: string[] = process.argv): Promise<
     .option('-d, --dir <path>', 'Target workspace directory', process.cwd())
     .option('--spec <path>', 'Path to the planning specification file', DEFAULT_SPEC_PATH)
     .action(async (options) => {
+<<<<<<< HEAD
+      // Default action: Run interactive session mode
+      const cwd = process.env.CODEMACHINE_CWD || process.cwd();
+      const specDisplayPath = options.spec ?? DEFAULT_SPEC_PATH;
+      const specificationPath = path.resolve(cwd, specDisplayPath);
+
+      const { mainMenuDisplayed } = await runStartupFlow(specDisplayPath);
+      await runSessionShell({ cwd, specificationPath, specDisplayPath, showIntro: !mainMenuDisplayed });
+    });
+=======
       // Set CWD immediately (lightweight, no I/O)
       const cwd = options.dir || process.cwd();
       process.env.CODEMACHINE_CWD = cwd;
+>>>>>>> origin/main
 
       // Start background initialization (non-blocking, fire-and-forget)
       // This runs while TUI is visible and user is reading/thinking
@@ -150,6 +181,11 @@ export async function runCodemachineCli(argv: string[] = process.argv): Promise<
     await registerCli(program);
   }
 
+<<<<<<< HEAD
+  await registerCli(program);
+
+=======
+>>>>>>> origin/main
   await program.parseAsync(argv);
 }
 

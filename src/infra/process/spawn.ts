@@ -1,4 +1,9 @@
+<<<<<<< HEAD
+import crossSpawn from 'cross-spawn';
+import type { ChildProcess } from 'child_process';
+=======
 import type { Subprocess } from 'bun';
+>>>>>>> origin/main
 import * as logger from '../../shared/logging/logger.js';
 
 export interface SpawnOptions {
@@ -24,6 +29,9 @@ export interface SpawnResult {
  * Global registry of active child processes
  * Used to ensure proper cleanup on process termination
  */
+<<<<<<< HEAD
+const activeProcesses = new Set<ChildProcess>();
+=======
 const activeProcesses = new Set<Subprocess>();
 
 function resolveCommandExecutable(command: string): string {
@@ -51,6 +59,7 @@ function resolveCommandExecutable(command: string): string {
 
   return command;
 }
+>>>>>>> origin/main
 
 /**
  * Kill all active child processes
@@ -59,6 +68,17 @@ function resolveCommandExecutable(command: string): string {
 export function killAllActiveProcesses(): void {
   for (const child of activeProcesses) {
     try {
+<<<<<<< HEAD
+      if (!child.killed) {
+        child.kill('SIGTERM');
+        // Force kill after 1 second if still running
+        setTimeout(() => {
+          if (!child.killed) {
+            child.kill('SIGKILL');
+          }
+        }, 1000);
+      }
+=======
       child.kill('SIGTERM');
       // Force kill after 1 second if still running
       setTimeout(() => {
@@ -70,6 +90,7 @@ export function killAllActiveProcesses(): void {
           // Process already dead
         }
       }, 1000);
+>>>>>>> origin/main
     } catch {
       // Ignore errors during cleanup
     }
@@ -89,6 +110,20 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
   return new Promise((resolve, reject) => {
     // Track if process was aborted to handle close event correctly
     let wasAborted = false;
+<<<<<<< HEAD
+
+    // Use cross-spawn which properly handles .cmd files on Windows without shell issues
+    // It automatically finds .cmd wrappers and handles argument escaping correctly
+    const child = crossSpawn(command, args, {
+      cwd,
+      env: env ? { ...process.env, ...env } : process.env,
+      stdio: stdioMode === 'inherit' ? ['ignore', 'inherit', 'inherit'] : ['pipe', 'pipe', 'pipe'],
+      signal,
+      timeout,
+      // Spawn in new process group on Unix to enable killing all children together
+      // This is critical for Node.js wrapper scripts (like CCR) that spawn subprocesses
+      ...(process.platform !== 'win32' ? { detached: true } : {}),
+=======
     let timeoutId: Timer | undefined;
     let abortReason: Error | undefined;
 
@@ -117,6 +152,7 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
       stdout: stdioMode === 'inherit' ? 'inherit' : 'pipe',
       stderr: stdioMode === 'inherit' ? 'inherit' : 'pipe',
       // Note: Bun doesn't have detached option, but we can still kill process groups manually
+>>>>>>> origin/main
     });
 
     // Track this child process for cleanup
@@ -125,6 +161,19 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
     // Remove from tracking when process exits
     const removeFromTracking = () => {
       activeProcesses.delete(child);
+<<<<<<< HEAD
+    };
+
+    // Handle abort signal explicitly (in case cross-spawn doesn't handle it properly)
+    if (signal) {
+      const abortHandler = () => {
+        logger.debug(`Abort handler called for ${command} (PID: ${child.pid}, killed: ${child.killed})`);
+        wasAborted = true;
+
+        // For detached processes (CCR, Claude, etc.), we MUST kill the process group
+        // even if child.killed is true, because Node.js's built-in handler
+        // only kills the main process, leaving child processes running
+=======
       if (timeoutId) clearTimeout(timeoutId);
     };
 
@@ -136,6 +185,7 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
         abortReason = effectiveSignal.reason || new Error('Process aborted');
 
         // Kill process group on Unix (for wrapper scripts like CCR)
+>>>>>>> origin/main
         if (process.platform !== 'win32' && child.pid) {
           try {
             // Kill process group (negative PID kills the entire group)
@@ -153,7 +203,11 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
               }
             }, 100);
           } catch (err) {
+<<<<<<< HEAD
+            // Fallback to killing just the process if process group kill fails
+=======
             // Fallback to killing just the process
+>>>>>>> origin/main
             logger.debug(`Process group kill failed, falling back to child.kill(): ${err instanceof Error ? err.message : String(err)}`);
             if (!child.killed) {
               child.kill('SIGTERM');
@@ -166,6 +220,11 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
             child.kill('SIGTERM');
             // Force kill after 100ms if still running
             setTimeout(() => {
+<<<<<<< HEAD
+              if (!child.killed) {
+                logger.debug(`Force killing process ${command} with SIGKILL`);
+                child.kill('SIGKILL');
+=======
               try {
                 if (!child.killed) {
                   logger.debug(`Force killing process ${command} with SIGKILL`);
@@ -173,6 +232,7 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
                 }
               } catch {
                 // Process already dead
+>>>>>>> origin/main
               }
             }, 100);
           } catch {
@@ -183,10 +243,27 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
         }
       };
 
+<<<<<<< HEAD
+      // Check if already aborted before adding listener
+      if (signal.aborted) {
+        abortHandler();
+      } else {
+        signal.addEventListener('abort', abortHandler, { once: true });
+      }
+    }
+
+    // Write to stdin if data is provided
+    if (child.stdin) {
+      if (stdinInput !== undefined) {
+        child.stdin.end(stdinInput);
+      } else if (stdioMode === 'pipe') {
+        child.stdin.end();
+=======
       if (effectiveSignal.aborted) {
         abortHandler();
       } else {
         effectiveSignal.addEventListener('abort', abortHandler, { once: true });
+>>>>>>> origin/main
       }
     }
 
@@ -205,6 +282,42 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
               const reader = child.stdout!.getReader();
               const decoder = new TextDecoder();
 
+<<<<<<< HEAD
+    child.once('error', (error: Error) => {
+      // If this is an AbortError from the signal, don't reject yet
+      // Wait for the close event which will properly handle the abortion
+      // This prevents a race condition where error fires before abort handler runs
+      if (error.name === 'AbortError') {
+        logger.debug(`Process error event (AbortError) for ${command}, waiting for close event`);
+        return;
+      }
+
+      logger.debug(`Process error event for ${command}: ${error.message}`);
+      removeFromTracking();
+      reject(error);
+    });
+
+    child.once('close', (code: number | null) => {
+      logger.debug(`Process close event for ${command} (PID: ${child.pid}), code: ${code}, wasAborted: ${wasAborted}`);
+      removeFromTracking();
+
+      // If process was aborted, reject the promise instead of resolving
+      if (wasAborted) {
+        // Reject with the abort reason (which is an AbortError DOMException)
+        // This ensures the error name is 'AbortError' and will be caught correctly by the workflow
+        logger.debug(`Process ${command} was aborted, rejecting with AbortError`);
+        reject(signal?.reason || new Error('Process aborted'));
+        return;
+      }
+
+      const exitCode = code ?? 0;
+      resolve({
+        exitCode,
+        stdout: stdoutChunks.join(''),
+        stderr: stderrChunks.join(''),
+      });
+    });
+=======
               while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
@@ -262,5 +375,6 @@ export function spawnProcess(options: SpawnOptions): Promise<SpawnResult> {
         reject(error);
       }
     })();
+>>>>>>> origin/main
   });
 }

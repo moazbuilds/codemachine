@@ -1,5 +1,9 @@
 import type { WorkflowStep } from '../templates/index.js';
 import { isModuleStep } from '../templates/types.js';
+<<<<<<< HEAD
+import { formatAgentLog } from '../../shared/logging/index.js';
+=======
+>>>>>>> origin/main
 import { executeStep } from './step.js';
 import { mainAgents } from '../utils/config.js';
 import type { WorkflowUIManager } from '../../ui/index.js';
@@ -8,7 +12,10 @@ export interface FallbackExecutionOptions {
   logger: (message: string) => void;
   stderrLogger: (message: string) => void;
   ui?: WorkflowUIManager;
+<<<<<<< HEAD
+=======
   abortSignal?: AbortSignal;
+>>>>>>> origin/main
 }
 
 /**
@@ -34,7 +41,10 @@ export async function executeFallbackStep(
   engineType: string,
   ui?: WorkflowUIManager,
   uniqueParentAgentId?: string,
+<<<<<<< HEAD
+=======
   abortSignal?: AbortSignal,
+>>>>>>> origin/main
 ): Promise<void> {
   // Only module steps can have fallback agents
   if (!isModuleStep(step)) {
@@ -92,7 +102,10 @@ export async function executeFallbackStep(
       stderrLogger: () => {}, // No-op: UI reads from log files
       ui,
       uniqueAgentId: fallbackAgentId,
+<<<<<<< HEAD
+=======
       abortSignal,
+>>>>>>> origin/main
     });
 
     // Update UI status on success
@@ -103,12 +116,21 @@ export async function executeFallbackStep(
     }
   } catch (error) {
     // Don't update status to failed - let it stay as running/retrying
+<<<<<<< HEAD
+    console.error(
+      formatAgentLog(
+        fallbackAgentId,
+        `Fallback agent failed: ${error instanceof Error ? error.message : String(error)}`,
+      ),
+    );
+=======
     if (ui) {
       ui.logMessage(
         fallbackAgentId,
         `Fallback agent failed: ${error instanceof Error ? error.message : String(error)}`
       );
     }
+>>>>>>> origin/main
     throw error; // Re-throw to prevent original step from running
   }
 }

@@ -21,11 +21,17 @@ export class WorkflowUIManager {
   private lastRenderTime = 0;
   private originalConsoleLog?: typeof console.log;
   private originalConsoleError?: typeof console.error;
+<<<<<<< HEAD
+  private consoleHijacked = false;
+  private agentIdMap: Map<string, number> = new Map(); // UI agent ID → Monitoring agent ID
+  private syncInterval?: NodeJS.Timeout;
+=======
   private originalConsoleWarn?: typeof console.warn;
   private consoleHijacked = false;
   private agentIdMap: Map<string, number> = new Map(); // UI agent ID → Monitoring agent ID
   private syncInterval?: NodeJS.Timeout;
   private debugLogPath?: string;
+>>>>>>> origin/main
 
   constructor(workflowName: string, totalSteps: number = 0) {
     this.state = new WorkflowUIState(workflowName, totalSteps);
@@ -72,10 +78,13 @@ export class WorkflowUIManager {
       // Hijack console to prevent breaking Ink UI
       this.hijackConsole();
 
+<<<<<<< HEAD
+=======
       if (this.debugLogPath) {
         debug(`[WorkflowUIManager] Writing debug logs to ${this.debugLogPath}`);
       }
 
+>>>>>>> origin/main
       // Start syncing sub-agents from registry
       this.startSubAgentSync();
 
@@ -106,6 +115,8 @@ export class WorkflowUIManager {
   }
 
   /**
+<<<<<<< HEAD
+=======
    * Store debug log path so we can notify users in fallback mode or future UI renders.
    */
   setDebugLogPath(path: string): void {
@@ -113,6 +124,7 @@ export class WorkflowUIManager {
   }
 
   /**
+>>>>>>> origin/main
    * Hijack console methods to prevent output from breaking Ink UI
    * Console messages are suppressed when UI is active
    */
@@ -121,7 +133,10 @@ export class WorkflowUIManager {
 
     this.originalConsoleLog = console.log;
     this.originalConsoleError = console.error;
+<<<<<<< HEAD
+=======
     this.originalConsoleWarn = console.warn;
+>>>>>>> origin/main
     this.consoleHijacked = true;
 
     // Suppress console.log completely during UI mode
@@ -129,6 +144,13 @@ export class WorkflowUIManager {
       // Silently ignore - messages should use ui.logMessage() instead
     };
 
+<<<<<<< HEAD
+    // Allow errors through stderr for debugging
+    console.error = (...args: unknown[]) => {
+      if (this.originalConsoleError) {
+        this.originalConsoleError(...args);
+      }
+=======
     // Suppress console.error and console.warn completely during UI mode
     // All error logging should go through ui.logMessage() to prevent breaking Ink layout
     console.error = (..._args: unknown[]) => {
@@ -138,6 +160,7 @@ export class WorkflowUIManager {
     // Also hijack console.warn to prevent placeholder warnings from breaking UI
     console.warn = (..._args: unknown[]) => {
       // Silently ignore - warnings should use ui.logMessage() instead
+>>>>>>> origin/main
     };
   }
 
@@ -153,9 +176,12 @@ export class WorkflowUIManager {
     if (this.originalConsoleError) {
       console.error = this.originalConsoleError;
     }
+<<<<<<< HEAD
+=======
     if (this.originalConsoleWarn) {
       console.warn = this.originalConsoleWarn;
     }
+>>>>>>> origin/main
     this.consoleHijacked = false;
   }
 

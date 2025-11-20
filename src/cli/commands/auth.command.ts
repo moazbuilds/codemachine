@@ -1,9 +1,16 @@
 import type { Command } from 'commander';
 import * as path from 'node:path';
 import { homedir } from 'node:os';
+<<<<<<< HEAD
+import { execa } from 'execa';
+import prompts from 'prompts';
+import { registry } from '../../infra/engines/index.js';
+import { selectFromMenu, type SelectionChoice } from '../presentation/selection-menu.js';
+=======
 import { confirm, isCancel } from '@clack/prompts';
 import { registry } from '../../infra/engines/index.js';
 import { selectFromMenu, type SelectionChoice } from '../utils/selection-menu.js';
+>>>>>>> origin/main
 import { expandHomeDir } from '../../shared/utils/index.js';
 
 interface AuthProviderChoice extends SelectionChoice<string> {
@@ -77,6 +84,12 @@ export async function handleLogin(providerId: string): Promise<void> {
       // Show current auth providers
       console.log(`Current authentication providers:\n`);
       try {
+<<<<<<< HEAD
+        await execa('opencode', ['auth', 'list'], {
+          stdio: 'inherit',
+          env: xdgEnv
+        });
+=======
         const proc = Bun.spawn(['opencode', 'auth', 'list'], {
           stdout: 'inherit',
           stderr: 'inherit',
@@ -84,6 +97,7 @@ export async function handleLogin(providerId: string): Promise<void> {
           env: { ...process.env, ...xdgEnv }
         });
         await proc.exited;
+>>>>>>> origin/main
       } catch {
         console.log('(Unable to fetch auth list)');
       }
@@ -91,6 +105,16 @@ export async function handleLogin(providerId: string): Promise<void> {
       console.log();
 
       // Ask if user wants to add another provider
+<<<<<<< HEAD
+      const response = await prompts({
+        type: 'confirm',
+        name: 'addAnother',
+        message: 'Do you want to add another authentication provider?',
+        initial: false
+      });
+
+      if (response.addAnother) {
+=======
       const addAnother = await confirm({
         message: 'Do you want to add another authentication provider?',
         initialValue: false,
@@ -102,6 +126,7 @@ export async function handleLogin(providerId: string): Promise<void> {
       }
 
       if (addAnother) {
+>>>>>>> origin/main
         // Force login to add another provider
         await engine.auth.ensureAuth(true);
         console.log(`\n${engine.metadata.name} authentication provider added successfully.`);

@@ -8,7 +8,10 @@ import { loadAgentConfig } from './config.js';
 import { AgentMonitorService, AgentLoggerService } from '../monitoring/index.js';
 import type { ParsedTelemetry } from '../../infra/engines/core/types.js';
 import { formatForLogFile } from '../../shared/formatters/logFileFormatter.js';
+<<<<<<< HEAD
+=======
 import { info, error } from '../../shared/logging/logger.js';
+>>>>>>> origin/main
 
 /**
  * Cache for engine authentication status with TTL (shared across all subagents)
@@ -221,7 +224,11 @@ export async function executeAgent(
     }
 
     engineType = foundEngine.metadata.id;
+<<<<<<< HEAD
+    console.log(`ℹ️  No engine specified for agent '${agentId}', using ${foundEngine.metadata.name} (${engineType})`);
+=======
     info(`No engine specified for agent '${agentId}', using ${foundEngine.metadata.name} (${engineType})`);
+>>>>>>> origin/main
   }
 
   // Ensure authentication
@@ -243,25 +250,41 @@ export async function executeAgent(
   let monitoringAgentId: number | undefined;
 
   if (monitor && loggerService) {
+<<<<<<< HEAD
+    monitoringAgentId = await monitor.register({
+      name: agentId,
+      prompt: displayPrompt || prompt, // Use display prompt for logging if provided
+=======
     // For registration: use displayPrompt (short user request) if provided, otherwise full prompt
     const promptForDisplay = displayPrompt || prompt;
     monitoringAgentId = await monitor.register({
       name: agentId,
       prompt: promptForDisplay, // This gets truncated in monitor for memory efficiency
+>>>>>>> origin/main
       parentId,
       engine: engineType,
       engineProvider: engineType,
       modelName: model,
     });
 
+<<<<<<< HEAD
+=======
     // Store FULL prompt for debug mode logging (not the display prompt)
     // In debug mode, we want to see the complete composite prompt with template + input files
     loggerService.storeFullPrompt(monitoringAgentId, prompt);
 
+>>>>>>> origin/main
     // Register monitoring ID with UI immediately so it can load logs
     if (ui && uniqueAgentId && monitoringAgentId !== undefined) {
       ui.registerMonitoringId(uniqueAgentId, monitoringAgentId);
     }
+<<<<<<< HEAD
+
+    // Create log file immediately to prevent "Can't connect to agent" errors
+    // This ensures the log file exists before the engine starts producing output
+    loggerService.write(monitoringAgentId, ''); // Empty write to create the file
+=======
+>>>>>>> origin/main
   }
 
   // Set up memory
@@ -330,7 +353,11 @@ export async function executeAgent(
         // Update telemetry in monitoring (fire and forget - don't block streaming)
         if (monitor && monitoringAgentId !== undefined) {
           monitor.updateTelemetry(monitoringAgentId, telemetry).catch(err =>
+<<<<<<< HEAD
+            console.error(`Failed to update telemetry: ${err}`)
+=======
             error(`Failed to update telemetry: ${err}`)
+>>>>>>> origin/main
           );
         }
 

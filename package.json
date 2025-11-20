@@ -1,6 +1,10 @@
 {
   "name": "codemachine",
+<<<<<<< HEAD
+  "version": "0.5.0",
+=======
   "version": "0.6.0",
+>>>>>>> origin/main
   "description": "Multi-Agent Workflow Orchestration.",
   "type": "module",
   "bin": {
@@ -24,6 +28,12 @@
     "codemachine-windows-x64": "0.6.0"
   },
   "scripts": {
+<<<<<<< HEAD
+    "build": "tsup src/runtime/index.ts --format esm --dts --sourcemap --out-dir dist",
+    "dev": "DEBUG=true tsx src/runtime/cli-setup.ts",
+    "debug": "REACT_DEVTOOLS=1 DEBUG=\"ink:*\" tsx src/runtime/cli-setup.ts",
+    "start": "pnpm -s build && node dist/index.js start",
+=======
     "_comment_dev": "Development: Run from source (no build needed)",
     "dev": "DEBUG=true bun --conditions=browser src/runtime/cli-setup.ts",
     "debug": "REACT_DEVTOOLS=1 DEBUG=\"ink:*\" bun --conditions=browser src/runtime/cli-setup.ts",
@@ -34,6 +44,7 @@
     "build:binaries:local": "bun scripts/build-binaries.mjs --install-local",
     "build:binaries:link": "bun scripts/build-binaries.mjs --install-local --link-global",
     "_comment_quality": "Code Quality: Linting, testing, formatting",
+>>>>>>> origin/main
     "lint": "eslint --max-warnings=0 \"{src,tests}/**/*.{ts,tsx}\"",
     "test": "bun test",
     "test:watch": "bun test --watch",
@@ -46,6 +57,13 @@
     "release": "bun scripts/publish.mjs --tag latest"
   },
   "dependencies": {
+<<<<<<< HEAD
+    "chalk": "^5.6.2",
+    "commander": "^14.0.1",
+    "cross-spawn": "^7.0.6",
+    "dotenv": "^17.2.3",
+    "execa": "^9.6.0",
+=======
     "1.3.0": "^1.3.0",
     "@clack/prompts": "^0.11.0",
     "@opentui/core": "0.1.42",
@@ -54,16 +72,24 @@
     "chalk": "^5.6.2",
     "commander": "^14.0.1",
     "dotenv": "^17.2.3",
+>>>>>>> origin/main
     "fs-extra": "^11.3.2",
     "ink": "^6.3.1",
     "ink-spinner": "^5.0.0",
     "ink-text-input": "^6.0.0",
     "ora": "^9.0.0",
     "pino": "^10.1.0",
+<<<<<<< HEAD
+    "prompts": "^2.4.2",
+    "proper-lockfile": "^4.1.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+=======
     "proper-lockfile": "^4.1.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "solid-js": "1.9.3",
+>>>>>>> origin/main
     "update-notifier": "^7.3.1",
     "yoga-layout-prebuilt": "^1.10.0",
     "zod": "^4.1.12"
@@ -71,9 +97,16 @@
   "devDependencies": {
     "@eslint/js": "^9.36.0",
     "@testing-library/react": "^16.3.0",
+<<<<<<< HEAD
+    "@types/cross-spawn": "^6.0.6",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.12.7",
+    "@types/prompts": "^2.4.9",
+=======
     "@types/bun": "1.3.0",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.12.7",
+>>>>>>> origin/main
     "@types/proper-lockfile": "^4.1.4",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
@@ -88,7 +121,12 @@
     "ink-testing-library": "^4.0.0",
     "prettier": "^3.2.5",
     "react-devtools-core": "^6.1.5",
+<<<<<<< HEAD
+    "tsup": "^8.5.0",
+    "tsx": "^4.7.2",
+=======
     "typedoc": "^0.28.14",
+>>>>>>> origin/main
     "typescript": "^5.4.5",
     "typescript-eslint": "^8.44.1"
   }

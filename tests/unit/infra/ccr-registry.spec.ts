@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+import { describe, expect, it } from 'vitest';
+=======
 import { describe, expect, it } from 'bun:test';
+>>>>>>> origin/main
 
 import { registry } from '../../../src/infra/engines/core/registry.js';
 

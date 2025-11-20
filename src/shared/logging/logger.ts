@@ -15,6 +15,10 @@ const LOG_LEVELS = {
 
 type LogLevel = keyof typeof LOG_LEVELS;
 
+<<<<<<< HEAD
+function getCurrentLogLevel(): LogLevel {
+  const level = (process.env.LOG_LEVEL || 'info').trim().toLowerCase() as LogLevel;
+=======
 let debugLogStream: fs.WriteStream | null = null;
 
 function resolveRequestedLevel(): string {
@@ -33,6 +37,7 @@ function resolveRequestedLevel(): string {
 
 function getCurrentLogLevel(): LogLevel {
   const level = resolveRequestedLevel() as LogLevel;
+>>>>>>> origin/main
   return LOG_LEVELS[level] !== undefined ? level : 'info';
 }
 

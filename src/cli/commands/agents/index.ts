@@ -1,7 +1,10 @@
 import { Command } from 'commander';
 import { listAgents } from './list.js';
 import { showAgentLogs } from './logs.js';
+<<<<<<< HEAD
+=======
 import { exportAgents } from './export.js';
+>>>>>>> origin/main
 
 /**
  * Main agents command - routes to list or logs based on subcommand
@@ -31,6 +34,8 @@ export function createAgentsCommand(): Command {
       await showAgentLogs(agentId);
     });
 
+<<<<<<< HEAD
+=======
   // agents export
   command
     .command('export')
@@ -39,5 +44,6 @@ export function createAgentsCommand(): Command {
       await exportAgents();
     });
 
+>>>>>>> origin/main
   return command;
 }

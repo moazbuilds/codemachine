@@ -4,7 +4,10 @@ import { evaluateLoopBehavior } from './evaluator.js';
 import { formatAgentLog } from '../../../shared/logging/index.js';
 import type { ActiveLoop } from '../skip.js';
 import type { WorkflowUIManager } from '../../../ui/index.js';
+<<<<<<< HEAD
+=======
 import { debug } from '../../../shared/logging/logger.js';
+>>>>>>> origin/main
 
 export interface LoopDecision {
   shouldRepeat: boolean;

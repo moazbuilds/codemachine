@@ -16,10 +16,14 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
+<<<<<<< HEAD
+    "types": ["node", "react"]
+=======
     "types": ["bun", "node"],
     "paths": {
       "@tui/*": ["./src/cli/tui/*"]
     }
+>>>>>>> origin/main
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist", "tests"]

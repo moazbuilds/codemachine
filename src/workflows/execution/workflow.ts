@@ -3,8 +3,15 @@ import * as fs from 'node:fs';
 
 import type { RunWorkflowOptions } from '../templates/index.js';
 import { loadTemplateWithPath } from '../templates/index.js';
+<<<<<<< HEAD
+import {
+  formatAgentLog,
+} from '../../shared/logging/index.js';
+import { debug } from '../../shared/logging/logger.js';
+=======
 import { formatAgentLog } from '../../shared/logging/index.js';
 import { debug, setDebugLogFile } from '../../shared/logging/logger.js';
+>>>>>>> origin/main
 import {
   getTemplatePathFromTracking,
   getCompletedSteps,
@@ -76,6 +83,9 @@ class EngineAuthCache {
 const authCache = new EngineAuthCache();
 
 export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<void> {
+  // Set up cleanup handlers for graceful shutdown
+  MonitoringCleanup.setup();
+
   const cwd = options.cwd ? path.resolve(options.cwd) : process.cwd();
 
   // Redirect debug logs to file whenever LOG_LEVEL=debug (or DEBUG env is truthy) so they don't break Ink layout
@@ -137,9 +147,12 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
   // Initialize Workflow UI Manager
   const ui = new WorkflowUIManager(template.name);
+<<<<<<< HEAD
+=======
   if (debugLogPath) {
     ui.setDebugLogPath(debugLogPath);
   }
+>>>>>>> origin/main
 
   // Pre-populate timeline with all workflow steps BEFORE starting UI
   // This prevents duplicate renders at startup
@@ -319,6 +332,29 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     // Mutate current step to carry the chosen engine forward
     step.engine = engineType;
 
+<<<<<<< HEAD
+    // Check if fallback should be executed before the original step
+    if (shouldExecuteFallback(step, index, notCompletedSteps)) {
+      ui.logMessage(uniqueAgentId, `Detected incomplete step. Running fallback agent first.`);
+      try {
+        await executeFallbackStep(step, cwd, workflowStartTime, engineType, ui, uniqueAgentId);
+      } catch (error) {
+        // Fallback failed, step remains in notCompletedSteps
+        console.error(
+          formatAgentLog(
+            step.agentId,
+            `Fallback failed. Skipping original step retry.`,
+          ),
+        );
+        // Don't update status to failed - just let it stay as running or retrying
+        throw error;
+      }
+    }
+
+    // Set up skip listener and abort controller for this step
+    const abortController = new AbortController();
+    const skipListener = () => {
+=======
     // Set up skip listener and abort controller for this step (covers fallback + main + triggers)
     const abortController = new AbortController();
     let skipRequested = false; // Prevent duplicate skip requests during async abort handling
@@ -329,6 +365,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         return;
       }
       skipRequested = true;
+>>>>>>> origin/main
       ui.logMessage(uniqueAgentId, '⏭️  Skip requested by user...');
       abortController.abort();
     };
@@ -485,9 +522,17 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         // Continue to next step - don't throw
       } else {
         // Don't update status to failed - let it stay as running/retrying
+<<<<<<< HEAD
+        console.error(
+          formatAgentLog(
+            step.agentId,
+            `${step.agentName} failed: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+=======
         ui.logMessage(
           uniqueAgentId,
           `${step.agentName} failed: ${error instanceof Error ? error.message : String(error)}`
+>>>>>>> origin/main
         );
         throw error;
       }
@@ -528,6 +573,10 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     // Never resolves - keeps event loop alive until Ctrl+C exits process
   });
   } catch (error) {
+<<<<<<< HEAD
+    // On workflow error, set status and exit
+    ui.setWorkflowStatus('stopped');
+=======
     // On workflow error, set status, stop UI, then exit
     ui.setWorkflowStatus('stopped');
 
@@ -535,6 +584,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     ui.stop();
 
     // Re-throw error to be handled by caller (will now print after UI is stopped)
+>>>>>>> origin/main
     throw error;
   } finally {
     // Clean up workflow stop listener

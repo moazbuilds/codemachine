@@ -1,7 +1,12 @@
 import type { WorkflowStep } from '../templates/index.js';
 import { isModuleStep } from '../templates/types.js';
+<<<<<<< HEAD
+import { formatAgentLog } from '../../shared/logging/index.js';
+import type { WorkflowUIManager } from '../../ui/index.js';
+=======
 import type { WorkflowUIManager } from '../../ui/index.js';
 import { debug } from '../../shared/logging/logger.js';
+>>>>>>> origin/main
 
 export interface ActiveLoop {
   skip: string[];
@@ -43,9 +48,18 @@ export function logSkipDebug(step: WorkflowStep, activeLoop: ActiveLoop | null):
     return;
   }
 
+<<<<<<< HEAD
+  if (process.env.CODEMACHINE_DEBUG_LOOPS === '1' && activeLoop) {
+    console.log(
+      formatAgentLog(
+        step.agentId,
+        `[skip-check] agentId=${step.agentId} skipList=[${activeLoop.skip.join(', ')}] shouldSkip=${activeLoop.skip.includes(step.agentId)}`,
+      ),
+=======
   if (activeLoop) {
     debug(
       `[skip-check] agentId=${step.agentId} skipList=[${activeLoop.skip.join(', ')}] shouldSkip=${activeLoop.skip.includes(step.agentId)}`
+>>>>>>> origin/main
     );
   }
 }
