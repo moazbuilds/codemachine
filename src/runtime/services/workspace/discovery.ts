@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { collectAgentsFromWorkflows } from '../../../shared/agents/index.js';
+import { resolvePackageRoot } from '../../../shared/utils/package-root.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,28 +12,12 @@ const require = createRequire(import.meta.url);
 
 export const CLI_BUNDLE_DIR = path.resolve(__dirname);
 export const CLI_PACKAGE_ROOT = (() => {
-  let current = CLI_BUNDLE_DIR;
-  const limit = 10;
-
-  for (let i = 0; i < limit; i += 1) {
-    const packageJson = path.join(current, 'package.json');
-    if (existsSync(packageJson)) {
-      try {
-        const pkg = require(packageJson);
-        if (pkg?.name === 'codemachine') {
-          return current;
-        }
-      } catch {
-        // fall through to climb one level higher
-      }
-    }
-
-    const parent = path.dirname(current);
-    if (parent === current) break;
-    current = parent;
+  try {
+    return resolvePackageRoot(import.meta.url, 'workspace discovery');
+  } catch {
+    // If resolution fails, return undefined (legacy behavior)
+    return undefined;
   }
-
-  return undefined;
 })();
 
 export const CLI_ROOT_CANDIDATES = Array.from(

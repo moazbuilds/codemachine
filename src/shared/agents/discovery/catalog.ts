@@ -7,47 +7,24 @@ import { resolveAgentsModulePath } from '../config/paths.js';
 import { collectAgentsFromWorkflows } from './steps.js';
 import type { AgentDefinition } from '../config/types.js';
 import { AGENT_MODULE_FILENAMES } from '../config/types.js';
+import { resolvePackageRoot } from '../../utils/package-root.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const require = createRequire(import.meta.url);
 
-// When running from dist/, go up one level to project root
-// When running from src/, go up three levels to project root
-const CLI_BUNDLE_DIR = path.basename(__dirname) === 'dist'
-  ? path.resolve(__dirname, '..')
-  : path.resolve(__dirname, '..', '..', '..');
+// Resolve package root using centralized logic
+const CLI_BUNDLE_DIR = path.resolve(__dirname);
 const CLI_PACKAGE_ROOT = (() => {
-  let current = CLI_BUNDLE_DIR;
-  const limit = 10;
-
-  for (let i = 0; i < limit; i += 1) {
-    const packageJson = path.join(current, 'package.json');
-    if (existsSync(packageJson)) {
-      try {
-        const pkg = require(packageJson);
-        if (pkg?.name === 'codemachine') {
-          return current;
-        }
-      } catch {
-        // Ignore parse/require errors and attempt the parent directory.
-      }
-    }
-
-    const parent = path.dirname(current);
-    if (parent === current) break;
-    current = parent;
+  try {
+    return resolvePackageRoot(import.meta.url, 'agents discovery catalog');
+  } catch {
+    // If resolution fails, return undefined (legacy behavior)
+    return undefined;
   }
-
-  return undefined;
 })();
 
 const envRootCandidates = [
-  process.env.CODEMACHINE_INSTALL_DIR,
-  process.env.CODEMACHINE_PACKAGE_ROOT,
-  process.env.CODEMACHINE_PACKAGE_JSON
-    ? path.dirname(process.env.CODEMACHINE_PACKAGE_JSON)
-    : undefined,
   CLI_PACKAGE_ROOT,
   CLI_BUNDLE_DIR
 ].filter((root): root is string => Boolean(root));

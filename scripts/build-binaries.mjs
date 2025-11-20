@@ -20,14 +20,6 @@ const linkGlobal = args.has('--link-global');
 console.log('[build] Starting binary build...');
 console.log(`[build] Main package version: ${mainVersion}`);
 
-// Generate version.ts file for compiled binaries
-const versionFilePath = join(repoRoot, 'src/runtime/version.ts');
-const versionFileContent = `// This file is auto-generated during the build process
-export const VERSION = '${mainVersion}';
-`;
-writeFileSync(versionFilePath, versionFileContent);
-console.log(`[build] Generated version.ts with version ${mainVersion}`);
-
 // Auto-sync platform package versions before building
 if (mainPackage.optionalDependencies) {
   let needsSync = false;
@@ -99,6 +91,9 @@ try {
     tsconfig: './tsconfig.json',
     plugins: [solidPlugin], // SolidJS transform for TUI
     minify: true,
+    define: {
+      __CODEMACHINE_VERSION__: JSON.stringify(mainVersion),
+    },
     compile: {
       target: target,
       outfile: binaryPath,
@@ -124,6 +119,9 @@ try {
     tsconfig: './tsconfig.json',
     // NO SolidJS plugin - React/Ink JSX only
     minify: true,
+    define: {
+      __CODEMACHINE_VERSION__: JSON.stringify(mainVersion),
+    },
     compile: {
       target: target,
       outfile: workflowBinaryPath,
