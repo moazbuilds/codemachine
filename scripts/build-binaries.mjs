@@ -27,7 +27,7 @@ console.log(`\n${bold}${cyan}╭────────────────
 console.log(`${bold}${cyan}│${reset}  Building ${bold}CodeMachine${reset} v${mainVersion}  ${bold}${cyan}│${reset}`);
 console.log(`${bold}${cyan}╰────────────────────────────────────────╯${reset}\n`);
 
-await generateEmbeddedResources({ quiet: true });
+await generateEmbeddedResources({ quiet: true, writeStub: false });
 console.log(`${green}✓${reset} ${dim}Embedded resources refreshed${reset}`);
 
 // Auto-sync platform package versions before building

@@ -4,12 +4,14 @@ import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { brotliCompressSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
+import { homedir, tmpdir } from 'node:os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '..');
 const resourcesDir = join(repoRoot, 'src', 'shared', 'resources');
 const targetPath = join(resourcesDir, 'embedded-resources.ts');
 const packageJsonPath = join(repoRoot, 'package.json');
+const cacheDirName = 'embedded-resources';
 
 const DEFAULT_INCLUDE = ['package.json', 'config', 'prompts', 'templates'];
 
@@ -35,8 +37,21 @@ function collectFiles(root, entry, result) {
   });
 }
 
+function getCacheBase() {
+  if (process.env.CODEMACHINE_EMBEDDED_CACHE) {
+    return process.env.CODEMACHINE_EMBEDDED_CACHE;
+  }
+  if (process.platform === 'win32') {
+    const base = process.env.LOCALAPPDATA ?? join(homedir(), 'AppData', 'Local');
+    return join(base, 'CodeMachine', 'Cache');
+  }
+  const xdgCache = process.env.XDG_CACHE_HOME ?? join(homedir(), '.cache');
+  return join(xdgCache, 'codemachine');
+}
+
 export async function generateEmbeddedResources(options = {}) {
   const include = options.include ?? DEFAULT_INCLUDE;
+  const shouldWriteStub = options.writeStub ?? true;
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
   const files = [];
 
@@ -84,19 +99,50 @@ export function getEmbeddedResourceArchive(): Buffer {
 }
 `;
 
-  mkdirSync(resourcesDir, { recursive: true });
-  writeFileSync(targetPath, fileContents);
+  let cacheBase = getCacheBase();
+  let cacheDir = join(cacheBase, cacheDirName);
+  try {
+    mkdirSync(cacheDir, { recursive: true });
+  } catch (error) {
+    if ((error?.code === 'EACCES' || error?.code === 'EPERM')) {
+      cacheBase = join(tmpdir(), 'codemachine-cache');
+      cacheDir = join(cacheBase, cacheDirName);
+      mkdirSync(cacheDir, { recursive: true });
+    } else {
+      throw error;
+    }
+  }
+  const cacheFile = join(cacheDir, 'embedded-resources.json');
+  const cachePayload = {
+    version: packageJson.version,
+    hash,
+    size: compressed.length,
+    base64,
+  };
+  writeFileSync(cacheFile, JSON.stringify(cachePayload, null, 2));
+
+  if (shouldWriteStub) {
+    mkdirSync(resourcesDir, { recursive: true });
+    writeFileSync(targetPath, fileContents);
+  }
 
   if (!options.quiet) {
     console.log(`[embed] Embedded ${files.length} files (${payloadBuffer.length} bytes, compressed to ${compressed.length} bytes)`);
     console.log(`[embed] Hash: ${hash}`);
+    console.log(`[embed] Cache file written to ${cacheFile}`);
+    if (!shouldWriteStub) {
+      console.log('[embed] Skipped updating src/shared/resources/embedded-resources.ts (cache-only)');
+    }
   }
 
-  return { hash, size: compressed.length, fileCount: files.length };
+  return { hash, size: compressed.length, fileCount: files.length, cacheFile };
 }
 
 if (import.meta.main) {
-  generateEmbeddedResources().catch((error) => {
+  const args = new Set(process.argv.slice(2));
+  const cacheOnly = args.has('--cache-only');
+  const writeStub = args.has('--write-stub') ? true : !cacheOnly;
+  generateEmbeddedResources({ writeStub }).catch((error) => {
     console.error('[embed] Failed to generate embedded resources:', error);
     process.exitCode = 1;
   });

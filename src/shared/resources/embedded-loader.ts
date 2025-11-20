@@ -1,5 +1,5 @@
 import { Buffer } from 'node:buffer';
-import { chmodSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { homedir, tmpdir } from 'node:os';
 import { brotliDecompressSync } from 'node:zlib';
@@ -23,18 +23,83 @@ type EmbeddedPayload = {
   files: EmbeddedFile[];
 };
 
+type ArchiveMetadata = {
+  version: string;
+  hash: string;
+  size: number;
+};
+
+const DEFAULT_METADATA: ArchiveMetadata = {
+  version: EMBEDDED_RESOURCES_VERSION,
+  hash: EMBEDDED_RESOURCES_HASH,
+  size: EMBEDDED_RESOURCES_SIZE,
+};
+
+let activeMetadata: ArchiveMetadata = { ...DEFAULT_METADATA };
 let cachedPayload: EmbeddedPayload | null = null;
+let cachedArchiveBuffer: Buffer | null = null;
+
+function getArchiveCacheDir(): string {
+  return join(getCacheBase(), 'embedded-resources');
+}
+
+function getArchiveCacheFile(): string {
+  return join(getArchiveCacheDir(), 'embedded-resources.json');
+}
+
+function tryLoadArchiveFromCache(): Buffer | null {
+  const cacheFile = getArchiveCacheFile();
+  if (!existsSync(cacheFile)) {
+    return null;
+  }
+
+  try {
+    const data = JSON.parse(readFileSync(cacheFile, 'utf8')) as {
+      version?: string;
+      hash?: string;
+      size?: number;
+      base64?: string;
+    };
+    if (!data?.base64) {
+      return null;
+    }
+    activeMetadata = {
+      version: data.version ?? DEFAULT_METADATA.version,
+      hash: data.hash ?? DEFAULT_METADATA.hash,
+      size: data.size ?? DEFAULT_METADATA.size,
+    };
+    return Buffer.from(data.base64, 'base64');
+  } catch {
+    return null;
+  }
+}
+
+function getArchiveBuffer(): Buffer {
+  if (cachedArchiveBuffer) {
+    return cachedArchiveBuffer;
+  }
+
+  const cacheBuffer = tryLoadArchiveFromCache();
+  if (cacheBuffer) {
+    cachedArchiveBuffer = cacheBuffer;
+    return cachedArchiveBuffer;
+  }
+
+  const fallback = getEmbeddedResourceArchive();
+  if (!fallback || fallback.length === 0) {
+    throw new Error('Embedded resource archive is empty');
+  }
+
+  cachedArchiveBuffer = fallback;
+  return cachedArchiveBuffer;
+}
 
 function decodeEmbeddedPayload(): EmbeddedPayload {
   if (cachedPayload) {
     return cachedPayload;
   }
 
-  const archive = getEmbeddedResourceArchive();
-  if (!archive || archive.length === 0) {
-    throw new Error('Embedded resource archive is empty');
-  }
-
+  const archive = getArchiveBuffer();
   const decompressed = brotliDecompressSync(archive);
   cachedPayload = JSON.parse(decompressed.toString('utf8')) as EmbeddedPayload;
   return cachedPayload;
@@ -56,6 +121,7 @@ function getCacheBase(): string {
 
 function writeEmbeddedResources(targetRoot: string): void {
   const payload = decodeEmbeddedPayload();
+  const metadata = { ...activeMetadata };
   rmSync(targetRoot, { recursive: true, force: true });
   mkdirSync(targetRoot, { recursive: true });
 
@@ -69,13 +135,19 @@ function writeEmbeddedResources(targetRoot: string): void {
     }
   }
 
-  const metadata = {
-    version: payload.version,
-    hash: EMBEDDED_RESOURCES_HASH,
-    size: EMBEDDED_RESOURCES_SIZE,
-    generatedAt: payload.generatedAt,
-  };
-  writeFileSync(join(targetRoot, '.embedded.json'), JSON.stringify(metadata, null, 2));
+  writeFileSync(
+    join(targetRoot, '.embedded.json'),
+    JSON.stringify(
+      {
+        version: metadata.version ?? payload.version,
+        hash: metadata.hash,
+        size: metadata.size,
+        generatedAt: payload.generatedAt,
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 export function ensureEmbeddedPackageRoot(): string | undefined {
@@ -84,8 +156,10 @@ export function ensureEmbeddedPackageRoot(): string | undefined {
   }
 
   try {
+    getArchiveBuffer();
     const cacheBase = getCacheBase();
-    const versionedDir = join(cacheBase, 'embedded-packages', `${EMBEDDED_RESOURCES_VERSION}-${EMBEDDED_RESOURCES_HASH}`);
+    const metadata = activeMetadata;
+    const versionedDir = join(cacheBase, 'embedded-packages', `${metadata.version}-${metadata.hash}`);
     const marker = join(versionedDir, '.embedded.json');
 
     if (!existsSync(marker)) {
