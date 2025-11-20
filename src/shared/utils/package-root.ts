@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ensureEmbeddedPackageRoot } from '../resources/embedded-loader.js';
 
 /**
  * Cached package root to avoid repeated filesystem operations.
@@ -91,6 +92,17 @@ export function resolvePackageRoot(moduleUrl: string, errorContext: string): str
 
     currentDir = parent;
     depth++;
+  }
+
+  // 3. Try to provision embedded resources (for standalone binaries)
+  try {
+    const embeddedRoot = ensureEmbeddedPackageRoot();
+    if (embeddedRoot) {
+      cachedPackageRoot = embeddedRoot;
+      return embeddedRoot;
+    }
+  } catch {
+    // Ignore embedded provisioning failures here; fall through to error throw below.
   }
 
   // 3. Not found - throw error

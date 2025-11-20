@@ -3,6 +3,7 @@ import { mkdirSync, rmSync, cpSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { platform, arch } from 'node:os';
+import { generateEmbeddedResources } from './generate-embedded-resources.mjs';
 
 // Detect current platform
 const currentPlatform = platform();
@@ -19,6 +20,9 @@ const linkGlobal = args.has('--link-global');
 
 console.log('[build] Starting binary build...');
 console.log(`[build] Main package version: ${mainVersion}`);
+
+await generateEmbeddedResources({ quiet: true });
+console.log('[build] ✅ Embedded resources refreshed');
 
 // Auto-sync platform package versions before building
 if (mainPackage.optionalDependencies) {
