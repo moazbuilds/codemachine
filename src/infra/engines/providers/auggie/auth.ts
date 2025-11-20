@@ -1,7 +1,6 @@
 import { stat, rm, writeFile, mkdir } from 'node:fs/promises';
 import * as path from 'node:path';
 import { homedir } from 'node:os';
-import { execa } from 'execa';
 
 import { expandHomeDir } from '../../../../shared/utils/index.js';
 import { metadata } from './metadata.js';
@@ -27,14 +26,29 @@ function getSentinelPath(auggieHome: string): string {
 
 async function isCliInstalled(command: string): Promise<boolean> {
   try {
-    const result = await execa(command, ['--version'], { timeout: 3000, reject: false });
-    if (typeof result.exitCode === 'number' && result.exitCode === 0) {
-      return true;
-    }
-    const output = `${result.stdout ?? ''}\n${result.stderr ?? ''}`;
-    if (/not recognized as an internal or external command/i.test(output)) return false;
-    if (/command not found/i.test(output)) return false;
-    if (/No such file or directory/i.test(output)) return false;
+    // Resolve command using Bun.which() to handle Windows .cmd files
+    const resolvedCommand = Bun.which(command) ?? command;
+
+    const proc = Bun.spawn([resolvedCommand, '--version'], {
+      stdout: 'pipe',
+      stderr: 'pipe',
+      stdin: 'ignore',
+    });
+
+    // Set a timeout
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Timeout')), 3000)
+    );
+
+    const exitCode = await Promise.race([proc.exited, timeout]);
+    const stdout = await new Response(proc.stdout).text();
+    const stderr = await new Response(proc.stderr).text();
+    const out = `${stdout}\n${stderr}`;
+
+    if (typeof exitCode === 'number' && exitCode === 0) return true;
+    if (/not recognized as an internal or external command/i.test(out)) return false;
+    if (/command not found/i.test(out)) return false;
+    if (/No such file or directory/i.test(out)) return false;
     return false;
   } catch {
     return false;
@@ -125,9 +139,13 @@ export async function ensureAuth(forceLogin = false): Promise<boolean> {
   console.log(`   or typing 'exit' and pressing Enter.\n`);
 
   try {
-    await execa('auggie', ['login'], {
-      stdio: 'inherit',
+    // Resolve auggie command to handle Windows .cmd files
+    const resolvedAuggie = Bun.which('auggie') ?? 'auggie';
+
+    const proc = Bun.spawn([resolvedAuggie, 'login'], {
+      stdio: ['inherit', 'inherit', 'inherit'],
     });
+    await proc.exited;
   } catch (error) {
     const err = error as unknown as { code?: string; stderr?: string; message?: string };
     const stderr = err?.stderr ?? '';
