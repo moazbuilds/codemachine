@@ -97,7 +97,9 @@ export async function runAgent(
     const memoryDir = path.resolve(cwd, '.codemachine', 'memory');
     const adapter = new MemoryAdapter(memoryDir);
     const store = new MemoryStore(adapter);
-    await store.append({ agentId, content: stdout, timestamp: new Date().toISOString() });
+    if (stdout.trim()) {
+      await store.append({ agentId, content: stdout, timestamp: new Date().toISOString() });
+    }
   } catch {
     // best-effort memory persistence
   }
