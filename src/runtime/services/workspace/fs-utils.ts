@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
 
 import type { AgentDefinition } from './discovery.js';
-import { info, warn, error } from '../../../shared/logging/logger.js';
+import { debug, warn, error } from '../../../shared/logging/logger.js';
 
 export async function ensureDir(dirPath: string): Promise<void> {
   await mkdir(dirPath, { recursive: true });
@@ -31,7 +31,7 @@ export async function copyPromptFile(sourcePath: string, targetPath: string): Pr
   try {
     const content = await readFile(sourcePath, 'utf8');
     await writeFile(targetPath, content, 'utf8');
-    info(`[workspace] Copied template file from ${sourcePath} to ${targetPath}`);
+    debug(`[workspace] Copied template file from ${sourcePath} to ${targetPath}`);
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
       warn(`[workspace] Template file not found: ${sourcePath}, creating empty file instead`);
