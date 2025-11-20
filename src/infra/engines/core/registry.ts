@@ -11,6 +11,7 @@ import claudeEngine from '../providers/claude/index.js';
 import cursorEngine from '../providers/cursor/index.js';
 import ccrEngine from '../providers/ccr/index.js';
 import opencodeEngine from '../providers/opencode/index.js';
+import auggieEngine from '../providers/auggie/index.js';
 
 /**
  * Engine Registry - Singleton that manages all available engines
@@ -36,6 +37,7 @@ class EngineRegistry {
       cursorEngine,
       ccrEngine,
       opencodeEngine,
+      auggieEngine,
       // Add new engines here
     ];
 

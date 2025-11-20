@@ -50,6 +50,7 @@ Then, simply run `codemachine` in your project directory to get started.
 ```bash
 codemachine
 ```
+### **Initializing a Project**
 
 ### Building from Source
 
@@ -109,6 +110,27 @@ CodeMachine requires at least one CLI-based AI engine to handle the primary role
   </tr>
   <tr>
     <td align="center" style="padding: 10px; font-size: 15px;"><strong>CCR (Claude Code Router)</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+  </tr>
+  <tr>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>OpenCode CLI</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+  </tr>
+  <tr>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Cursor CLI</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">❌</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+  </tr>
+  <tr>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Auggie CLI</strong></td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
