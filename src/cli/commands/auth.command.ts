@@ -1,10 +1,16 @@
 import type { Command } from 'commander';
 import * as path from 'node:path';
 import { homedir } from 'node:os';
+<<<<<<< HEAD
 import { execa } from 'execa';
 import prompts from 'prompts';
 import { registry } from '../../infra/engines/index.js';
 import { selectFromMenu, type SelectionChoice } from '../presentation/selection-menu.js';
+=======
+import { confirm, isCancel } from '@clack/prompts';
+import { registry } from '../../infra/engines/index.js';
+import { selectFromMenu, type SelectionChoice } from '../utils/selection-menu.js';
+>>>>>>> origin/main
 import { expandHomeDir } from '../../shared/utils/index.js';
 
 interface AuthProviderChoice extends SelectionChoice<string> {
@@ -13,7 +19,7 @@ interface AuthProviderChoice extends SelectionChoice<string> {
   description?: string;
 }
 
-async function selectAuthProvider(): Promise<string | undefined> {
+export async function selectAuthProvider(): Promise<string | undefined> {
   const choices: AuthProviderChoice[] = registry.getAll().map(engine => ({
     title: engine.metadata.name,
     value: engine.metadata.id,
@@ -27,7 +33,7 @@ async function selectAuthProvider(): Promise<string | undefined> {
   });
 }
 
-async function handleLogin(providerId: string): Promise<void> {
+export async function handleLogin(providerId: string): Promise<void> {
   const engine = registry.get(providerId);
   if (!engine) {
     throw new Error(`Unknown provider: ${providerId}`);
@@ -78,10 +84,20 @@ async function handleLogin(providerId: string): Promise<void> {
       // Show current auth providers
       console.log(`Current authentication providers:\n`);
       try {
+<<<<<<< HEAD
         await execa('opencode', ['auth', 'list'], {
           stdio: 'inherit',
           env: xdgEnv
         });
+=======
+        const proc = Bun.spawn(['opencode', 'auth', 'list'], {
+          stdout: 'inherit',
+          stderr: 'inherit',
+          stdin: 'inherit',
+          env: { ...process.env, ...xdgEnv }
+        });
+        await proc.exited;
+>>>>>>> origin/main
       } catch {
         console.log('(Unable to fetch auth list)');
       }
@@ -89,6 +105,7 @@ async function handleLogin(providerId: string): Promise<void> {
       console.log();
 
       // Ask if user wants to add another provider
+<<<<<<< HEAD
       const response = await prompts({
         type: 'confirm',
         name: 'addAnother',
@@ -97,6 +114,19 @@ async function handleLogin(providerId: string): Promise<void> {
       });
 
       if (response.addAnother) {
+=======
+      const addAnother = await confirm({
+        message: 'Do you want to add another authentication provider?',
+        initialValue: false,
+      });
+
+      if (isCancel(addAnother)) {
+        console.log('\nAuthentication update cancelled.\n');
+        return;
+      }
+
+      if (addAnother) {
+>>>>>>> origin/main
         // Force login to add another provider
         await engine.auth.ensureAuth(true);
         console.log(`\n${engine.metadata.name} authentication provider added successfully.`);
@@ -114,7 +144,7 @@ async function handleLogin(providerId: string): Promise<void> {
   console.log(`${engine.metadata.name} authentication successful.`);
 }
 
-async function handleLogout(providerId: string): Promise<void> {
+export async function handleLogout(providerId: string): Promise<void> {
   const engine = registry.get(providerId);
   if (!engine) {
     throw new Error(`Unknown provider: ${providerId}`);

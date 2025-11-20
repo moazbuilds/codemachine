@@ -52,6 +52,28 @@ codemachine
 ```
 ### **Initializing a Project**
 
+### Building from Source
+
+CodeMachine ships precompiled binaries for all platforms. For development, testing, or contributing:
+
+**Development:**
+```bash
+bun run dev  # Run from source (no build needed)
+```
+
+**Testing Locally:**
+```bash
+bun run build:binaries:local  # Build + test locally
+```
+
+**Publishing:**
+```bash
+bun run build:binaries  # Build on each platform
+npm publish             # Publish platform packages, then main package
+```
+
+### **Initializing a Project**
+
  CodeMachine initializes a `.codemachine/` workspace. To start **add your specs** to the `inputs/specifications.md` file, then **run `/start`** and watch the magic happen, CodeMachine will:
  *   **Architect a complete system blueprint from your requirements.**
  *   **Formulate detailed, step-by-step execution plans.**
@@ -111,6 +133,20 @@ CodeMachine requires at least one CLI-based AI engine to handle the primary role
     <td align="center" style="padding: 10px; font-size: 15px;"><strong>Auggie CLI</strong></td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+  </tr>
+  <tr>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>OpenCode CLI</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+  </tr>
+  <tr>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Cursor CLI</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">❌</td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
     <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
   </tr>

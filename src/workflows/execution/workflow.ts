@@ -3,10 +3,15 @@ import * as fs from 'node:fs';
 
 import type { RunWorkflowOptions } from '../templates/index.js';
 import { loadTemplateWithPath } from '../templates/index.js';
+<<<<<<< HEAD
 import {
   formatAgentLog,
 } from '../../shared/logging/index.js';
 import { debug } from '../../shared/logging/logger.js';
+=======
+import { formatAgentLog } from '../../shared/logging/index.js';
+import { debug, setDebugLogFile } from '../../shared/logging/logger.js';
+>>>>>>> origin/main
 import {
   getTemplatePathFromTracking,
   getCompletedSteps,
@@ -83,6 +88,17 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
   const cwd = options.cwd ? path.resolve(options.cwd) : process.cwd();
 
+  // Redirect debug logs to file whenever LOG_LEVEL=debug (or DEBUG env is truthy) so they don't break Ink layout
+  const rawLogLevel = (process.env.LOG_LEVEL || '').trim().toLowerCase();
+  const debugFlag = (process.env.DEBUG || '').trim().toLowerCase();
+  const debugEnabled = rawLogLevel === 'debug' || (debugFlag !== '' && debugFlag !== '0' && debugFlag !== 'false');
+  const isDebugLogLevel = debugEnabled;
+  const debugLogPath = isDebugLogLevel ? path.join(cwd, '.codemachine', 'logs', 'workflow-debug.log') : null;
+  setDebugLogFile(debugLogPath);
+
+  // Set up cleanup handlers for graceful shutdown
+  MonitoringCleanup.setup();
+
   // Load template from .codemachine/template.json or use provided path
   const cmRoot = path.join(cwd, '.codemachine');
   const templatePath = options.templatePath || (await getTemplatePathFromTracking(cmRoot));
@@ -131,6 +147,12 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
   // Initialize Workflow UI Manager
   const ui = new WorkflowUIManager(template.name);
+<<<<<<< HEAD
+=======
+  if (debugLogPath) {
+    ui.setDebugLogPath(debugLogPath);
+  }
+>>>>>>> origin/main
 
   // Pre-populate timeline with all workflow steps BEFORE starting UI
   // This prevents duplicate renders at startup
@@ -244,11 +266,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         : false;
       if (!isOverrideAuthed) {
         const pretty = overrideEngine?.metadata.name ?? engineType;
-        console.error(
-          formatAgentLog(
-            step.agentId,
-            `${pretty} override is not authenticated; falling back to first authenticated engine by order. Run 'codemachine auth login' to use ${pretty}.`,
-          ),
+        ui.logMessage(
+          uniqueAgentId,
+          `${pretty} override is not authenticated; falling back to first authenticated engine by order. Run 'codemachine auth login' to use ${pretty}.`
         );
 
         // Find first authenticated engine by order (with caching)
@@ -272,11 +292,9 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
 
         if (fallbackEngine) {
           engineType = fallbackEngine.metadata.id;
-          console.log(
-            formatAgentLog(
-              step.agentId,
-              `Falling back to ${fallbackEngine.metadata.name} (${engineType})`,
-            ),
+          ui.logMessage(
+            uniqueAgentId,
+            `Falling back to ${fallbackEngine.metadata.name} (${engineType})`
           );
         }
       }
@@ -314,6 +332,7 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     // Mutate current step to carry the chosen engine forward
     step.engine = engineType;
 
+<<<<<<< HEAD
     // Check if fallback should be executed before the original step
     if (shouldExecuteFallback(step, index, notCompletedSteps)) {
       ui.logMessage(uniqueAgentId, `Detected incomplete step. Running fallback agent first.`);
@@ -335,12 +354,37 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     // Set up skip listener and abort controller for this step
     const abortController = new AbortController();
     const skipListener = () => {
+=======
+    // Set up skip listener and abort controller for this step (covers fallback + main + triggers)
+    const abortController = new AbortController();
+    let skipRequested = false; // Prevent duplicate skip requests during async abort handling
+    const skipListener = () => {
+      if (skipRequested) {
+        // Ignore duplicate skip events (user pressing Ctrl+S rapidly)
+        // This prevents multiple "Skip requested" messages during Bun.spawn's async termination
+        return;
+      }
+      skipRequested = true;
+>>>>>>> origin/main
       ui.logMessage(uniqueAgentId, '⏭️  Skip requested by user...');
       abortController.abort();
     };
     process.once('workflow:skip', skipListener);
 
     try {
+      // Check if fallback should be executed before the original step
+      if (shouldExecuteFallback(step, index, notCompletedSteps)) {
+        ui.logMessage(uniqueAgentId, `Detected incomplete step. Running fallback agent first.`);
+        try {
+          await executeFallbackStep(step, cwd, workflowStartTime, engineType, ui, uniqueAgentId, abortController.signal);
+        } catch (error) {
+          // Fallback failed, step remains in notCompletedSteps
+          ui.logMessage(uniqueAgentId, `Fallback failed. Skipping original step retry.`);
+          // Don't update status to failed - just let it stay as running or retrying
+          throw error;
+        }
+      }
+
       const output = await executeStep(step, cwd, {
         logger: () => {}, // No-op: UI reads from log files
         stderrLogger: () => {}, // No-op: UI reads from log files
@@ -478,11 +522,17 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
         // Continue to next step - don't throw
       } else {
         // Don't update status to failed - let it stay as running/retrying
+<<<<<<< HEAD
         console.error(
           formatAgentLog(
             step.agentId,
             `${step.agentName} failed: ${error instanceof Error ? error.message : String(error)}`,
           ),
+=======
+        ui.logMessage(
+          uniqueAgentId,
+          `${step.agentName} failed: ${error instanceof Error ? error.message : String(error)}`
+>>>>>>> origin/main
         );
         throw error;
       }
@@ -523,8 +573,18 @@ export async function runWorkflow(options: RunWorkflowOptions = {}): Promise<voi
     // Never resolves - keeps event loop alive until Ctrl+C exits process
   });
   } catch (error) {
+<<<<<<< HEAD
     // On workflow error, set status and exit
     ui.setWorkflowStatus('stopped');
+=======
+    // On workflow error, set status, stop UI, then exit
+    ui.setWorkflowStatus('stopped');
+
+    // Stop UI to restore console before logging error
+    ui.stop();
+
+    // Re-throw error to be handled by caller (will now print after UI is stopped)
+>>>>>>> origin/main
     throw error;
   } finally {
     // Clean up workflow stop listener

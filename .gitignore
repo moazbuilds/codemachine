@@ -1,5 +1,6 @@
 node_modules/
 dist/
+binaries/
 coverage/
 .DS_Store
 reports/
@@ -20,3 +21,10 @@ package-lock.json
 .codemachine/prompts
 .codemachine/agents
 .codemachine/template.json
+<<<<<<< HEAD
+=======
+src/runtime/version.ts
+
+# MkDocs build output
+site/
+>>>>>>> origin/main

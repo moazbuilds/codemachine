@@ -1,6 +1,7 @@
 import * as path from 'node:path';
 import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
+<<<<<<< HEAD
 import { fileURLToPath } from 'node:url';
 import type { PlaceholdersConfig } from './types.js';
 
@@ -34,6 +35,19 @@ export function findPackageRoot(): string | null {
   }
 
   return null;
+=======
+import type { PlaceholdersConfig } from './types.js';
+import { resolvePackageRoot } from '../../utils/package-json.js';
+
+const require = createRequire(import.meta.url);
+
+function getPackageRoot(): string | null {
+  try {
+    return resolvePackageRoot(import.meta.url, 'prompts config loader');
+  } catch {
+    return null;
+  }
+>>>>>>> origin/main
 }
 
 /**
@@ -41,7 +55,11 @@ export function findPackageRoot(): string | null {
  */
 export function loadPlaceholdersConfig(): PlaceholdersConfig {
   try {
+<<<<<<< HEAD
     const packageRoot = findPackageRoot();
+=======
+    const packageRoot = getPackageRoot();
+>>>>>>> origin/main
     if (!packageRoot) {
       console.warn('Warning: Could not find codemachine package root');
       return {};
@@ -86,7 +104,11 @@ export function resolvePlaceholderPath(
   config?: PlaceholdersConfig
 ): { filePath: string; baseDir: string } | null {
   const loadedConfig = config || loadPlaceholdersConfig();
+<<<<<<< HEAD
   const packageRoot = findPackageRoot();
+=======
+  const packageRoot = getPackageRoot();
+>>>>>>> origin/main
 
   // Check userDir first, then packageDir
   if (loadedConfig.userDir && loadedConfig.userDir[placeholderName]) {

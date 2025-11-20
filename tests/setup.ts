@@ -1,5 +1,5 @@
 import { TextDecoder, TextEncoder } from 'util';
-import { afterEach, vi } from 'vitest';
+import { afterEach } from 'bun:test';
 
 const globalScope = globalThis as typeof globalThis & {
   TextEncoder?: typeof TextEncoder;
@@ -23,5 +23,10 @@ if (!process.env.CODEMACHINE_SKIP_AUTH) {
 }
 
 afterEach(() => {
-  vi.restoreAllMocks();
+  // Bun automatically restores mocks after each test
+  // But we can explicitly restore if needed
+  const global = globalThis as unknown as { restoreAllMocks?: () => void };
+  if (typeof global.restoreAllMocks === 'function') {
+    global.restoreAllMocks();
+  }
 });

@@ -1,17 +1,38 @@
+<<<<<<< HEAD
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import * as spawnModule from '../../../src/infra/process/spawn.js';
 import { runCcr } from '../../../src/infra/engines/providers/ccr/index.js';
+=======
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
+import * as spawnModule from '../../../src/infra/process/spawn.js';
+import { runCcr } from '../../../src/infra/engines/providers/ccr/execution/runner.js';
+>>>>>>> origin/main
 
 describe('CCR Engine Runner', () => {
   const workingDir = '/tmp/workspace/project';
 
+<<<<<<< HEAD
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
   it('runs the CCR CLI and returns stdout', async () => {
     const spawnSpy = vi.spyOn(spawnModule, 'spawnProcess').mockResolvedValue({
+=======
+  beforeEach(() => {
+    // Clear all mocks before each test
+    mock.restore();
+  });
+
+  afterEach(() => {
+    mock.restore();
+  });
+
+  it('runs the CCR CLI and returns stdout', async () => {
+    const spawnSpy = spyOn(spawnModule, 'spawnProcess').mockResolvedValue({
+>>>>>>> origin/main
       exitCode: 0,
       stdout: 'ccr output',
       stderr: '',
@@ -49,7 +70,11 @@ describe('CCR Engine Runner', () => {
   });
 
   it('includes model in command when specified', async () => {
+<<<<<<< HEAD
     const spawnSpy = vi.spyOn(spawnModule, 'spawnProcess').mockResolvedValue({
+=======
+    const spawnSpy = spyOn(spawnModule, 'spawnProcess').mockResolvedValue({
+>>>>>>> origin/main
       exitCode: 0,
       stdout: 'ccr output with model',
       stderr: '',
@@ -77,7 +102,11 @@ describe('CCR Engine Runner', () => {
   });
 
   it('throws when the CCR CLI exits with a non-zero status code', async () => {
+<<<<<<< HEAD
     vi.spyOn(spawnModule, 'spawnProcess').mockResolvedValue({
+=======
+    spyOn(spawnModule, 'spawnProcess').mockResolvedValue({
+>>>>>>> origin/main
       exitCode: 2,
       stdout: '',
       stderr: 'fatal: unable to launch',
@@ -92,7 +121,11 @@ describe('CCR Engine Runner', () => {
   });
 
   it('forwards stdout and stderr chunks through the streaming callbacks', async () => {
+<<<<<<< HEAD
     const spawnSpy = vi.spyOn(spawnModule, 'spawnProcess').mockImplementation(async (options) => {
+=======
+    const spawnSpy = spyOn(spawnModule, 'spawnProcess').mockImplementation(async (options) => {
+>>>>>>> origin/main
       options.onStdout?.(
         JSON.stringify({
           type: 'assistant',
@@ -107,8 +140,13 @@ describe('CCR Engine Runner', () => {
       };
     });
 
+<<<<<<< HEAD
     const handleData = vi.fn();
     const handleError = vi.fn();
+=======
+    const handleData = mock();
+    const handleError = mock();
+>>>>>>> origin/main
 
     const result = await runCcr({
       prompt: 'Stream please',
@@ -124,7 +162,11 @@ describe('CCR Engine Runner', () => {
   });
 
   it('sets up proper CCR_CONFIG_DIR environment variable', async () => {
+<<<<<<< HEAD
     const spawnSpy = vi.spyOn(spawnModule, 'spawnProcess').mockResolvedValue({
+=======
+    const spawnSpy = spyOn(spawnModule, 'spawnProcess').mockResolvedValue({
+>>>>>>> origin/main
       exitCode: 0,
       stdout: 'ccr output',
       stderr: '',

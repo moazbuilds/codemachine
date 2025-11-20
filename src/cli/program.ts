@@ -1,8 +1,5 @@
 import { createRequire } from 'module';
 import { Command } from 'commander';
-import { existsSync } from 'node:fs';
-import { dirname, join, parse } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import {
   registerStartCommand,
   registerTemplatesCommand,
@@ -11,9 +8,10 @@ import {
   registerStepCommand,
   registerAgentsCommand,
 } from './commands/index.js';
+import { resolvePackageJson } from '../shared/utils/package-json.js';
 
 export async function registerCli(program: Command): Promise<void> {
-  const packageJsonPath = findPackageJson(import.meta.url);
+  const packageJsonPath = resolvePackageJson(import.meta.url, 'CLI module');
   program
     .command('version')
     .description('Display CLI version')
@@ -36,6 +34,7 @@ export async function registerCli(program: Command): Promise<void> {
   registerAgentsCommand(program);
   await registerRunCommand(program);
   await registerStepCommand(program);
+<<<<<<< HEAD
 }
 
 function findPackageJson(moduleUrl: string): string {
@@ -50,4 +49,6 @@ function findPackageJson(moduleUrl: string): string {
   }
 
   throw new Error('Unable to locate package.json from CLI module');
+=======
+>>>>>>> origin/main
 }

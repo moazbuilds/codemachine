@@ -41,6 +41,13 @@ export default tseslint.config(
           caughtErrorsIgnorePattern: '^_',
         },
       ],
+      // Allow Bun built-in modules (bun:test, bun:sqlite, etc.)
+      'import/no-unresolved': [
+        'error',
+        {
+          ignore: ['^bun:'],
+        },
+      ],
     },
   },
   eslintConfigPrettier,

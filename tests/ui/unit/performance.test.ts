@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+=======
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
+>>>>>>> origin/main
 import {
   CircularBuffer,
   throttle,
@@ -43,7 +47,11 @@ describe('Performance Utilities', () => {
 
   describe('throttle', () => {
     it('should limit function calls', async () => {
+<<<<<<< HEAD
       const fn = vi.fn();
+=======
+      const fn = mock();
+>>>>>>> origin/main
       const throttled = throttle(fn, 100);
 
       throttled();
@@ -61,7 +69,11 @@ describe('Performance Utilities', () => {
 
   describe('debounce', () => {
     it('should delay execution until calls stop', async () => {
+<<<<<<< HEAD
       const fn = vi.fn();
+=======
+      const fn = mock();
+>>>>>>> origin/main
       const debounced = debounce(fn, 50);
 
       debounced();
@@ -99,6 +111,7 @@ describe('Performance Utilities', () => {
   });
 
   describe('BatchUpdater', () => {
+<<<<<<< HEAD
     beforeEach(() => {
       vi.useFakeTimers();
     });
@@ -107,6 +120,12 @@ describe('Performance Utilities', () => {
       const updater = new BatchUpdater(50);
       const fn1 = vi.fn();
       const fn2 = vi.fn();
+=======
+    it('should batch updates', async () => {
+      const updater = new BatchUpdater(50);
+      const fn1 = mock();
+      const fn2 = mock();
+>>>>>>> origin/main
 
       updater.schedule(fn1);
       updater.schedule(fn2);
@@ -114,7 +133,12 @@ describe('Performance Utilities', () => {
       expect(fn1).not.toHaveBeenCalled();
       expect(fn2).not.toHaveBeenCalled();
 
+<<<<<<< HEAD
       vi.advanceTimersByTime(50);
+=======
+      // Wait for batch to execute
+      await new Promise(resolve => setTimeout(resolve, 60));
+>>>>>>> origin/main
 
       expect(fn1).toHaveBeenCalledTimes(1);
       expect(fn2).toHaveBeenCalledTimes(1);
@@ -122,7 +146,11 @@ describe('Performance Utilities', () => {
 
     it('should flush immediately when requested', () => {
       const updater = new BatchUpdater(100);
+<<<<<<< HEAD
       const fn = vi.fn();
+=======
+      const fn = mock();
+>>>>>>> origin/main
 
       updater.schedule(fn);
       expect(fn).not.toHaveBeenCalled();
@@ -131,14 +159,24 @@ describe('Performance Utilities', () => {
       expect(fn).toHaveBeenCalledTimes(1);
     });
 
+<<<<<<< HEAD
     it('should clear pending updates', () => {
       const updater = new BatchUpdater(100);
       const fn = vi.fn();
+=======
+    it('should clear pending updates', async () => {
+      const updater = new BatchUpdater(50);
+      const fn = mock();
+>>>>>>> origin/main
 
       updater.schedule(fn);
       updater.clear();
 
+<<<<<<< HEAD
       vi.advanceTimersByTime(100);
+=======
+      await new Promise(resolve => setTimeout(resolve, 60));
+>>>>>>> origin/main
       expect(fn).not.toHaveBeenCalled();
     });
   });

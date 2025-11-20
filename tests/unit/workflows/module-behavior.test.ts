@@ -1,7 +1,11 @@
 import { mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+<<<<<<< HEAD
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+=======
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+>>>>>>> origin/main
 
 import { evaluateLoopBehavior } from '../../../src/workflows/behaviors/loop/evaluator.js';
 import { resolveModule } from '../../../src/workflows/utils/index.js';

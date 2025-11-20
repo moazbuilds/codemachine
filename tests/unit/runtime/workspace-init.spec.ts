@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 
 import { bootstrapWorkspace } from '../../../src/runtime/services/workspace/index.js';
 
@@ -208,7 +208,8 @@ describe('bootstrapWorkspace', () => {
   it('creates template.json when templatePath is provided', async () => {
     const projectRoot = await createProject(tempDir);
     const desiredCwd = join(tempDir, 'projects', 'template-test');
-    const templatePath = join(projectRoot, '../../../templates/workflows/codemachine.workflow.js');
+    // Use import.meta.dir to construct absolute path to the template file
+    const templatePath = join(import.meta.dir, '../../../templates/workflows/codemachine.workflow.js');
 
     await bootstrapWorkspace({ projectRoot, cwd: desiredCwd, templatePath });
 

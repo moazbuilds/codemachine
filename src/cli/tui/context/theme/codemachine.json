@@ -1,0 +1,109 @@
+{
+  "$schema": "https://opencode.ai/theme.json",
+  "defs": {
+    "darkStep1": "#181D27",
+    "darkStep2": "#141414",
+    "darkStep3": "#1e1e1e",
+    "darkStep4": "#282828",
+    "darkStep5": "#323232",
+    "darkStep6": "#3c3c3c",
+    "darkStep7": "#484848",
+    "darkStep8": "#606060",
+    "darkStep9": "#00D9FF",
+    "darkStep10": "#00C4E6",
+    "darkStep11": "#808080",
+    "darkStep12": "#eeeeee",
+    "darkSecondary": "#A78BFA",
+    "darkMutedBlue": "#6B8CA3",
+    "darkPurple": "#6250d0",
+    "darkRed": "#ef4444",
+    "darkGreen": "#10b981",
+    "darkYellow": "#f59e0b",
+    "darkCyan": "#06b6d4",
+    "lightStep1": "#ffffff",
+    "lightStep2": "#fafafa",
+    "lightStep3": "#f5f5f5",
+    "lightStep4": "#ebebeb",
+    "lightStep5": "#e1e1e1",
+    "lightStep6": "#d4d4d4",
+    "lightStep7": "#b8b8b8",
+    "lightStep8": "#a0a0a0",
+    "lightStep9": "#0891b2",
+    "lightStep10": "#0e7490",
+    "lightStep11": "#6b7280",
+    "lightStep12": "#1a1a1a",
+    "lightSecondary": "#7c3aed",
+    "lightMutedBlue": "#5B7C93",
+    "lightPurple": "#6250d0",
+    "lightRed": "#dc2626",
+    "lightGreen": "#059669",
+    "lightYellow": "#d97706",
+    "lightCyan": "#0e7490"
+  },
+  "theme": {
+    "primary": {
+      "dark": "darkStep9",
+      "light": "lightStep9"
+    },
+    "secondary": {
+      "dark": "darkSecondary",
+      "light": "lightSecondary"
+    },
+    "error": {
+      "dark": "darkRed",
+      "light": "lightRed"
+    },
+    "warning": {
+      "dark": "darkYellow",
+      "light": "lightYellow"
+    },
+    "success": {
+      "dark": "darkGreen",
+      "light": "lightGreen"
+    },
+    "info": {
+      "dark": "darkCyan",
+      "light": "lightCyan"
+    },
+    "text": {
+      "dark": "darkStep12",
+      "light": "lightStep12"
+    },
+    "textMuted": {
+      "dark": "darkStep11",
+      "light": "lightStep11"
+    },
+    "background": {
+      "dark": "darkStep1",
+      "light": "lightStep1"
+    },
+    "backgroundPanel": {
+      "dark": "darkStep2",
+      "light": "lightStep2"
+    },
+    "backgroundElement": {
+      "dark": "darkStep3",
+      "light": "lightStep3"
+    },
+    "border": {
+      "dark": "darkStep7",
+      "light": "lightStep7"
+    },
+    "borderActive": {
+      "dark": "darkStep8",
+      "light": "lightStep8"
+    },
+    "borderSubtle": {
+      "dark": "darkStep6",
+      "light": "lightStep6"
+    },
+    "mutedBlue": {
+      "dark": "darkMutedBlue",
+      "light": "lightMutedBlue"
+    },
+    "purple": {
+      "dark": "darkPurple",
+      "light": "lightPurple"
+    }
+  }
+}

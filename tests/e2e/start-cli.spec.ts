@@ -4,7 +4,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import os from 'node:os';
-import { afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it } from 'bun:test';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -146,7 +146,12 @@ afterEach(() => {
 
 describe('codemachine CLI smoke', () => {
   it('shows the interactive start menu', async () => {
+<<<<<<< HEAD
     const result = await runCommand('node', ['dist/index.js'], {
+=======
+    // Use 'bun' instead of 'node' since the CLI uses bun:sqlite and other Bun-specific features
+    const result = await runCommand('bun', ['dist/index.js'], {
+>>>>>>> origin/main
       env: {
         CODEX_HOME: engineFixturesDir,
       },

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { describe, it, expect } from 'vitest';
+=======
+import { describe, it, expect } from 'bun:test';
+>>>>>>> origin/main
 import { WorkflowUIManager } from '../../../src/ui/manager/WorkflowUIManager';
 import { parseTelemetryChunk } from '../../../src/ui/utils/telemetryParser';
 import { processOutputChunk } from '../../../src/ui/utils/outputProcessor';

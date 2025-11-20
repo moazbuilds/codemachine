@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 
 import { MemoryAdapter, type MemoryAnalyticsHooks } from '../../../src/infra/fs/memory-adapter.js';
 import { MemoryStore, type MemoryEntry } from '../../../src/agents/index.js';
@@ -18,13 +18,11 @@ const readPersistedEntries = async (directory: string, agentId: string): Promise
 
 describe('MemoryStore', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2024-05-01T12:00:00Z'));
+    // Timer mocking not needed for these tests
   });
 
   afterEach(async () => {
-    vi.clearAllMocks();
-    vi.useRealTimers();
+    mock.restore();
     await fs.rm(tempRoot, { recursive: true, force: true });
   });
 
@@ -115,8 +113,8 @@ describe('MemoryStore', () => {
   });
 
   it('invokes analytics hooks around append and list operations', async () => {
-    const onAppend = vi.fn();
-    const onRead = vi.fn();
+    const onAppend = mock();
+    const onRead = mock();
     const hooks: MemoryAnalyticsHooks = { onAppend, onRead };
 
     const { store } = createStore('analytics', hooks);

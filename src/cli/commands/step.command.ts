@@ -13,6 +13,10 @@ import {
   stopSpinner,
   createSpinnerLoggers,
 } from '../../shared/logging/index.js';
+<<<<<<< HEAD
+=======
+import { info } from '../../shared/logging/logger.js';
+>>>>>>> origin/main
 import { processPromptString } from '../../shared/prompts/index.js';
 
 type StepCommandOptions = {
@@ -96,7 +100,11 @@ async function executeStep(
     }
 
     engineType = foundEngine.metadata.id;
+<<<<<<< HEAD
     console.log(`ℹ️  No engine specified for agent '${agentId}', using ${foundEngine.metadata.name} (${engineType})`);
+=======
+    info(`No engine specified for agent '${agentId}', using ${foundEngine.metadata.name} (${engineType})`);
+>>>>>>> origin/main
   }
 
   // Ensure authentication

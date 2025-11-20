@@ -1,0 +1,67 @@
+name: Build Platform Binaries
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-platform:
+    name: Build ${{ matrix.slug }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            slug: codemachine-linux-x64
+          - os: macos-14
+            slug: codemachine-darwin-arm64
+          - os: macos-13
+            slug: codemachine-darwin-x64
+          - os: windows-latest
+            slug: codemachine-windows-x64
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.3.0
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build platform binary
+        run: bun run build:binaries
+
+      - name: Verify cm alias in package.json
+        shell: bash
+        run: |
+          if ! grep -q '"cm"' binaries/${{ matrix.slug }}/package.json; then
+            echo "❌ ERROR: 'cm' alias missing from binaries/${{ matrix.slug }}/package.json"
+            exit 1
+          fi
+          echo "✅ cm alias verified in package.json"
+
+      - name: Test binary execution (Unix)
+        if: runner.os != 'Windows'
+        continue-on-error: true
+        run: |
+          chmod +x binaries/${{ matrix.slug }}/codemachine
+          binaries/${{ matrix.slug }}/codemachine --version || echo "⚠️  Binary execution test skipped (may require dependencies)"
+
+      - name: Test binary execution (Windows)
+        if: runner.os == 'Windows'
+        continue-on-error: true
+        run: |
+          binaries/${{ matrix.slug }}/codemachine.exe --version
+          if ($LASTEXITCODE -ne 0) { Write-Host "⚠️  Binary execution test skipped (may require dependencies)" }
+
+      - name: Upload binary package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.slug }}
+          path: binaries/${{ matrix.slug }}

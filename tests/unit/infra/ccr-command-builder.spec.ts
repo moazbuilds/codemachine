@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { describe, expect, it } from 'vitest';
+=======
+import { describe, expect, it } from 'bun:test';
+>>>>>>> origin/main
 
 import { buildCcrExecCommand } from '../../../src/infra/engines/providers/ccr/execution/commands.js';
 

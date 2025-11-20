@@ -4,7 +4,10 @@ import { getEngine, registry } from '../../infra/engines/index.js';
 import { loadAgentConfig, loadAgentTemplate } from '../../agents/runner/index.js';
 import { MemoryAdapter } from '../../infra/fs/memory-adapter.js';
 import { MemoryStore } from '../../agents/index.js';
+<<<<<<< HEAD
 import { formatAgentLog } from '../../shared/logging/index.js';
+=======
+>>>>>>> origin/main
 import { processPromptString } from '../../shared/prompts/index.js';
 import type { WorkflowUIManager } from '../../ui/index.js';
 import { AgentMonitorService, AgentLoggerService } from '../../agents/monitoring/index.js';
@@ -56,14 +59,29 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
       }
 
       // Register triggered agent with parent relationship and engine/model info
+<<<<<<< HEAD
       monitoringAgentId = await monitor.register({
         name: triggerAgentId,
         prompt: `Triggered by ${sourceAgentId}`,
+=======
+      const promptText = `Triggered by ${sourceAgentId}`;
+      monitoringAgentId = await monitor.register({
+        name: triggerAgentId,
+        prompt: promptText,
+>>>>>>> origin/main
         parentId: parentMonitoringId,
         engineProvider: engineType,
         modelName: triggeredModel,
       });
 
+<<<<<<< HEAD
+=======
+      // Store full prompt for debug mode logging
+      if (loggerService && monitoringAgentId !== undefined) {
+        loggerService.storeFullPrompt(monitoringAgentId, promptText);
+      }
+
+>>>>>>> origin/main
       // Register monitoring ID with UI immediately so it can load logs
       if (ui && monitoringAgentId !== undefined) {
         ui.registerMonitoringId(triggerAgentId, monitoringAgentId);
@@ -171,12 +189,21 @@ export async function executeTriggerAgent(options: TriggerExecutionOptions): Pro
     }
 
     // Don't update status to failed - let it stay as running/retrying
+<<<<<<< HEAD
     console.error(
       formatAgentLog(
         sourceAgentId,
         `Triggered agent '${triggerAgentId}' failed: ${triggerError instanceof Error ? triggerError.message : String(triggerError)}`,
       ),
     );
+=======
+    if (ui) {
+      ui.logMessage(
+        sourceAgentId,
+        `Triggered agent '${triggerAgentId}' failed: ${triggerError instanceof Error ? triggerError.message : String(triggerError)}`
+      );
+    }
+>>>>>>> origin/main
     // Continue with workflow even if triggered agent fails
     throw triggerError;
   }

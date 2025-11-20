@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { describe, it, expect, beforeEach } from 'vitest';
+=======
+import { describe, it, expect, beforeEach } from 'bun:test';
+>>>>>>> origin/main
 import { WorkflowUIState } from '../../../src/ui/state/WorkflowUIState';
 
 describe('WorkflowUIState', () => {
