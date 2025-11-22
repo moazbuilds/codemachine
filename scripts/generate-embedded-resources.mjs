@@ -99,27 +99,40 @@ export function getEmbeddedResourceArchive(): Buffer {
 }
 `;
 
-  let cacheBase = getCacheBase();
-  let cacheDir = join(cacheBase, cacheDirName);
-  try {
-    mkdirSync(cacheDir, { recursive: true });
-  } catch (error) {
-    if ((error?.code === 'EACCES' || error?.code === 'EPERM')) {
-      cacheBase = join(tmpdir(), 'codemachine-cache');
-      cacheDir = join(cacheBase, cacheDirName);
+  const writeCache = () => {
+    let cacheBase = getCacheBase();
+    let cacheDir = join(cacheBase, cacheDirName);
+    let cacheFile = join(cacheDir, 'embedded-resources.json');
+
+    try {
       mkdirSync(cacheDir, { recursive: true });
-    } else {
+      writeFileSync(cacheFile, JSON.stringify({
+        version: packageJson.version,
+        hash,
+        size: compressed.length,
+        base64,
+      }, null, 2));
+      return { cacheFile };
+    } catch (error) {
+      // Fall back to a temp cache if the primary location is not writable
+      if (error?.code === 'EACCES' || error?.code === 'EPERM') {
+        cacheBase = join(tmpdir(), 'codemachine-cache');
+        cacheDir = join(cacheBase, cacheDirName);
+        cacheFile = join(cacheDir, 'embedded-resources.json');
+        mkdirSync(cacheDir, { recursive: true });
+        writeFileSync(cacheFile, JSON.stringify({
+          version: packageJson.version,
+          hash,
+          size: compressed.length,
+          base64,
+        }, null, 2));
+        return { cacheFile };
+      }
       throw error;
     }
-  }
-  const cacheFile = join(cacheDir, 'embedded-resources.json');
-  const cachePayload = {
-    version: packageJson.version,
-    hash,
-    size: compressed.length,
-    base64,
   };
-  writeFileSync(cacheFile, JSON.stringify(cachePayload, null, 2));
+
+  const { cacheFile } = writeCache();
 
   if (shouldWriteStub) {
     mkdirSync(resourcesDir, { recursive: true });

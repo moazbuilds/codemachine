@@ -66,20 +66,8 @@ jobs:
           name: ${{ matrix.slug }}
           path: binaries/${{ matrix.slug }}
 
-      - name: Setup npm auth
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-
       - name: Smoke test platform binary
         shell: bash
         run: |
           chmod +x binaries/${{ matrix.slug }}/codemachine* || true
           binaries/${{ matrix.slug }}/codemachine --version
-
-      - name: Publish platform package to npm
-        if: startsWith(github.ref, 'refs/tags/v')
-        shell: bash
-        run: |
-          cd binaries/${{ matrix.slug }}
-          npm publish --access public --tag latest

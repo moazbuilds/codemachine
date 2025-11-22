@@ -4,6 +4,7 @@ import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { platform, arch } from 'node:os';
 import { generateEmbeddedResources } from './generate-embedded-resources.mjs';
+import { $ } from 'bun';
 
 // Simple ANSI colors
 const cyan = '\x1b[36m';
@@ -14,11 +15,26 @@ const dim = '\x1b[2m';
 const bold = '\x1b[1m';
 const reset = '\x1b[0m';
 
-// Detect current platform
-const currentPlatform = platform();
-const currentArch = arch();
+// Host platform (used for defaults and for installing a local binary)
+const hostPlatform = platform();
+const hostArch = arch();
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
+// Force temp/cache into repo-local .tmp to avoid permission issues on shared runners
+const localTmp = join(repoRoot, '.tmp', 'tmp');
+const localCache = join(repoRoot, '.tmp', 'cache');
+const bunInstallCache = join(repoRoot, '.tmp', 'bun-install-cache');
+const bunInstallRoot = join(repoRoot, '.tmp', 'bun');
+mkdirSync(localTmp, { recursive: true });
+mkdirSync(localCache, { recursive: true });
+mkdirSync(bunInstallCache, { recursive: true });
+mkdirSync(bunInstallRoot, { recursive: true });
+process.env.TMPDIR = process.env.TMPDIR || localTmp;
+process.env.XDG_CACHE_HOME = process.env.XDG_CACHE_HOME || localCache;
+process.env.BUN_TMPDIR = process.env.BUN_TMPDIR || localTmp;
+process.env.BUN_INSTALL_CACHE_DIR = process.env.BUN_INSTALL_CACHE_DIR || bunInstallCache;
+process.env.BUN_INSTALL_CACHE = process.env.BUN_INSTALL_CACHE || bunInstallCache;
+process.env.BUN_INSTALL = process.env.BUN_INSTALL || bunInstallRoot;
 const packageJsonPath = join(repoRoot, 'package.json');
 const mainPackage = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
 const mainVersion = mainPackage.version;
@@ -59,11 +75,21 @@ if (mainPackage.optionalDependencies) {
   }
 }
 
-console.log(`\n${dim}Platform:${reset} ${bold}${currentPlatform}-${currentArch}${reset}\n`);
-
 // Load OpenTUI solid plugin for JSX transformation
 const solidPluginPath = resolve(repoRoot, 'node_modules/@opentui/solid/scripts/solid-plugin.ts');
 const solidPlugin = (await import(solidPluginPath)).default;
+
+// Ensure platform-specific deps are installed for all targets (mirrors opencode flow)
+const coreVersion = mainPackage.dependencies?.['@opentui/core'];
+if (coreVersion) {
+  console.log(`${cyan}→${reset} Installing cross-platform @opentui/core (${coreVersion})`);
+  await $`bun install --os="*" --cpu="*" --ignore-scripts --silent @opentui/core@${coreVersion}`;
+}
+const watcherVersion = mainPackage.dependencies?.['@parcel/watcher'];
+if (watcherVersion) {
+  console.log(`${cyan}→${reset} Installing cross-platform @parcel/watcher (${watcherVersion})`);
+  await $`bun install --os="*" --cpu="*" --ignore-scripts --silent @parcel/watcher@${watcherVersion}`;
+}
 
 // Map platform/arch to target names
 const platformMap = {
@@ -73,117 +99,141 @@ const platformMap = {
   'win32-x64': { target: 'bun-windows-x64', os: 'windows', arch: 'x64', ext: '.exe' },
 };
 
-const platformKey = `${currentPlatform}-${currentArch}`;
-const platformConfig = platformMap[platformKey];
+// Determine which targets to build
+const args = process.argv.slice(2);
+const argTargetIndex = args.findIndex((arg) => arg === '--target' || arg === '-t');
+const flagAll = args.includes('--all') || process.env.TARGETS === 'all';
+const requestedTargets =
+  argTargetIndex !== -1 && args[argTargetIndex + 1]
+    ? args[argTargetIndex + 1].split(',').map((t) => t.trim()).filter(Boolean)
+    : process.env.TARGETS && process.env.TARGETS !== 'all'
+      ? process.env.TARGETS.split(',').map((t) => t.trim()).filter(Boolean)
+      : [];
 
-if (!platformConfig) {
-  console.error(`${red}✗${reset} Unsupported platform: ${bold}${platformKey}${reset}`);
-  console.error(`${dim}Supported:${reset} ${Object.keys(platformMap).join(', ')}`);
-  process.exit(1);
-}
+const defaultTarget = `${hostPlatform}-${hostArch}`;
+const targetKeys = flagAll
+  ? Object.keys(platformMap)
+  : requestedTargets.length
+    ? requestedTargets
+    : [defaultTarget];
 
-const { target, os, arch: archName, ext } = platformConfig;
-const outdir = join('./binaries', `codemachine-${os}-${archName}`);
+const targets = targetKeys.map((key) => {
+  const cfg = platformMap[key];
+  if (!cfg) {
+    console.error(`${red}✗${reset} Unsupported target: ${bold}${key}${reset}`);
+    console.error(`${dim}Supported:${reset} ${Object.keys(platformMap).join(', ')}`);
+    process.exit(1);
+  }
+  return { key, ...cfg };
+});
 
-console.log(`${cyan}→${reset} Building executables for ${dim}${target}${reset}...`);
-mkdirSync(outdir, { recursive: true });
+console.log(`\n${dim}Targets:${reset} ${bold}${targets.map((t) => t.key).join(', ')}${reset}\n`);
+
+const outputRoot = process.env.OUTPUT_DIR || process.env.OUTPUT_ROOT || './binaries';
 
 try {
-  // Build TWO separate executables to prevent JSX runtime conflicts:
-  // 1. Main TUI executable (with SolidJS transform)
-  // 2. Workflow runner executable (NO SolidJS transform, React/Ink only)
+  for (const targetConfig of targets) {
+    const { target, os, arch: archName, ext = '', key } = targetConfig;
+    const outdir = join(outputRoot, `codemachine-${os}-${archName}`);
 
-  console.log(`  ${dim}├─${reset} Main TUI executable...`);
-  const binaryPath = join(outdir, `codemachine${ext}`);
+    console.log(`${cyan}→${reset} Building executables for ${dim}${target}${reset}...`);
+    mkdirSync(outdir, { recursive: true });
 
-  const result = await Bun.build({
-    conditions: ['browser'],
-    tsconfig: './tsconfig.json',
-    plugins: [solidPlugin], // SolidJS transform for TUI
-    minify: true,
-    define: {
-      __CODEMACHINE_VERSION__: JSON.stringify(mainVersion),
-    },
-    compile: {
-      target: target,
-      outfile: binaryPath,
-    },
-    entrypoints: ['./src/runtime/index.ts'],
-  });
+    // Build TWO separate executables to prevent JSX runtime conflicts:
+    // 1. Main TUI executable (with SolidJS transform)
+    // 2. Workflow runner executable (NO SolidJS transform, React/Ink only)
 
-  if (!result.success) {
-    console.error(`  ${red}✗${reset} Main TUI build failed:`);
-    for (const log of result.logs) {
-      console.error(`    ${dim}${log}${reset}`);
+    console.log(`  ${dim}├─${reset} Main TUI executable...`);
+    const binaryPath = join(outdir, `codemachine${ext}`);
+
+    const result = await Bun.build({
+      conditions: ['browser'],
+      tsconfig: './tsconfig.json',
+      plugins: [solidPlugin], // SolidJS transform for TUI
+      minify: true,
+      define: {
+        __CODEMACHINE_VERSION__: JSON.stringify(mainVersion),
+      },
+      compile: {
+        target: target,
+        outfile: binaryPath,
+      },
+      entrypoints: ['./src/runtime/index.ts'],
+    });
+
+    if (!result.success) {
+      console.error(`  ${red}✗${reset} Main TUI build failed:`);
+      for (const log of result.logs) {
+        console.error(`    ${dim}${log}${reset}`);
+      }
+      process.exit(1);
     }
-    process.exit(1);
+
+    console.log(`  ${green}✓${reset} ${dim}Main TUI built${reset}`);
+    console.log(`  ${dim}├─${reset} Workflow runner executable...`);
+
+    const workflowBinaryPath = join(outdir, `codemachine-workflow${ext}`);
+
+    const workflowResult = await Bun.build({
+      conditions: ['browser'],
+      tsconfig: './tsconfig.json',
+      // NO SolidJS plugin - React/Ink JSX only
+      minify: true,
+      define: {
+        __CODEMACHINE_VERSION__: JSON.stringify(mainVersion),
+      },
+      compile: {
+        target: target,
+        outfile: workflowBinaryPath,
+      },
+      entrypoints: ['./src/workflows/runner-process.ts'],
+    });
+
+    if (!workflowResult.success) {
+      console.error(`  ${red}✗${reset} Workflow runner build failed:`);
+      for (const log of workflowResult.logs) {
+        console.error(`    ${dim}${log}${reset}`);
+      }
+      process.exit(1);
+    }
+
+    console.log(`  ${green}✓${reset} ${dim}Workflow runner built${reset}`);
+
+    // Create package.json for the platform-specific package
+    const pkgName = `codemachine-${os}-${archName}`;
+    const binEntries = {
+      codemachine: `codemachine${ext}`,
+      'codemachine-workflow': `codemachine-workflow${ext}`,
+      cm: `codemachine${ext}`,
+    };
+
+    const pkg = {
+      name: pkgName,
+      version: mainVersion,
+      description: `${mainPackage.description} (prebuilt ${os}-${archName} binaries)`,
+      os: [os],
+      cpu: [archName],
+      files: ['codemachine' + ext, 'codemachine-workflow' + ext],
+      bin: binEntries,
+    };
+
+    await Bun.write(join(outdir, 'package.json'), JSON.stringify(pkg, null, 2));
+
+    // Only install the host platform binary locally for development ergonomics
+    if (key === `${hostPlatform}-${hostArch}`) {
+      const localPkgDir = join(repoRoot, 'node_modules', pkgName);
+      rmSync(localPkgDir, { recursive: true, force: true });
+      mkdirSync(join(repoRoot, 'node_modules'), { recursive: true });
+      cpSync(outdir, localPkgDir, { recursive: true });
+      console.log(`${dim}  • Installed host binary to${reset} ${localPkgDir}`);
+    }
+
+    console.log(`${green}✓${reset} ${bold}Built ${pkgName}${reset}`);
+    console.log(`${dim}  • ${outdir}/codemachine${ext}${reset}`);
+    console.log(`${dim}  • ${outdir}/codemachine-workflow${ext}${reset}\n`);
   }
 
-  console.log(`  ${green}✓${reset} ${dim}Main TUI built${reset}`);
-  console.log(`  ${dim}├─${reset} Workflow runner executable...`);
-
-  const workflowBinaryPath = join(outdir, `codemachine-workflow${ext}`);
-
-  const workflowResult = await Bun.build({
-    conditions: ['browser'],
-    tsconfig: './tsconfig.json',
-    // NO SolidJS plugin - React/Ink JSX only
-    minify: true,
-    define: {
-      __CODEMACHINE_VERSION__: JSON.stringify(mainVersion),
-    },
-    compile: {
-      target: target,
-      outfile: workflowBinaryPath,
-    },
-    entrypoints: ['./src/workflows/runner-process.ts'],
-  });
-
-  if (!workflowResult.success) {
-    console.error(`  ${red}✗${reset} Workflow runner build failed:`);
-    for (const log of workflowResult.logs) {
-      console.error(`    ${dim}${log}${reset}`);
-    }
-    process.exit(1);
-  }
-
-  console.log(`  ${green}✓${reset} ${dim}Workflow runner built${reset}`);
-
-  // Create package.json for the platform-specific package
-  const pkgName = `codemachine-${os}-${archName}`;
-  const binEntries = {
-    codemachine: `codemachine${ext}`,
-    'codemachine-workflow': `codemachine-workflow${ext}`,
-    cm: `codemachine${ext}`,
-  };
-
-  const pkg = {
-    name: pkgName,
-    version: mainVersion,
-    description: `${mainPackage.description} (prebuilt ${os}-${archName} binaries)`,
-    os: [os],
-    cpu: [archName],
-    files: ['codemachine' + ext, 'codemachine-workflow' + ext],
-    bin: binEntries,
-  };
-
-  await Bun.write(
-    join(outdir, 'package.json'),
-    JSON.stringify(pkg, null, 2)
-  );
-
-  const localPkgDir = join(repoRoot, 'node_modules', pkgName);
-  rmSync(localPkgDir, { recursive: true, force: true });
-  mkdirSync(join(repoRoot, 'node_modules'), { recursive: true });
-  cpSync(outdir, localPkgDir, { recursive: true });
-
-  console.log(`\n${green}✓${reset} ${bold}Build complete!${reset}\n`);
-  console.log(`${dim}Binaries:${reset}`);
-  console.log(`  • ${outdir}/codemachine${ext}`);
-  console.log(`  • ${outdir}/codemachine-workflow${ext}`);
-  console.log(`\n${dim}Installed to:${reset} ${localPkgDir}`);
-  console.log(`\n${cyan}ℹ${reset} ${dim}Note: Builds for current platform only (${platformKey})${reset}\n`);
-
+  console.log(`\n${green}✓${reset} ${bold}Build complete for ${targets.length} target(s)${reset}\n`);
 } catch (error) {
   console.error(`\n${red}✗${reset} ${bold}Build failed${reset}`);
   console.error(`${dim}${error.message}${reset}`);

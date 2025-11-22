@@ -39,8 +39,8 @@
     "_comment_release": "Release: Publishing and validation",
     "prepare": "husky install",
     "validate": "bun scripts/validate.mjs",
-    "release": "bun scripts/publish.mjs --tag latest",
-    "publish:platform": "bun scripts/publish-platform.mjs"
+    "release": "bun scripts/publish.ts --tag latest",
+    "publish:all": "bun scripts/publish.ts --tag latest --dry-run"
   },
   "dependencies": {
     "1.3.0": "^1.3.0",
