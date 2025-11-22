@@ -28,7 +28,6 @@ export interface RunOpenCodeResult {
 }
 
 const ANSI_ESCAPE_SEQUENCE = new RegExp(String.raw`\u001B\[[0-9;?]*[ -/]*[@-~]`, 'g');
-const DEFAULT_PERMISSION_POLICY = '{"edit":"allow","webfetch":"allow","bash":{"*":"allow"}}';
 
 function shouldApplyDefault(key: string, overrides?: NodeJS.ProcessEnv): boolean {
   return overrides?.[key] === undefined && process.env[key] === undefined;

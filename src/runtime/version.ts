@@ -10,10 +10,12 @@ import { join } from 'node:path';
  * This ensures the code works in both `bun run dev` and compiled binaries.
  */
 
-// @ts-ignore - This will be injected by the build script for compiled binaries
-const INJECTED_VERSION: string | undefined = typeof __CODEMACHINE_VERSION__ !== 'undefined'
-  ? __CODEMACHINE_VERSION__
-  : undefined;
+const INJECTED_VERSION: string | undefined =
+  // @ts-expect-error - This will be injected by the build script for compiled binaries
+  typeof __CODEMACHINE_VERSION__ !== 'undefined'
+    // @ts-expect-error - This will be injected by the build script for compiled binaries
+    ? __CODEMACHINE_VERSION__
+    : undefined;
 
 let cachedVersion: string | null = null;
 

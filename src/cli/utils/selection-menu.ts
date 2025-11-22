@@ -28,7 +28,8 @@ export async function selectFromMenu<T = string>(
 
   const result = await select({
     message: options.message,
-    options: selectOptions as any,
+    // @ts-expect-error - clack's Option type is not exported, but this matches the expected shape
+    options: selectOptions,
     initialValue: options.initial !== undefined ? options.choices[options.initial]?.value : undefined
   });
 

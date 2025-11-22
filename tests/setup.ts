@@ -29,4 +29,4 @@ afterEach(() => {
   if (typeof global.restoreAllMocks === 'function') {
     global.restoreAllMocks();
   }
-});
+}, 1000); // Add 1 second timeout for global cleanup

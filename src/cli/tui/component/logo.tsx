@@ -1,10 +1,8 @@
 /** @jsxImportSource @opentui/solid */
 import { TextAttributes, RGBA } from "@opentui/core"
-import { For, Show, createSignal, onCleanup, type JSX } from "solid-js"
+import { For, Show, createSignal, type JSX } from "solid-js"
 import { useTheme } from "@tui/context/theme"
 import { useTerminalDimensions } from "@opentui/solid"
-import { createRequire } from 'node:module'
-import { resolvePackageJson } from '../../../shared/utils/package-json.js'
 
 // Base CODE_TEXT frames for animation (single arrow moving down)
 const CODE_TEXT_FRAMES = [
@@ -51,13 +49,6 @@ const SIMPLE_TEXT = [
   '█▀▀ █▀█ █▀▄ █▀▀ █▀▄▀█ ▄▀█ █▀▀ █ █ █ █▄ █ █▀▀',
   '█▄▄ █▄█ █▄▀ ██▄ █ ▀ █ █▀█ █▄▄ █▀█ █ █ ▀█ ██▄'
 ]
-
-function getVersion(): string {
-  const require = createRequire(import.meta.url)
-  const packageJsonPath = resolvePackageJson(import.meta.url, 'logo component')
-  const pkg = require(packageJsonPath) as { version: string }
-  return pkg.version
-}
 
 // Helper to render a line with two-tone coloring using spans
 function ColoredLine(props: { line: string; blockColor: RGBA; borderColor: RGBA; bold?: boolean }) {
@@ -119,9 +110,6 @@ export function Logo() {
   const isNarrow = () => dimensions().width < 100
   // Check if height is short
   const isShort = () => dimensions().height < 22
-  // Check if very narrow or very short (minimal fallback)
-  const isVeryNarrow = () => dimensions().width < 70
-  const isVeryShort = () => dimensions().height < 17
   // If height is tall (>30 lines), show stacked. Otherwise, side-by-side
   const hasTallHeight = () => dimensions().height > 30
 

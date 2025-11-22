@@ -9,7 +9,7 @@ import util from 'node:util'
  */
 
 let logStream: fs.WriteStream | null = null
-let logListener: ((logEntry: [Date, string, any[], any]) => void) | null = null
+let logListener: ((logEntry: [Date, string, unknown[], unknown]) => void) | null = null
 
 /**
  * Access OpenTUI's singleton cache directly via the global symbol
@@ -56,7 +56,7 @@ export function initTUILogger() {
     const terminalConsoleCache = getTerminalConsoleCache()
 
     if (terminalConsoleCache) {
-      logListener = (logEntry: [Date, string, any[], any]) => {
+      logListener = (logEntry: [Date, string, unknown[], unknown]) => {
         handleLogEntry(logEntry)
       }
 
@@ -76,14 +76,14 @@ export function initTUILogger() {
 /**
  * Handle a log entry from OpenTUI
  */
-function handleLogEntry(logEntry: [Date, string, any[], any]) {
+function handleLogEntry(logEntry: [Date, string, unknown[], unknown]) {
   if (!logStream) return
 
   const [date, level, args] = logEntry
   const timestamp = date.toISOString()
 
   const message = args
-    .map((arg: any) => {
+    .map((arg: unknown) => {
       if (arg instanceof Error) {
         return `${arg.message}\n${arg.stack || ''}`
       }

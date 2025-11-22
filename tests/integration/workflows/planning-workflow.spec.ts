@@ -24,12 +24,12 @@ describe('validateSpecification', () => {
   it('resolves when specification file has content', async () => {
     await writeFile(tempSpecPath, '# Planning Spec\n- Outline');
 
-    await expect(validateSpecification(tempSpecPath, false)).resolves.toBeUndefined();
+    await expect(validateSpecification(tempSpecPath)).resolves.toBeUndefined();
   });
 
   it('rejects when specification file is empty', async () => {
     await writeFile(tempSpecPath, '');
 
-    await expect(validateSpecification(tempSpecPath, false)).rejects.toThrow(/Please write your spec file before starting/);
+    await expect(validateSpecification(tempSpecPath)).rejects.toThrow(/Please add your project requirements/);
   });
 });

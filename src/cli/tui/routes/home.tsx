@@ -62,7 +62,7 @@ export function Home(props: { initialToast?: InitialToast }) {
       const specPath = path.join(cwd, '.codemachine', 'inputs', 'specifications.md')
 
       try {
-        const { validateSpecification, ValidationError } = await import("../../../workflows/execution/queue.js")
+        const { validateSpecification } = await import("../../../workflows/execution/queue.js")
         await validateSpecification(specPath)
       } catch (error) {
         // Show validation error as info toast (instructional, not error) and keep TUI running

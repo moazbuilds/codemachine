@@ -12,7 +12,7 @@ export default {
     resolveStep('context-manager', { engine: 'codex' }), // Gather and prepare relevant context from architecture, plan, and codebase for task execution
     resolveStep('code-generation', { engine: 'claude' }), // Generate code implementation based on task specifications and design artifacts
     resolveStep('runtime-prep', { executeOnce: true, engine: 'claude' }), // Generate robust shell scripts for project automation (install, run, lint, test)
-    resolveStep('task-sanity-check', { engine: 'claude' }), // Verify generated code against task requirements and acceptance criteria
+    resolveStep('task-sanity-check', { engine: 'codex' }), // Verify generated code against task requirements and acceptance criteria
     resolveStep('git-commit', { engine: 'cursor' }), // Commit the generated and verified code
     resolveUI("◈◈ Iteration Gate ◈◈"),
     resolveModule('check-task', { engine: 'cursor', loopSteps: 6, loopMaxIterations: 20,  loopSkip: ['runtime-prep']  }), // Loop back if tasks are not completed
