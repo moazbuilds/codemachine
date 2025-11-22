@@ -53,10 +53,10 @@
         "typescript-eslint": "^8.44.1",
       },
       "optionalDependencies": {
-        "codemachine-darwin-arm64": "0.6.1",
-        "codemachine-darwin-x64": "0.6.1",
-        "codemachine-linux-x64": "0.6.1",
-        "codemachine-windows-x64": "0.6.1",
+        "codemachine-darwin-arm64": "0.6.2",
+        "codemachine-darwin-x64": "0.6.2",
+        "codemachine-linux-x64": "0.6.2",
+        "codemachine-windows-x64": "0.6.2",
       },
     },
   },
@@ -494,14 +494,6 @@
     "cli-truncate": ["cli-truncate@4.0.0", "", { "dependencies": { "slice-ansi": "^5.0.0", "string-width": "^7.0.0" } }, "sha512-nPdaFdQ0h/GEigbPClz11D0v/ZJEwxmeVZGeMo3Z5StPtUTkA9o1lD6QwoirYiSDzbcwn2XcjwmCp68W1IS4TA=="],
 
     "code-excerpt": ["code-excerpt@4.0.0", "", { "dependencies": { "convert-to-spaces": "^2.0.1" } }, "sha512-xxodCmBen3iy2i0WtAK8FlFNrRzjUqjRsMfho58xT/wvZU1YTM3fCnRjcy1gJPMepaRlgm/0e6w8SpWHpn3/cA=="],
-
-    "codemachine-darwin-arm64": ["codemachine-darwin-arm64@0.6.1", "", { "os": "darwin", "cpu": "arm64", "bin": { "cm": "codemachine", "codemachine": "codemachine", "codemachine-workflow": "codemachine-workflow" } }, "sha512-wBBD6TUJfpkpr+vVugdFw+Re30t9RGgEHwCr9jkHZcRgSmXLIRsgfO4LS0nELPPG1EoqE7XFxVtWvHQnr5Wjzw=="],
-
-    "codemachine-darwin-x64": ["codemachine-darwin-x64@0.6.1", "", { "os": "darwin", "cpu": "x64", "bin": { "cm": "codemachine", "codemachine": "codemachine", "codemachine-workflow": "codemachine-workflow" } }, "sha512-wrWuu6lsYDwXcVgFQ4JEUl6ogwWy8cNLvf1UbpOyrMBmW+lCMOev9Xy91XhXEiMIscHoOFt0XnhYDN1QoAjgxw=="],
-
-    "codemachine-linux-x64": ["codemachine-linux-x64@0.6.1", "", { "os": "linux", "cpu": "x64", "bin": { "cm": "codemachine", "codemachine": "codemachine", "codemachine-workflow": "codemachine-workflow" } }, "sha512-LDWZNTf56rsD6Tdlvnr+qvLuoDWGGDwfPEAG21gsBMlABbwGzJaZTecoA19hcukuqTYgh1IUW4f6rtliZjyulg=="],
-
-    "codemachine-windows-x64": ["codemachine-windows-x64@0.6.1", "", { "os": "none", "cpu": "x64", "bin": { "cm": "codemachine.exe", "codemachine": "codemachine.exe", "codemachine-workflow": "codemachine-workflow.exe" } }, "sha512-tSv1zCrw0sgAFXh2/YO5bOb3Rm7xUVlAB81J9/6r6dqIXtlCax2JGEB1+7JWlwub173+oJZsLllaFWHFbCIeqQ=="],
 
     "color-convert": ["color-convert@2.0.1", "", { "dependencies": { "color-name": "~1.1.4" } }, "sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ=="],
 
