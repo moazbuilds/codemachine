@@ -197,7 +197,7 @@ Found a bug or have a feature idea? Check our <strong><a href="./CONTRIBUTING.md
 ## 📖 References
 
 <p align="center">
-<table width="100%">
+<table align="center">
   <tbody>
     <tr>
       <td align="center">

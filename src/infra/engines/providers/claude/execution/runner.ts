@@ -159,10 +159,15 @@ export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeRes
 
   const { command, args } = buildClaudeExecCommand({ workingDir, prompt, model });
 
-  // Debug logging only when LOG_LEVEL=debug
+  // Debug logging - always log basic info
+  console.error(`[DEBUG] Claude runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
+  console.error(`[DEBUG] Claude runner - args: ${args.join(' ')}, model: ${model ?? 'default'}`);
+
+  // Additional detailed logging when LOG_LEVEL=debug
   if (process.env.LOG_LEVEL === 'debug') {
-    console.error(`[DEBUG] Claude runner - prompt length: ${prompt.length}, lines: ${prompt.split('\n').length}`);
-    console.error(`[DEBUG] Claude runner - args count: ${args.length}, model: ${model ?? 'default'}`);
+    console.error(`[DEBUG] Claude runner - command: ${command} ${args.join(' ')}`);
+    console.error(`[DEBUG] Claude runner - working dir: ${workingDir}`);
+    console.error(`[DEBUG] Claude runner - prompt preview: ${prompt.substring(0, 200)}...`);
   }
 
   // Create telemetry capture instance
@@ -238,15 +243,50 @@ export async function runClaude(options: RunClaudeOptions): Promise<RunClaudeRes
 
   if (result.exitCode !== 0) {
     const errorOutput = result.stderr.trim() || result.stdout.trim() || 'no error output';
-    const lines = errorOutput.split('\n').slice(0, 10);
 
-    console.error('[ERROR] Claude CLI execution failed', {
-      exitCode: result.exitCode,
-      error: lines.join('\n'),
-      command: `${command} ${args.join(' ')}`,
-    });
+    // Parse the error to provide a user-friendly message
+    let errorMessage = `Claude CLI exited with code ${result.exitCode}`;
+    try {
+      // Try to parse stream-json output for specific error messages
+      const lines = errorOutput.split('\n');
+      for (const line of lines) {
+        if (line.trim() && line.startsWith('{')) {
+          const json = JSON.parse(line);
 
-    throw new Error(`Claude CLI exited with code ${result.exitCode}`);
+          // Check for error in result type
+          if (json.type === 'result' && json.is_error && json.result) {
+            errorMessage = json.result;
+            break;
+          }
+
+          // Check for error in assistant message
+          if (json.type === 'assistant' && json.error) {
+            const messageText = json.message?.content?.[0]?.text;
+            if (messageText) {
+              errorMessage = messageText;
+            } else if (json.error === 'rate_limit') {
+              errorMessage = 'Rate limit reached. Please try again later.';
+            } else {
+              errorMessage = json.error;
+            }
+            break;
+          }
+        }
+      }
+    } catch {
+      // If parsing fails, use the raw error output
+      const lines = errorOutput.split('\n').slice(0, 10);
+      if (lines.length > 0 && lines[0]) {
+        errorMessage = lines.join('\n');
+      }
+    }
+
+    // Send error to stderr callback if provided
+    if (onErrorData) {
+      onErrorData(`\n[ERROR] ${errorMessage}\n`);
+    }
+
+    throw new Error(errorMessage);
   }
 
   // Log captured telemetry
