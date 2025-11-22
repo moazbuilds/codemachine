@@ -1,6 +1,6 @@
 {
   "name": "codemachine",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Multi-Agent Workflow Orchestration.",
   "type": "module",
   "bin": {
@@ -17,10 +17,10 @@
     "bun": "1.3.3"
   },
   "optionalDependencies": {
-    "codemachine-linux-x64": "0.6.1",
-    "codemachine-darwin-arm64": "0.6.1",
-    "codemachine-darwin-x64": "0.6.1",
-    "codemachine-windows-x64": "0.6.1"
+    "codemachine-linux-x64": "0.6.2",
+    "codemachine-darwin-arm64": "0.6.2",
+    "codemachine-darwin-x64": "0.6.2",
+    "codemachine-windows-x64": "0.6.2"
   },
   "scripts": {
     "_comment_dev": "Development: Run from source (no build needed)",
