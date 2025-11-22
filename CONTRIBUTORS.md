@@ -16,6 +16,15 @@ Enhanced the UI system and contributed innovative ideas during brainstorming ses
 ### [TheMightyDman](https://github.com/TheMightyDman)
 Added OpenCode CLI engine integration, which brings support for multiple AI providers (Anthropic, OpenAI, Google, and more) to CodeMachine. An enthusiastic and active contributor to the project.
 
+### [AlexFigures](https://github.com/AlexFigures)
+Added Auggie CLI engine support, expanding CodeMachine's capabilities with another powerful AI engine option.
+
+### [Hady Walied](https://github.com/hadywalied)
+Added MKDocs integration, improving the project's documentation infrastructure.
+
+### [LegendEvent](https://github.com/LegendEvent)
+Reported and fixed a critical bug in the OpenCode engine integration, helping improve stability and reliability.
+
 ---
 
 Want to see your name here? Check out our [Contributing Guide](./CONTRIBUTING.md) to get started!

@@ -10,8 +10,6 @@
 <p align="center">
   <strong>CodeMachine</strong> is a CLI-native Orchestration Engine that runs coordinated multi-agent workflows directly on your local machine. It provides the runtime infrastructure to execute complex multi-agent topologies within your own environment. Designed to drive any high-level autonomous objective, it features a battle-tested Spec-to-Code blueprint—transforming your terminal into a factory for production-ready software. ⚡️<br></p>
 
-> **⚠️ Early Development Notice:** This project is in early development and is not yet ready for production use. Features may change, break, or be incomplete.
-
 <p align="center">
   <img src="docs/assets/demo.gif" alt="CodeMachine in Action" width="800">
 </p>
@@ -27,6 +25,9 @@
 </p>
 
 ---
+
+> **⚠️ Early Development Notice:** This project is in early development and is not yet ready for production use. Features may change, break, or be incomplete.
+
 
 ## Why CodeMachine?
 
@@ -195,31 +196,23 @@ Found a bug or have a feature idea? Check our <strong><a href="./CONTRIBUTING.md
 
 ## 📖 References
 
-<p align="center">
-<table align="center">
+<table width="100%">
   <tbody>
     <tr>
-      <td align="center" width="33%">
-        <a href="http://docs.codemachine.co/">
-          <strong>📚 Documentation</strong><br/>
-          <sub>Complete guides and CLI reference</sub>
-        </a>
+      <td align="center">
+        <strong><a href="http://docs.codemachine.co/">📚 Documentation</a></strong><br/>
+        <sub>Complete guides and CLI reference</sub>
       </td>
-      <td align="center" width="33%">
-        <a href="./docs/specification-schema.md">
-          <strong>📝 Specification Schema</strong><br/>
-          <sub>Learn how to write specifications</sub>
-        </a>
+      <td align="center">
+        <strong><a href="./docs/specification-schema.md">📝 Specification Schema</a></strong><br/>
+        <sub>Learn how to write specifications</sub>
       </td>
-      <td align="center" width="33%">
-        <a href="./docs/case-studies/sustaina.md">
-          <strong>📊 Case Study</strong><br/>
-          <sub>Real-world production example</sub>
-        </a>
+      <td align="center">
+        <strong><a href="./docs/case-studies/sustaina.md">📊 Case Study</a></strong><br/>
+        <sub>Real-world production example</sub>
       </td>
     </tr>
   </tbody>
 </table>
-</p>
 
 ---
