@@ -131,6 +131,14 @@ const publishPackage = async (dir: string, displayName: string): Promise<'publis
     log(`✅ ${dryRun ? 'Dry-run' : 'Published'} ${displayName}@${pkgVersion}`);
     return 'published';
   } catch (error) {
+    // Check if it's an "already published" error
+    const errorStr = String(error);
+    if (errorStr.includes('Cannot publish over previously published version') ||
+        errorStr.includes('You cannot publish over the previously published versions')) {
+      log(`⏭️  Skipping ${displayName}@${pkgVersion} (already published - detected during publish attempt)`);
+      return 'skipped';
+    }
+
     console.error(`❌ Failed to publish ${displayName}@${pkgVersion}`);
     console.error(`Error details:`, error);
     throw error; // Re-throw to stop the script
