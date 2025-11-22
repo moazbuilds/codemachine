@@ -1,0 +1,276 @@
+
+/* Avoid breaking parameter names, etc. in table cells. */
+.doc-contents td code {
+  word-break: normal !important;
+}
+
+/* No line break before first paragraph of descriptions. */
+.doc-md-description,
+.doc-md-description>p:first-child {
+  display: inline;
+}
+
+/* Max width for docstring sections tables. */
+.doc .md-typeset__table,
+.doc .md-typeset__table table {
+  display: table !important;
+  width: 100%;
+}
+
+.doc .md-typeset__table tr {
+  display: table-row;
+}
+
+/* Defaults in Spacy table style. */
+.doc-param-default {
+  float: right;
+}
+
+/* Parameter headings must be inline, not blocks. */
+.doc-heading-parameter {
+  display: inline;
+}
+
+/* Prefer space on the right, not the left of parameter permalinks. */
+.doc-heading-parameter .headerlink {
+  margin-left: 0 !important;
+  margin-right: 0.2rem;
+}
+
+/* Symbols in Navigation and ToC. */
+:root,
+[data-md-color-scheme="default"] {
+  --doc-symbol-ts-accessor-fg-color: #6f42c1;
+  --doc-symbol-ts-attribute-fg-color: #6f42c1;
+  --doc-symbol-ts-class-fg-color: #22863a;
+  --doc-symbol-ts-constructor-fg-color: #1f66ff;
+  --doc-symbol-ts-data-fg-color: #0366d6;
+  --doc-symbol-ts-enum-fg-color: #6f42c1;
+  --doc-symbol-ts-enum_member-fg-color: #f0ad4e;
+  --doc-symbol-ts-interface-fg-color: #6f42c1;
+  --doc-symbol-ts-method-fg-color: #0366d6;
+  --doc-symbol-ts-module-fg-color: #0366d6;
+  --doc-symbol-ts-namespace-fg-color: #0366d6;
+  --doc-symbol-ts-parameter-fg-color: #e36209;
+  --doc-symbol-ts-project-fg-color: #24292f;
+  --doc-symbol-ts-property-fg-color: #6f42c1;
+  --doc-symbol-ts-type-fg-color: #6f42c1;
+  --doc-symbol-ts-type_alias-fg-color: #6f42c1;
+  --doc-symbol-ts-variable-fg-color: #e36209;
+
+  --doc-symbol-ts-accessor-bg-color: #6f42c11a;
+  --doc-symbol-ts-attribute-bg-color: #6f42c11a;
+  --doc-symbol-ts-class-bg-color: #22863a1a;
+  --doc-symbol-ts-constructor-bg-color: #1f66ff1a;
+  --doc-symbol-ts-data-bg-color: #0366d61a;
+  --doc-symbol-ts-enum-bg-color: #6f42c11a;
+  --doc-symbol-ts-enum_member-bg-color: #f0ad4e1a;
+  --doc-symbol-ts-interface-bg-color: #6f42c11a;
+  --doc-symbol-ts-method-bg-color: #0366d61a;
+  --doc-symbol-ts-module-bg-color: #0366d61a;
+  --doc-symbol-ts-namespace-bg-color: #0366d61a;
+  --doc-symbol-ts-parameter-bg-color: #e362091a;
+  --doc-symbol-ts-project-bg-color: #24292f1a;
+  --doc-symbol-ts-property-bg-color: #6f42c11a;
+  --doc-symbol-ts-type-bg-color: #6f42c11a;
+  --doc-symbol-ts-type_alias-bg-color: #6f42c11a;
+  --doc-symbol-ts-variable-bg-color: #e362091a;
+}
+
+[data-md-color-scheme="slate"] {
+  --doc-symbol-ts-accessor-fg-color: #d4a5f0;
+  --doc-symbol-ts-attribute-fg-color: #d4a5f0;
+  --doc-symbol-ts-class-fg-color: #78e7d1;
+  --doc-symbol-ts-constructor-fg-color: #6ba3ff;
+  --doc-symbol-ts-data-fg-color: #58a6ff;
+  --doc-symbol-ts-enum-fg-color: #d4a5f0;
+  --doc-symbol-ts-enum_member-fg-color: #ffb864;
+  --doc-symbol-ts-interface-fg-color: #d4a5f0;
+  --doc-symbol-ts-method-fg-color: #58a6ff;
+  --doc-symbol-ts-module-fg-color: #58a6ff;
+  --doc-symbol-ts-namespace-fg-color: #58a6ff;
+  --doc-symbol-ts-parameter-fg-color: #f4a261;
+  --doc-symbol-ts-project-fg-color: #e1e4e8;
+  --doc-symbol-ts-property-fg-color: #d4a5f0;
+  --doc-symbol-ts-type-fg-color: #d4a5f0;
+  --doc-symbol-ts-type_alias-fg-color: #d4a5f0;
+  --doc-symbol-ts-variable-fg-color: #f4a261;
+
+  --doc-symbol-ts-accessor-bg-color: #d4a5f01a;
+  --doc-symbol-ts-attribute-bg-color: #d4a5f01a;
+  --doc-symbol-ts-class-bg-color: #78e7d11a;
+  --doc-symbol-ts-constructor-bg-color: #6ba3ff1a;
+  --doc-symbol-ts-data-bg-color: #58a6ff1a;
+  --doc-symbol-ts-enum-bg-color: #d4a5f01a;
+  --doc-symbol-ts-enum_member-bg-color: #ffb8641a;
+  --doc-symbol-ts-interface-bg-color: #d4a5f01a;
+  --doc-symbol-ts-method-bg-color: #58a6ff1a;
+  --doc-symbol-ts-module-bg-color: #58a6ff1a;
+  --doc-symbol-ts-namespace-bg-color: #58a6ff1a;
+  --doc-symbol-ts-parameter-bg-color: #f4a2611a;
+  --doc-symbol-ts-project-bg-color: #e1e4e81a;
+  --doc-symbol-ts-property-bg-color: #d4a5f01a;
+  --doc-symbol-ts-type-bg-color: #d4a5f01a;
+  --doc-symbol-ts-type_alias-bg-color: #d4a5f01a;
+  --doc-symbol-ts-variable-bg-color: #f4a2611a;
+}
+
+code.doc-symbol {
+  border-radius: .1rem;
+  font-size: .85em;
+  padding: 0 .3em;
+  font-weight: bold;
+}
+
+code.doc-symbol-ts-accessor {
+  color: var(--doc-symbol-ts-accessor-fg-color);
+  background-color: var(--doc-symbol-ts-accessor-bg-color);
+}
+
+code.doc-symbol-ts-accessor::after {
+  content: "accessor";
+}
+
+code.doc-symbol-ts-attribute {
+  color: var(--doc-symbol-ts-attribute-fg-color);
+  background-color: var(--doc-symbol-ts-attribute-bg-color);
+}
+
+code.doc-symbol-ts-attribute::after {
+  content: "attribute";
+}
+
+code.doc-symbol-ts-class {
+  color: var(--doc-symbol-ts-class-fg-color);
+  background-color: var(--doc-symbol-ts-class-bg-color);
+}
+
+code.doc-symbol-ts-class::after {
+  content: "class";
+}
+
+code.doc-symbol-ts-constructor {
+  color: var(--doc-symbol-ts-constructor-fg-color);
+  background-color: var(--doc-symbol-ts-constructor-bg-color);
+}
+
+code.doc-symbol-ts-constructor::after {
+  content: "constructor";
+}
+
+code.doc-symbol-ts-data {
+  color: var(--doc-symbol-ts-data-fg-color);
+  background-color: var(--doc-symbol-ts-data-bg-color);
+}
+
+code.doc-symbol-ts-data::after {
+  content: "data";
+}
+
+code.doc-symbol-ts-enum {
+  color: var(--doc-symbol-ts-enum-fg-color);
+  background-color: var(--doc-symbol-ts-enum-bg-color);
+}
+
+code.doc-symbol-ts-enum::after {
+  content: "enum";
+}
+
+code.doc-symbol-ts-enum_member {
+  color: var(--doc-symbol-ts-enum_member-fg-color);
+  background-color: var(--doc-symbol-ts-enum_member-bg-color);
+}
+
+code.doc-symbol-ts-enum_member::after {
+  content: "enum-member";
+}
+
+code.doc-symbol-ts-interface {
+  color: var(--doc-symbol-ts-interface-fg-color);
+  background-color: var(--doc-symbol-ts-interface-bg-color);
+}
+
+code.doc-symbol-ts-interface::after {
+  content: "interface";
+}
+
+code.doc-symbol-ts-method {
+  color: var(--doc-symbol-ts-method-fg-color);
+  background-color: var(--doc-symbol-ts-method-bg-color);
+}
+
+code.doc-symbol-ts-method::after {
+  content: "method";
+}
+
+code.doc-symbol-ts-module {
+  color: var(--doc-symbol-ts-module-fg-color);
+  background-color: var(--doc-symbol-ts-module-bg-color);
+}
+
+code.doc-symbol-ts-module::after {
+  content: "module";
+}
+
+code.doc-symbol-ts-namespace {
+  color: var(--doc-symbol-ts-namespace-fg-color);
+  background-color: var(--doc-symbol-ts-namespace-bg-color);
+}
+
+code.doc-symbol-ts-namespace::after {
+  content: "namespace";
+}
+
+code.doc-symbol-ts-parameter {
+  color: var(--doc-symbol-ts-parameter-fg-color);
+  background-color: var(--doc-symbol-ts-parameter-bg-color);
+}
+
+code.doc-symbol-ts-parameter::after {
+  content: "parameter";
+}
+
+code.doc-symbol-ts-project {
+  color: var(--doc-symbol-ts-project-fg-color);
+  background-color: var(--doc-symbol-ts-project-bg-color);
+}
+
+code.doc-symbol-ts-project::after {
+  content: "project";
+}
+
+code.doc-symbol-ts-property {
+  color: var(--doc-symbol-ts-property-fg-color);
+  background-color: var(--doc-symbol-ts-property-bg-color);
+}
+
+code.doc-symbol-ts-property::after {
+  content: "property";
+}
+
+code.doc-symbol-ts-type {
+  color: var(--doc-symbol-ts-type-fg-color);
+  background-color: var(--doc-symbol-ts-type-bg-color);
+}
+
+code.doc-symbol-ts-type::after {
+  content: "type";
+}
+
+code.doc-symbol-ts-type_alias {
+  color: var(--doc-symbol-ts-type_alias-fg-color);
+  background-color: var(--doc-symbol-ts-type_alias-bg-color);
+}
+
+code.doc-symbol-ts-type_alias::after {
+  content: "type-alias";
+}
+
+code.doc-symbol-ts-variable {
+  color: var(--doc-symbol-ts-variable-fg-color);
+  background-color: var(--doc-symbol-ts-variable-bg-color);
+}
+
+code.doc-symbol-ts-variable::after {
+  content: "variable";
+}
