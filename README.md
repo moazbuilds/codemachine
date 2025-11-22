@@ -1,3 +1,6 @@
+<p align="center">
+  <img src="docs/assets/banner.jpg" alt="CodeMachine Banner" width="100%">
+</p>
 
 <p align="center">
   <code>npm i -g codemachine</code>
@@ -5,7 +8,7 @@
 
 
 <p align="center">
-  <strong>CodeMachine CLI</strong> is an autonomous multi-agent platform that works locally on your computer, turning specifications into production-ready code.<br></p>
+  <strong>CodeMachine</strong> is a CLI-native Orchestration Engine that runs coordinated multi-agent workflows directly on your local machine. It provides the runtime infrastructure to execute complex multi-agent topologies within your own environment. Designed to drive any high-level autonomous objective, it features a battle-tested Spec-to-Code blueprint—transforming your terminal into a factory for production-ready software. ⚡️<br></p>
 
 <p align="center">
   <img src="docs/assets/demo.gif" alt="CodeMachine in Action" width="800">
@@ -24,12 +27,7 @@
 
 ---
 
-## **What is CodeMachine?**
-
-CodeMachine is a CLI-native orchestration platform that transforms specification files and contextual inputs into production-ready code through coordinated multi-agent workflows. Specialized AI agents operate in hierarchical and parallel configurations with the ability for bidirectional communication, enabling runtime-adaptable methodologies that dynamically adjust to project requirements without framework modifications.
-
-
-**Why CodeMachine?**
+## Why CodeMachine?
 
 *   **Customizable, End-to-End Workflows:** Architect sophisticated orchestration pipelines for any scale, from executing simple scripts to managing multi-day, complex development cycles.
 *   **Strategic Multi-Agent Collaboration:** Leverage a heterogeneous multi-agent system by assigning specialized models to specific tasks—for instance, using Gemini for planning, Claude for implementation, and another model for code review.
@@ -50,38 +48,6 @@ Then, simply run `codemachine` in your project directory to get started.
 ```bash
 codemachine
 ```
-### **Initializing a Project**
-
-### Building from Source
-
-CodeMachine ships precompiled binaries for all platforms. For development, testing, or contributing:
-
-**Development:**
-```bash
-bun run dev  # Run from source (no build needed)
-```
-
-**Building Binaries:**
-```bash
-bun run build  # Compile binaries for your current platform
-```
-
-After building, the CLI shim automatically resolves the local binary when run from this repo.  
-To invoke the binary from **any** directory (without publishing), point the shim at the compiled executable:
-
-```bash
-export CODEMACHINE_BIN_PATH="$(pwd)/binaries/codemachine-<os>-<arch>/codemachine"
-codemachine --version
-```
-
-> Replace `<os>` / `<arch>` with the folder Bun created (for example `codemachine-linux-x64`).  
-> On Windows, use `set CODEMACHINE_BIN_PATH=...` and point to `codemachine.exe`.
-
-**Publishing:**
-```bash
-bun run build  # Run on each target platform
-npm publish    # Publish platform packages, then the main package
-```
 
 ### **Initializing a Project**
 
@@ -94,105 +60,28 @@ npm publish    # Publish platform packages, then the main package
 
 ### Supported AI Engines
 
-CodeMachine requires at least one CLI-based AI engine to handle the primary roles of planning and writing code, and is designed to orchestrate multiple engines to collaborate within a single workflow. The table below shows the current status of supported engines and their platform compatibility.
-
-
-<table align="center" style="width: 80%; margin: 0 auto;">
-  <tr>
-    <th align="center" style="padding: 12px; font-size: 16px;">CLI Engine</th>
-    <th align="center" style="padding: 12px; font-size: 16px;">Status</th>
-    <th align="center" style="padding: 12px; font-size: 16px;">Windows</th>
-    <th align="center" style="padding: 12px; font-size: 16px;">macOS</th>
-    <th align="center" style="padding: 12px; font-size: 16px;">Linux</th>
-  </tr>
-  <tr>
-    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Codex CLI</strong></td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">⚠️</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-  </tr>
-  <tr>
-    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Claude Code</strong></td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-  </tr>
-  <tr>
-    <td align="center" style="padding: 10px; font-size: 15px;"><strong>CCR (Claude Code Router)</strong></td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-  </tr>
-  <tr>
-    <td align="center" style="padding: 10px; font-size: 15px;"><strong>OpenCode CLI</strong></td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-  </tr>
-  <tr>
-    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Cursor CLI</strong></td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">❌</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-  </tr>
-  <tr>
-    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Auggie CLI</strong></td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-  </tr>
-  <tr>
-    <td align="center" style="padding: 10px; font-size: 15px;"><strong>OpenCode CLI</strong></td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-  </tr>
-  <tr>
-    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Cursor CLI</strong></td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">❌</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-  </tr>
-  <tr>
-    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Gemini CLI</strong></td>
-    <td align="center" style="padding: 10px; font-size: 15px;">🚧 Coming Soon</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-  </tr>
-<tr>
-    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Qwen Coder</strong></td>
-    <td align="center" style="padding: 10px; font-size: 15px;">🚧 Coming Soon</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
-  </tr>
-</table>
+CodeMachine requires at least one CLI-based AI engine to handle the primary roles of planning and writing code, and is designed to orchestrate multiple engines to collaborate within a single workflow.
 
 <p align="center">
-  <em>✅ Fully Supported  |  ⚠️ Not Officially Supported  |  ❌ Not Available</em>
+<table>
+  <thead>
+    <tr>
+      <th align="left">CLI Engine</th>
+      <th align="center">Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><strong><a href="https://github.com/openai/codex/">Codex CLI</a></strong></td><td align="center"><code>✓ Supported</code></td></tr>
+    <tr><td><strong><a href="https://github.com/anthropics/claude-code">Claude Code</a></strong></td><td align="center"><code>✓ Supported</code></td></tr>
+    <tr><td><strong><a href="https://github.com/musistudio/claude-code-router">CCR (Claude Code Router)</a></strong></td><td align="center"><code>✓ Supported</code></td></tr>
+    <tr><td><strong><a href="https://github.com/sst/opencode">OpenCode CLI</a></strong></td><td align="center"><code>✓ Supported</code></td></tr>
+    <tr><td><strong><a href="https://cursor.com/cli">Cursor CLI</a></strong></td><td align="center"><code>✓ Supported</code></td></tr>
+    <tr><td><strong><a href="https://www.augmentcode.com/product/CLI">Auggie CLI</a></strong></td><td align="center"><code>✓ Supported</code></td></tr>
+    <tr><td><strong><a href="https://github.com/google-gemini/gemini-cli">Gemini CLI</a></strong></td><td align="center"><code>⊙ Coming Soon</code></td></tr>
+    <tr><td><strong><a href="https://github.com/QwenLM/qwen-code">Qwen Coder</a></strong></td><td align="center"><code>⊙ Coming Soon</code></td></tr>
+  </tbody>
+</table>
 </p>
-
-### OpenCode CLI Integration
-
-OpenCode ships as a first-class engine. Install the CLI with `npm i -g opencode-ai@latest` (or `brew install opencode`, `scoop install extras/opencode`, `choco install opencode`) and then:
-
-- `codemachine opencode run "build hello world"` streams JSON-formatted OpenCode output through CodeMachine’s log markers.
-- Workflow steps can force OpenCode with `codemachine step <agent> --engine opencode --model anthropic/claude-3.7-sonnet`.
-- Guardrail environment defaults (overridable) are applied automatically:  
-  `OPENCODE_PERMISSION={"edit":"allow","webfetch":"allow","bash":{"*":"allow"}}`,  
-  `OPENCODE_DISABLE_LSP_DOWNLOAD=1`, `OPENCODE_DISABLE_DEFAULT_PLUGINS=1`, and `OPENCODE_CONFIG_DIR=$HOME/.codemachine/opencode`.
-- Set `CODEMACHINE_SKIP_OPENCODE=1` for dry-run workflows or `CODEMACHINE_PLAIN_LOGS=1` when you need ANSI-free logs.
-
----
 
 ## **Production Validation:**
 
@@ -289,79 +178,47 @@ We conducted a real-world comparison by monitoring development work on a project
 
 ---
 
-## 📚 Documentation
+## ⭐ Contributors
 
-**Getting Started**
-- [Prerequisites & Installation](docs/architecture.md#prerequisites)
-- [Quick Start Guide](docs/architecture.md#get-your-first-project-generated)
-  - [Writing Your Specification](docs/specification-schema.md#part-1-the-essentials-core-requirements-for-any-project)
-  - [Running the Workflow](docs/architecture.md#get-your-first-project-generated)
-- [How CodeMachine Works](docs/architecture.md#how-codemachine-works)
+<p align="center">
+CodeMachine is built with contributions from amazing developers. Special thanks to everyone who has helped shape this project.
+</p>
 
-**Core Concepts**
-- [Agents in CodeMachine](docs/architecture.md#agents-in-codemachine)
-  - [Main Agents](docs/architecture.md#main-agents)
-  - [Sub Agents](docs/architecture.md#sub-agents)
-  - [Modules](docs/architecture.md#modules)
-  - [Dynamic Agent Generation](docs/architecture.md#dynamic-agent-generation)
-- [Communication Patterns](docs/architecture.md#agent-communication-patterns)
-  - [Sequential Execution](docs/architecture.md#1-sequential-hierarchical-communication)
-  - [Parent-Child Delegation](docs/architecture.md#2-parent-child-agent-to-agent-communication)
-- [Context Management](docs/architecture.md#agent-context-management-types)
-  - [File-Based Memory](docs/architecture.md#1-file-based-main-agent-memory)
-  - [Session Memory](docs/architecture.md#2-orchestrator-agent-session-memory)
+<p align="center"><strong><a href="./CONTRIBUTORS.md">See all contributors →</a></strong></p>
 
-**CLI Usage**
-- [CLI Overview](docs/cli-reference.md#overview)
-  - [Global Options](docs/cli-reference.md#overview)
-  - [Interactive Mode](docs/cli-reference.md#interactive-mode)
-- [Workflow Commands](docs/cli-reference.md#workflow-commands)
-  - [Start Command](docs/cli-reference.md#start)
-  - [Template Selection](docs/cli-reference.md#templates)
-- [Development Commands](docs/cli-reference.md#development-commands)
-  - [Run Command](docs/cli-reference.md#run)
-  - [Step Execution](docs/cli-reference.md#step)
-- [Authentication](docs/cli-reference.md#auth)
-  - [Login](docs/cli-reference.md#auth-login)
-  - [Logout](docs/cli-reference.md#auth-logout)
-- [Advanced Topics](docs/cli-reference.md#advanced-topics)
-  - [Engine-Specific Commands](docs/cli-reference.md#engine-specific-commands)
-
-**Creating Custom Workflows**
-- [Workflow Templates](docs/customizing-workflows.md#workflow-templates)
-  - [Template Structure](docs/customizing-workflows.md#template-structure)
-  - [Step Resolution Functions](docs/customizing-workflows.md#step-resolution-functions)
-  - [Override Options](docs/customizing-workflows.md#complete-override-options-reference)
-- [Configuring Agents](docs/customizing-workflows.md#configuration-files)
-  - [Main Agents](docs/customizing-workflows.md#main-agents-configuration)
-  - [Sub Agents](docs/customizing-workflows.md#sub-agents-configuration)
-  - [Workflow Modules](docs/customizing-workflows.md#workflow-modules-configuration)
-- [Engine & Model Selection](docs/customizing-workflows.md#engine--model-configuration)
-  - [Available Engines](docs/customizing-workflows.md#available-engines)
-  - [Model Options](docs/customizing-workflows.md#model-options)
-  - [Reasoning Levels](docs/customizing-workflows.md#reasoning-effort-levels)
-- [Advanced Patterns](docs/customizing-workflows.md#advanced-workflow-patterns)
-  - [Loop Behaviors](docs/customizing-workflows.md#workflow-modules-configuration)
-  - [Fallback Handling](docs/customizing-workflows.md#complete-override-options-reference)
-  - [Mixed Engine Workflows](docs/customizing-workflows.md#engine--model-configuration)
-
-**Writing Specifications**
-- [Specification Schema](docs/specification-schema.md)
-  - [Essential Requirements](docs/specification-schema.md#part-1-the-essentials-core-requirements-for-any-project)
-  - [Advanced Specifications](docs/specification-schema.md#part-2-advanced-specifications-for-complex-or-high-fidelity-projects)
+<p align="center">
+Found a bug or have a feature idea? Check our <strong><a href="./CONTRIBUTING.md">Contributing Guide</a></strong> to get started.
+</p>
 
 ---
 
-## 🙏 Contributors
+## 📖 References
 
-Special thanks to the following contributors who have helped make CodeMachine better:
-
-- **[Bahy Ali](https://github.com/bahyali)** - Architect of the original workflow system and core orchestration concepts. His deep expertise and guidance were instrumental in shaping CodeMachine's foundation.
-
-- **[Adinda Praditya](https://github.com/apraditya)** - Added CCR (Claude Code Router) engine support, removing a major limitation by enabling users to leverage AI capabilities beyond subscription-based services.
-
-- **[SoyHub](https://github.com/SoyHub)** - Enhanced the UI system and contributed innovative ideas during brainstorming sessions that helped strengthen CodeMachine's capabilities.
-
-- **[TheMightyDman](https://github.com/TheMightyDman)** - Added OpenCode CLI engine integration, which brings support for multiple AI providers (Anthropic, OpenAI, Google, and more) to CodeMachine. An enthusiastic and active contributor to the project.
+<p align="center">
+<table>
+  <tbody>
+    <tr>
+      <td align="center" width="33%">
+        <a href="http://docs.codemachine.co/">
+          <strong>📚 Documentation</strong><br/>
+          <sub>Complete guides and CLI reference</sub>
+        </a>
+      </td>
+      <td align="center" width="33%">
+        <a href="./docs/specification-schema.md">
+          <strong>📝 Specification Schema</strong><br/>
+          <sub>Learn how to write specifications</sub>
+        </a>
+      </td>
+      <td align="center" width="33%">
+        <a href="./docs/case-studies/sustaina.md">
+          <strong>📊 Case Study</strong><br/>
+          <sub>Real-world production example</sub>
+        </a>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</p>
 
 ---
