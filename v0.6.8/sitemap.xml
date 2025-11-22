@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://docs.codemachine.co/v0.6.8/</loc>
+         <lastmod>2025-11-22</lastmod>
+    </url>
+    <url>
+         <loc>https://docs.codemachine.co/v0.6.8/architecture/</loc>
+         <lastmod>2025-11-22</lastmod>
+    </url>
+    <url>
+         <loc>https://docs.codemachine.co/v0.6.8/cli-reference/</loc>
+         <lastmod>2025-11-22</lastmod>
+    </url>
+    <url>
+         <loc>https://docs.codemachine.co/v0.6.8/customizing-workflows/</loc>
+         <lastmod>2025-11-22</lastmod>
+    </url>
+    <url>
+         <loc>https://docs.codemachine.co/v0.6.8/specification-schema/</loc>
+         <lastmod>2025-11-22</lastmod>
+    </url>
+    <url>
+         <loc>https://docs.codemachine.co/v0.6.8/case-studies/sustaina/</loc>
+         <lastmod>2025-11-22</lastmod>
+    </url>
+</urlset>
