@@ -93,10 +93,19 @@ if (watcherVersion) {
 
 // Map platform/arch to target names
 const platformMap = {
-  'linux-x64': { target: 'bun-linux-x64', os: 'linux', arch: 'x64', ext: '' },
-  'darwin-arm64': { target: 'bun-darwin-arm64', os: 'darwin', arch: 'arm64', ext: '' },
-  'darwin-x64': { target: 'bun-darwin-x64', os: 'darwin', arch: 'x64', ext: '' },
-  'win32-x64': { target: 'bun-windows-x64', os: 'windows', arch: 'x64', ext: '.exe' },
+  'linux-x64': { target: 'bun-linux-x64', pkgOs: 'linux', npmOs: 'linux', arch: 'x64', ext: '' },
+  'darwin-arm64': { target: 'bun-darwin-arm64', pkgOs: 'darwin', npmOs: 'darwin', arch: 'arm64', ext: '' },
+  'darwin-x64': { target: 'bun-darwin-x64', pkgOs: 'darwin', npmOs: 'darwin', arch: 'x64', ext: '' },
+  // NOTE: npm expects `win32` in the package.json `os` field; using `windows` causes the
+  // optional dependency to be skipped entirely on Windows. Keep the package name as
+  // `codemachine-windows-x64`, but set the npm metadata to `win32` so it installs.
+  'win32-x64': {
+    target: 'bun-windows-x64',
+    pkgOs: 'windows',
+    npmOs: 'win32',
+    arch: 'x64',
+    ext: '.exe',
+  },
 };
 
 // Determine which targets to build
@@ -133,8 +142,15 @@ const outputRoot = process.env.OUTPUT_DIR || process.env.OUTPUT_ROOT || './binar
 
 try {
   for (const targetConfig of targets) {
-    const { target, os, arch: archName, ext = '', key } = targetConfig;
-    const outdir = join(outputRoot, `codemachine-${os}-${archName}`);
+    const {
+      target,
+      pkgOs = targetConfig.os,
+      npmOs = targetConfig.pkgOs ?? targetConfig.os,
+      arch: archName,
+      ext = '',
+      key,
+    } = targetConfig;
+    const outdir = join(outputRoot, `codemachine-${pkgOs}-${archName}`);
 
     console.log(`${cyan}→${reset} Building executables for ${dim}${target}${reset}...`);
     mkdirSync(outdir, { recursive: true });
@@ -200,7 +216,7 @@ try {
     console.log(`  ${green}✓${reset} ${dim}Workflow runner built${reset}`);
 
     // Create package.json for the platform-specific package
-    const pkgName = `codemachine-${os}-${archName}`;
+    const pkgName = `codemachine-${pkgOs}-${archName}`;
     const binEntries = {
       codemachine: `codemachine${ext}`,
       'codemachine-workflow': `codemachine-workflow${ext}`,
@@ -210,8 +226,8 @@ try {
     const pkg = {
       name: pkgName,
       version: mainVersion,
-      description: `${mainPackage.description} (prebuilt ${os}-${archName} binaries)`,
-      os: [os],
+      description: `${mainPackage.description} (prebuilt ${pkgOs}-${archName} binaries)`,
+      os: [npmOs],
       cpu: [archName],
       files: ['codemachine' + ext, 'codemachine-workflow' + ext],
       bin: binEntries,
