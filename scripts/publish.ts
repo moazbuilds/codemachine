@@ -35,18 +35,30 @@ await Bun.write(npmrcPath, `//registry.npmjs.org/:_authToken=${npmToken}\n`);
 chmodSync(npmrcPath, 0o600);
 
 const log = (msg: string) => console.log(`[publish] ${msg}`);
-const run = async (cmd: string, cwd = repoRoot) => {
+const run = async (cmd: string, cwd = repoRoot, captureStderr = false) => {
   log(cmd);
   // Invoke via bash -lc to support full command strings while still streaming output.
   const proc = Bun.spawn(['bash', '-lc', cmd], {
     cwd,
-    stdout: 'inherit', // Stream stdout directly to console
-    stderr: 'inherit', // Stream stderr directly to console
+    stdout: 'inherit',
+    stderr: captureStderr ? 'pipe' : 'inherit',
   });
+
+  let stderrOutput = '';
+  if (captureStderr && proc.stderr) {
+    const decoder = new TextDecoder();
+    for await (const chunk of proc.stderr) {
+      const text = decoder.decode(chunk);
+      process.stderr.write(text); // Still show it to user
+      stderrOutput += text;
+    }
+  }
 
   const exitCode = await proc.exited;
   if (exitCode !== 0) {
-    throw new Error(`Command failed with exit code ${exitCode}: ${cmd}`);
+    const error: any = new Error(`Command failed with exit code ${exitCode}: ${cmd}`);
+    error.stderr = stderrOutput;
+    throw error;
   }
 };
 
@@ -127,14 +139,17 @@ const publishPackage = async (dir: string, displayName: string): Promise<'publis
   log(`📦 Publishing ${displayName}@${pkgVersion}...`);
 
   try {
-    await run(publishCmd, dir);
+    await run(publishCmd, dir, true); // Capture stderr
     log(`✅ ${dryRun ? 'Dry-run' : 'Published'} ${displayName}@${pkgVersion}`);
     return 'published';
-  } catch (error) {
+  } catch (error: any) {
     // Check if it's an "already published" error
     const errorStr = String(error);
+    const stderr = error.stderr || '';
+
     if (errorStr.includes('Cannot publish over previously published version') ||
-        errorStr.includes('You cannot publish over the previously published versions')) {
+        stderr.includes('Cannot publish over previously published version') ||
+        stderr.includes('You cannot publish over the previously published versions')) {
       log(`⏭️  Skipping ${displayName}@${pkgVersion} (already published - detected during publish attempt)`);
       return 'skipped';
     }
