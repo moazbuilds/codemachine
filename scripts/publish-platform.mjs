@@ -84,14 +84,20 @@ console.log(`${dim}Access:${reset} ${access}`);
 console.log(`${dim}Dry run:${reset} ${dryRun ? 'yes' : 'no'}\n`);
 
 try {
-  // Verify npm authentication
-  console.log(`${cyan}→${reset} Verifying npm authentication...`);
-  try {
-    execSync('npm whoami', { stdio: 'pipe' });
-    console.log(`${green}✓${reset} ${dim}Authenticated${reset}\n`);
-  } catch {
-    console.error(`${red}✗${reset} Not logged in to npm. Run ${bold}npm login${reset} first.`);
-    process.exit(1);
+  // Verify npm authentication (skip in CI if NODE_AUTH_TOKEN is set)
+  const isCI = process.env.CI === 'true' || process.env.NODE_AUTH_TOKEN;
+
+  if (!isCI) {
+    console.log(`${cyan}→${reset} Verifying npm authentication...`);
+    try {
+      execSync('npm whoami', { stdio: 'pipe' });
+      console.log(`${green}✓${reset} ${dim}Authenticated${reset}\n`);
+    } catch {
+      console.error(`${red}✗${reset} Not logged in to npm. Run ${bold}npm login${reset} first.`);
+      process.exit(1);
+    }
+  } else {
+    console.log(`${cyan}→${reset} Running in CI mode with NODE_AUTH_TOKEN\n`);
   }
 
   // Build publish command
