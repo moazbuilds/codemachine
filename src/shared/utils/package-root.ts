@@ -22,7 +22,12 @@ function validatePackageRoot(candidate: string | undefined): string | undefined 
   try {
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
     if (pkg?.name === 'codemachine') {
-      return candidate;
+      const templateEntry = join(candidate, 'templates', 'workflows', 'codemachine.workflow.js');
+      if (existsSync(templateEntry)) {
+        return candidate;
+      }
+      // Package exists but is missing templates (e.g., meta package installed globally)
+      return undefined;
     }
   } catch {
     // Ignore parse failures
