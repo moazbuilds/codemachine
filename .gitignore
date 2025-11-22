@@ -25,3 +25,4 @@ package-lock.json
 
 # MkDocs build output
 site/
+src/shared/resources/embedded-resources.json

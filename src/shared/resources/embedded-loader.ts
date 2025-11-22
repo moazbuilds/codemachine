@@ -4,12 +4,7 @@ import { dirname, join } from 'node:path';
 import { homedir, tmpdir } from 'node:os';
 import { brotliDecompressSync } from 'node:zlib';
 
-import {
-  EMBEDDED_RESOURCES_HASH,
-  EMBEDDED_RESOURCES_SIZE,
-  EMBEDDED_RESOURCES_VERSION,
-  getEmbeddedResourceArchive
-} from './embedded-resources.js';
+import { getEmbeddedResourceArchive, getEmbeddedResourceMetadata } from './embedded-resources.js';
 
 type EmbeddedFile = {
   path: string;
@@ -27,15 +22,32 @@ type ArchiveMetadata = {
   version: string;
   hash: string;
   size: number;
+  generatedAt?: string;
 };
 
-const DEFAULT_METADATA: ArchiveMetadata = {
-  version: EMBEDDED_RESOURCES_VERSION,
-  hash: EMBEDDED_RESOURCES_HASH,
-  size: EMBEDDED_RESOURCES_SIZE,
+const FALLBACK_METADATA: ArchiveMetadata = {
+  version: 'unknown',
+  hash: 'unknown',
+  size: 0,
 };
 
-let activeMetadata: ArchiveMetadata = { ...DEFAULT_METADATA };
+let defaultMetadataCache: ArchiveMetadata | null = null;
+
+function getDefaultMetadata(): ArchiveMetadata {
+  if (defaultMetadataCache) {
+    return defaultMetadataCache;
+  }
+
+  try {
+    defaultMetadataCache = getEmbeddedResourceMetadata();
+  } catch {
+    defaultMetadataCache = FALLBACK_METADATA;
+  }
+
+  return defaultMetadataCache;
+}
+
+let activeMetadata: ArchiveMetadata = { ...getDefaultMetadata() };
 let cachedPayload: EmbeddedPayload | null = null;
 let cachedArchiveBuffer: Buffer | null = null;
 
@@ -59,16 +71,20 @@ function tryLoadArchiveFromCache(): Buffer | null {
       hash?: string;
       size?: number;
       base64?: string;
+      generatedAt?: string;
     };
     if (!data?.base64) {
       return null;
     }
+    const buffer = Buffer.from(data.base64, 'base64');
+    const defaults = getDefaultMetadata();
     activeMetadata = {
-      version: data.version ?? DEFAULT_METADATA.version,
-      hash: data.hash ?? DEFAULT_METADATA.hash,
-      size: data.size ?? DEFAULT_METADATA.size,
+      version: data.version ?? defaults.version,
+      hash: data.hash ?? defaults.hash,
+      size: data.size ?? buffer.length,
+      generatedAt: data.generatedAt ?? defaults.generatedAt,
     };
-    return Buffer.from(data.base64, 'base64');
+    return buffer;
   } catch {
     return null;
   }
@@ -90,6 +106,12 @@ function getArchiveBuffer(): Buffer {
     throw new Error('Embedded resource archive is empty');
   }
 
+  // Ensure metadata reflects the currently loaded archive
+  try {
+    activeMetadata = getEmbeddedResourceMetadata();
+  } catch {
+    activeMetadata = { ...getDefaultMetadata(), size: fallback.length };
+  }
   cachedArchiveBuffer = fallback;
   return cachedArchiveBuffer;
 }
@@ -102,6 +124,12 @@ function decodeEmbeddedPayload(): EmbeddedPayload {
   const archive = getArchiveBuffer();
   const decompressed = brotliDecompressSync(archive);
   cachedPayload = JSON.parse(decompressed.toString('utf8')) as EmbeddedPayload;
+  if (cachedPayload.version && cachedPayload.version !== activeMetadata.version) {
+    activeMetadata = { ...activeMetadata, version: cachedPayload.version };
+  }
+  if (cachedPayload.generatedAt && !activeMetadata.generatedAt) {
+    activeMetadata = { ...activeMetadata, generatedAt: cachedPayload.generatedAt };
+  }
   return cachedPayload;
 }
 

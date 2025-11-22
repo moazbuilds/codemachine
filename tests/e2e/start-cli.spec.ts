@@ -1,15 +1,13 @@
 import { spawn, type ChildProcess } from 'node:child_process';
-import { existsSync } from 'node:fs';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import os from 'node:os';
-import { afterEach, beforeAll, describe, expect, it } from 'bun:test';
+import { afterEach, describe, expect, it } from 'bun:test';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..', '..');
-const distEntry = path.join(projectRoot, 'dist', 'index.js');
 const fixturesRoot = path.join(projectRoot, 'tests', 'fixtures');
 const engineFixturesDir = path.join(fixturesRoot, 'codex');
 const activeProcesses = new Set<ChildProcess>();
