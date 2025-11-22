@@ -1,0 +1,1291 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://docs.codemachine.co/dev/">
+      
+      
+      
+        <link rel="next" href="architecture/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>CodeMachine CLI Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="black">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#what-is-codemachine" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="CodeMachine CLI Documentation" class="md-header__button md-logo" aria-label="CodeMachine CLI Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            CodeMachine CLI Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="black"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="white"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/moazbuilds/CodeMachine-CLI" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    moazbuilds/CodeMachine-CLI
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="architecture/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="cli-reference/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  CLI Reference
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="customizing-workflows/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Customizing Workflows
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="specification-schema/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Specification schema
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="case-studies/sustaina/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Case studies
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="CodeMachine CLI Documentation" class="md-nav__button md-logo" aria-label="CodeMachine CLI Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    CodeMachine CLI Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/moazbuilds/CodeMachine-CLI" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    moazbuilds/CodeMachine-CLI
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-codemachine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is CodeMachine?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Quick Start
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Quick Start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installing-and-running-codemachine-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing and running CodeMachine CLI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#initializing-a-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initializing a Project
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#supported-ai-engines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported AI Engines
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#opencode-cli-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenCode CLI Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#production-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Production Validation:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Production Validation:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#codemachine-vs-regular-ai-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CodeMachine vs Regular AI Agents
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contributors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🙏 Contributors
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cli-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="customizing-workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customizing Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="specification-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specification schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Case studies
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Case studies
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="case-studies/sustaina/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Case Study: Sustaina ESG Compliance Platform
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-codemachine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is CodeMachine?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Quick Start
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Quick Start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installing-and-running-codemachine-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing and running CodeMachine CLI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#initializing-a-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initializing a Project
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#supported-ai-engines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported AI Engines
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#opencode-cli-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenCode CLI Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#production-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Production Validation:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Production Validation:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#codemachine-vs-regular-ai-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CodeMachine vs Regular AI Agents
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contributors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🙏 Contributors
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>Home</h1>
+
+<p align="center">
+  <strong>CodeMachine CLI</strong> is an autonomous multi-agent platform that works locally on your computer, turning specifications into production-ready code.<br></p>
+
+<p align="center">
+  <code>npm i -g codemachine</code>
+</p>
+
+<p align="center">
+  <img src="assets/demo.gif" alt="CodeMachine in Action" width="800">
+</p>
+
+<p align="center">
+  <strong>✨ CodeMachine Built Itself</strong>
+</p>
+
+<p align="center">
+  <strong>90% of this entire codebase was generated by CodeMachine from a single specification file.</strong><br>
+  This isn't a demo—it's proof. CodeMachine engine orchestrated its own architecture, planning, implementation, and testing—creating a massively scalable codebase ready for continuous updates and improvements.
+</p>
+
+<hr />
+<h2 id="what-is-codemachine"><strong>What is CodeMachine?</strong></h2>
+<p>CodeMachine is a CLI-native orchestration platform that transforms specification files and contextual inputs into production-ready code through coordinated multi-agent workflows. Specialized AI agents operate in hierarchical and parallel configurations with the ability for bidirectional communication, enabling runtime-adaptable methodologies that dynamically adjust to project requirements without framework modifications.</p>
+<p><strong>Why CodeMachine?</strong></p>
+<ul>
+<li><strong>Customizable, End-to-End Workflows:</strong> Architect sophisticated orchestration pipelines for any scale, from executing simple scripts to managing multi-day, complex development cycles.</li>
+<li><strong>Strategic Multi-Agent Collaboration:</strong> Leverage a heterogeneous multi-agent system by assigning specialized models to specific tasks—for instance, using Gemini for planning, Claude for implementation, and another model for code review.</li>
+<li><strong>Massively Parallel Execution:</strong> Achieve significantly accelerated output by deploying sub-agents that operate simultaneously on different components of a task.</li>
+<li><strong>Persistent, Long-Running Orchestration:</strong> Execute workflows for extended durations—hours or even days—to autonomously accomplish complex, long-term development goals.</li>
+</ul>
+<hr />
+<h2 id="quick-start">🚀 Quick Start</h2>
+<h3 id="installing-and-running-codemachine-cli"><strong>Installing and running CodeMachine CLI</strong></h3>
+<p>First, install the command-line tool globally via npm:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>npm<span class="w"> </span>install<span class="w"> </span>-g<span class="w"> </span>codemachine
+</code></pre></div></p>
+<p>Then, simply run <code>codemachine</code> in your project directory to get started.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>codemachine
+</code></pre></div></p>
+<h3 id="initializing-a-project"><strong>Initializing a Project</strong></h3>
+<p>CodeMachine initializes a <code>.codemachine/</code> workspace. To start <strong>add your specs</strong> to the <code>inputs/specifications.md</code> file, then <strong>run <code>/start</code></strong> and watch the magic happen, CodeMachine will:
+ *   <strong>Architect a complete system blueprint from your requirements.</strong>
+ *   <strong>Formulate detailed, step-by-step execution plans.</strong>
+ *   <strong>Engineer clean, production-grade code for every component.</strong>
+ *   <strong>Generate essential automation for testing and deployment.</strong>
+ *   <strong>Integrate rigorous validation checks across every phase of execution.</strong></p>
+<h3 id="supported-ai-engines">Supported AI Engines</h3>
+<p>CodeMachine requires at least one CLI-based AI engine to handle the primary roles of planning and writing code, and is designed to orchestrate multiple engines to collaborate within a single workflow. The table below shows the current status of supported engines and their platform compatibility.</p>
+<table align="center" style="width: 80%; margin: 0 auto;">
+  <tr>
+    <th align="center" style="padding: 12px; font-size: 16px;">CLI Engine</th>
+    <th align="center" style="padding: 12px; font-size: 16px;">Status</th>
+    <th align="center" style="padding: 12px; font-size: 16px;">Windows</th>
+    <th align="center" style="padding: 12px; font-size: 16px;">macOS</th>
+    <th align="center" style="padding: 12px; font-size: 16px;">Linux</th>
+  </tr>
+  <tr>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Codex CLI</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">⚠️</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+  </tr>
+  <tr>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Claude Code</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+  </tr>
+  <tr>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>CCR (Claude Code Router)</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+  </tr>
+  <tr>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>OpenCode CLI</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+  </tr>
+  <tr>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Cursor CLI</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅ Supported</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">❌</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+  </tr>
+  <tr>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Gemini CLI</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">🚧 Coming Soon</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+  </tr>
+<tr>
+    <td align="center" style="padding: 10px; font-size: 15px;"><strong>Qwen Coder</strong></td>
+    <td align="center" style="padding: 10px; font-size: 15px;">🚧 Coming Soon</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+    <td align="center" style="padding: 10px; font-size: 15px;">✅</td>
+  </tr>
+</table>
+
+<p align="center">
+  <em>✅ Fully Supported  |  ⚠️ Not Officially Supported  |  ❌ Not Available</em>
+</p>
+
+<h3 id="opencode-cli-integration">OpenCode CLI Integration</h3>
+<p>OpenCode ships as a first-class engine. Install the CLI with <code>npm i -g opencode-ai@latest</code> (or <code>brew install opencode</code>, <code>scoop install extras/opencode</code>, <code>choco install opencode</code>) and then:</p>
+<ul>
+<li><code>codemachine opencode run "build hello world"</code> streams JSON-formatted OpenCode output through CodeMachine’s log markers.</li>
+<li>Workflow steps can force OpenCode with <code>codemachine step &lt;agent&gt; --engine opencode --model anthropic/claude-3.7-sonnet</code>.</li>
+<li>Guardrail environment defaults (overridable) are applied automatically:<br />
+<code>OPENCODE_PERMISSION={"edit":"allow","webfetch":"allow","bash":{"*":"allow"}}</code>,<br />
+<code>OPENCODE_DISABLE_LSP_DOWNLOAD=1</code>, <code>OPENCODE_DISABLE_DEFAULT_PLUGINS=1</code>, and <code>OPENCODE_CONFIG_DIR=$HOME/.codemachine/opencode</code>.</li>
+<li>Set <code>CODEMACHINE_SKIP_OPENCODE=1</code> for dry-run workflows or <code>CODEMACHINE_PLAIN_LOGS=1</code> when you need ANSI-free logs.</li>
+</ul>
+<hr />
+<h2 id="production-validation"><strong>Production Validation:</strong></h2>
+<p>CodeMachine has been battle-tested on the Sustaina Platform a full-stack ESG compliance system spanning <strong>7 microservices</strong>, <strong>500+ files</strong>, and <strong>60,000+ lines of code</strong> across Python, TypeScript, React, FastAPI, and NestJS.</p>
+<table align="center">
+  <tr>
+    <td><strong>Services Generated</strong></td>
+    <td>7 microservices (AI/ML + CRUD APIs)</td>
+  </tr>
+  <tr>
+    <td><strong>Codebase Scale</strong></td>
+    <td>~500 files, 60K+ Line of code</td>
+  </tr>
+  <tr>
+    <td><strong>Tech Stack</strong></td>
+    <td>React 18, FastAPI, NestJS, PostgreSQL, MongoDB, Redis, Kubernetes</td>
+  </tr>
+  <tr>
+    <td><strong>Time to MVP</strong></td>
+    <td>~8 hours of autonomous orchestration</td>
+  </tr>
+</table>
+
+<h3 id="codemachine-vs-regular-ai-agents"><strong>CodeMachine vs Regular AI Agents</strong></h3>
+<p>We conducted a real-world comparison by monitoring development work on a project of identical scope and complexity using the most powerful AI agent tools (Claude Code, Cursor, Copilot) with manual orchestration and human review, versus CodeMachine's autonomous multi-agent orchestration.</p>
+<table align="center">
+  <tr>
+    <th><strong>Aspect</strong></th>
+    <th><strong>Regular AI Agents</strong><br/>(Manual Orchestration + Human Review)</th>
+    <th><strong>CodeMachine</strong><br/>(Autonomous Orchestration)</th>
+  </tr>
+  <tr>
+    <td><strong>Architecture Planning</strong></td>
+    <td>4-6 hours of manual prompting</td>
+    <td>Automated (30 min)</td>
+  </tr>
+  <tr>
+    <td><strong>Service Implementation</strong></td>
+    <td>140-200 hours (7 services × 20-30h each)<br/>Manual prompting, context switching</td>
+    <td>Parallel execution (5 hours)</td>
+  </tr>
+  <tr>
+    <td><strong>Integration & Testing</strong></td>
+    <td>30-50 hours<br/>Manual coordination, debugging</td>
+    <td>Automated validation (2 hours)</td>
+  </tr>
+  <tr>
+    <td><strong>Deployment Setup</strong></td>
+    <td>8-12 hours<br/>Scripts, configs, orchestration</td>
+    <td>Auto-generated (30 min)</td>
+  </tr>
+  <tr>
+    <td><strong>Code Consistency</strong></td>
+    <td>Inconsistent patterns across services<br/>Different coding styles per session</td>
+    <td>Unified architecture & patterns<br/>Consistent across all components</td>
+  </tr>
+  <tr>
+    <td><strong>Quality Control</strong></td>
+    <td>Manual review required<br/>Errors compound over time</td>
+    <td>Built-in validation at each step<br/>Automated sanity checks</td>
+  </tr>
+  <tr>
+    <td><strong>Context Retention</strong></td>
+    <td>Lost between sessions<br/>Repeated explanations needed</td>
+    <td>Full project context maintained<br/>Cross-service awareness</td>
+  </tr>
+  <tr>
+    <td><strong>Total Developer Time</strong></td>
+    <td><strong>~200-300 hours</strong></td>
+    <td><strong>~8 hours</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Efficiency Gain</strong></td>
+    <td>Baseline</td>
+    <td><strong>25-37× faster</strong></td>
+  </tr>
+</table>
+
+<p align="center"><em>Real-world comparison: One developer manually prompting AI coding assistants vs CodeMachine's autonomous multi-agent orchestration</em></p>
+
+<hr />
+<p align="center">
+  <strong>Want to see how CodeMachine built this?</strong><br/>
+  Explore the complete case study showing the detailed path CodeMachine took to create this project—every step, decision, and workflow tracked from specification to production.
+</p>
+
+<p align="center">
+  <a href="./case-studies/sustaina.md"><strong>📊 View Complete Case Study & Development Track →</strong></a>
+</p>
+
+<hr />
+<h2 id="documentation">📚 Documentation</h2>
+<p><strong>Getting Started</strong>
+- <a href="architecture/#prerequisites">Prerequisites &amp; Installation</a>
+- <a href="architecture/#get-your-first-project-generated">Quick Start Guide</a>
+  - <a href="specification-schema/#part-1-the-essentials-core-requirements-for-any-project">Writing Your Specification</a>
+  - <a href="architecture/#get-your-first-project-generated">Running the Workflow</a>
+- <a href="architecture/#how-codemachine-works">How CodeMachine Works</a></p>
+<p><strong>Core Concepts</strong>
+- <a href="architecture/#agents-in-codemachine">Agents in CodeMachine</a>
+  - <a href="architecture/#main-agents">Main Agents</a>
+  - <a href="architecture/#sub-agents">Sub Agents</a>
+  - <a href="architecture/#modules">Modules</a>
+  - <a href="architecture/#dynamic-agent-generation">Dynamic Agent Generation</a>
+- <a href="architecture/#agent-communication-patterns">Communication Patterns</a>
+  - <a href="architecture/#1-sequential-hierarchical-communication">Sequential Execution</a>
+  - <a href="architecture/#2-parent-child-agent-to-agent-communication">Parent-Child Delegation</a>
+- <a href="architecture/#agent-context-management-types">Context Management</a>
+  - <a href="architecture/#1-file-based-main-agent-memory">File-Based Memory</a>
+  - <a href="architecture/#2-orchestrator-agent-session-memory">Session Memory</a></p>
+<p><strong>CLI Usage</strong>
+- <a href="cli-reference/#overview">CLI Overview</a>
+  - <a href="cli-reference/#overview">Global Options</a>
+  - <a href="cli-reference/#interactive-mode">Interactive Mode</a>
+- <a href="cli-reference/#workflow-commands">Workflow Commands</a>
+  - <a href="cli-reference/#start">Start Command</a>
+  - <a href="cli-reference/#templates">Template Selection</a>
+- <a href="cli-reference/#development-commands">Development Commands</a>
+  - <a href="cli-reference/#run">Run Command</a>
+  - <a href="cli-reference/#step">Step Execution</a>
+- <a href="cli-reference/#auth">Authentication</a>
+  - <a href="cli-reference/#auth-login">Login</a>
+  - <a href="cli-reference/#auth-logout">Logout</a>
+- <a href="cli-reference/#advanced-topics">Advanced Topics</a>
+  - <a href="cli-reference/#engine-specific-commands">Engine-Specific Commands</a></p>
+<p><strong>Creating Custom Workflows</strong>
+- <a href="customizing-workflows/#workflow-templates">Workflow Templates</a>
+  - <a href="customizing-workflows/#template-structure">Template Structure</a>
+  - <a href="customizing-workflows/#step-resolution-functions">Step Resolution Functions</a>
+  - <a href="customizing-workflows/#complete-override-options-reference">Override Options</a>
+- <a href="customizing-workflows/#configuration-files">Configuring Agents</a>
+  - <a href="customizing-workflows/#main-agents-configuration">Main Agents</a>
+  - <a href="customizing-workflows/#sub-agents-configuration">Sub Agents</a>
+  - <a href="customizing-workflows/#workflow-modules-configuration">Workflow Modules</a>
+- <a href="customizing-workflows/#engine--model-configuration">Engine &amp; Model Selection</a>
+  - <a href="customizing-workflows/#available-engines">Available Engines</a>
+  - <a href="customizing-workflows/#model-options">Model Options</a>
+  - <a href="customizing-workflows/#reasoning-effort-levels">Reasoning Levels</a>
+- <a href="customizing-workflows/#advanced-workflow-patterns">Advanced Patterns</a>
+  - <a href="customizing-workflows/#workflow-modules-configuration">Loop Behaviors</a>
+  - <a href="customizing-workflows/#complete-override-options-reference">Fallback Handling</a>
+  - <a href="customizing-workflows/#engine--model-configuration">Mixed Engine Workflows</a></p>
+<p><strong>Writing Specifications</strong>
+- <a href="specification-schema/">Specification Schema</a>
+  - <a href="specification-schema/#part-1-the-essentials-core-requirements-for-any-project">Essential Requirements</a>
+  - <a href="specification-schema/#part-2-advanced-specifications-for-complex-or-high-fidelity-projects">Advanced Specifications</a></p>
+<hr />
+<h2 id="contributors">🙏 Contributors</h2>
+<p>Special thanks to the following contributors who have helped make CodeMachine better:</p>
+<ul>
+<li>
+<p><strong><a href="https://github.com/bahyali">Bahy Ali</a></strong> - Architect of the original workflow system and core orchestration concepts. His deep expertise and guidance were instrumental in shaping CodeMachine's foundation.</p>
+</li>
+<li>
+<p><strong><a href="https://github.com/apraditya">Adinda Praditya</a></strong> - Added CCR (Claude Code Router) engine support, removing a major limitation by enabling users to leverage AI capabilities beyond subscription-based services.</p>
+</li>
+<li>
+<p><strong><a href="https://github.com/SoyHub">SoyHub</a></strong> - Enhanced the UI system and contributed innovative ideas during brainstorming sessions that helped strengthen CodeMachine's capabilities.</p>
+</li>
+<li>
+<p><strong><a href="https://github.com/TheMightyDman">TheMightyDman</a></strong> - Added OpenCode CLI engine integration, which brings support for multiple AI providers (Anthropic, OpenAI, Google, and more) to CodeMachine. An enthusiastic and active contributor to the project.</p>
+</li>
+</ul>
+<hr />
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.indexes", "navigation.top", "navigation.tracking", "search.suggest", "search.highlight", "content.code.copy"], "search": "assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  </body>
+</html>
