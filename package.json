@@ -9,6 +9,9 @@
   },
   "files": [
     "bin/",
+    "config/",
+    "prompts/",
+    "templates/",
     "README.md",
     "LICENSE"
   ],
