@@ -100,6 +100,15 @@ try {
     console.log(`${cyan}→${reset} Running in CI mode with NODE_AUTH_TOKEN\n`);
   }
 
+  // In CI mode, create .npmrc in the package directory
+  if (isCI && process.env.NODE_AUTH_TOKEN) {
+    const { writeFileSync } = await import('node:fs');
+    const npmrcPath = join(packageDir, '.npmrc');
+    const npmrcContent = `//registry.npmjs.org/:_authToken=${process.env.NODE_AUTH_TOKEN}`;
+    writeFileSync(npmrcPath, npmrcContent, { mode: 0o600 });
+    console.log(`${green}✓${reset} ${dim}Created .npmrc in package directory${reset}\n`);
+  }
+
   // Build publish command
   const publishCmd = dryRun
     ? `npm publish --dry-run --tag ${tag} --access ${access}`
