@@ -38,7 +38,16 @@ const log = (msg: string) => console.log(`[publish] ${msg}`);
 const run = async (cmd: string, cwd = repoRoot) => {
   log(cmd);
   // Invoke via bash -lc to support full command strings while still streaming output.
-  await $`bash -lc ${cmd}`.cwd(cwd);
+  const proc = Bun.spawn(['bash', '-lc', cmd], {
+    cwd,
+    stdout: 'inherit', // Stream stdout directly to console
+    stderr: 'inherit', // Stream stderr directly to console
+  });
+
+  const exitCode = await proc.exited;
+  if (exitCode !== 0) {
+    throw new Error(`Command failed with exit code ${exitCode}: ${cmd}`);
+  }
 };
 
 log(`version: ${version}`);
@@ -87,7 +96,24 @@ if (hostPkg) {
   }
 }
 
-const publishPackage = async (dir: string, displayName: string) => {
+const publishPackage = async (dir: string, displayName: string): Promise<'published' | 'skipped'> => {
+  // Check if this version is already published
+  const pkgJson = JSON.parse(await Bun.file(join(dir, 'package.json')).text());
+  const pkgName = pkgJson.name;
+  const pkgVersion = pkgJson.version;
+
+  try {
+    const { stdout } = await $`npm view ${pkgName}@${pkgVersion} version 2>/dev/null`.quiet().nothrow();
+    const publishedVersion = stdout.toString().trim();
+
+    if (publishedVersion === pkgVersion) {
+      log(`⏭️  Skipping ${displayName}@${pkgVersion} (already published)`);
+      return 'skipped';
+    }
+  } catch {
+    // Package not published yet, continue
+  }
+
   const publishCmd = [
     'npm publish',
     `--access public`,
@@ -98,17 +124,48 @@ const publishPackage = async (dir: string, displayName: string) => {
     .filter(Boolean)
     .join(' ');
 
-  await run(publishCmd, dir);
-  log(`${dryRun ? 'Dry-run' : 'Published'} ${displayName}`);
+  log(`📦 Publishing ${displayName}@${pkgVersion}...`);
+
+  try {
+    await run(publishCmd, dir);
+    log(`✅ ${dryRun ? 'Dry-run' : 'Published'} ${displayName}@${pkgVersion}`);
+    return 'published';
+  } catch (error) {
+    console.error(`❌ Failed to publish ${displayName}@${pkgVersion}`);
+    console.error(`Error details:`, error);
+    throw error; // Re-throw to stop the script
+  }
 };
+
+const publishResults = { published: [] as string[], skipped: [] as string[], failed: [] as string[] };
 
 log('Publishing platform packages...');
 for (const { name, dir } of platformPackages) {
-  await publishPackage(dir, name);
+  try {
+    const result = await publishPackage(dir, name);
+    if (result === 'skipped') {
+      publishResults.skipped.push(name);
+    } else {
+      publishResults.published.push(name);
+    }
+  } catch (error) {
+    publishResults.failed.push(name);
+    throw error; // Stop on first failure
+  }
 }
 
 log('Publishing meta package...');
-await publishPackage(repoRoot, pkg.name);
+try {
+  const result = await publishPackage(repoRoot, pkg.name);
+  if (result === 'skipped') {
+    publishResults.skipped.push(pkg.name);
+  } else {
+    publishResults.published.push(pkg.name);
+  }
+} catch (error) {
+  publishResults.failed.push(pkg.name);
+  throw error;
+}
 
 if (!dryRun) {
   const major = version.split('.')[0];
