@@ -6,7 +6,6 @@
   <code>npm i -g codemachine</code>
 </p>
 
-
 <p align="center">
   <strong>CodeMachine</strong> is a CLI-native Orchestration Engine that runs coordinated multi-agent workflows directly on your local machine. It provides the runtime infrastructure to execute complex multi-agent topologies within your own environment. Designed to drive any high-level autonomous objective, it features a battle-tested Spec-to-Code blueprint—transforming your terminal into a factory for production-ready software. ⚡️<br></p>
 
@@ -28,6 +27,16 @@
 
 > **⚠️ Early Development Notice:** This project is in early development and is not yet ready for production use. Features may change, break, or be incomplete.
 
+<p align="center">
+  <a href="https://discord.gg/qYDPwEeW">
+    <img src="docs/assets/discord-badge.png" alt="Join our Discord" width="200">
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://www.reddit.com/r/CodeMachine/">
+    <img src="docs/assets/reddit-badge.png" alt="Join our Reddit" width="200">
+  </a><br>
+  <sub>Join our growing Discord and Reddit communities of developers building with CodeMachine!</sub>
+</p>
 
 ## Why CodeMachine?
 
