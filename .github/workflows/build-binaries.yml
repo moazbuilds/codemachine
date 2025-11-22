@@ -74,5 +74,6 @@ jobs:
         shell: bash
         run: |
           echo "//registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN" > ~/.npmrc
-          chmod 600 ~/.npmrc
+          echo "//registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN" > .npmrc
+          chmod 600 ~/.npmrc .npmrc
           bun scripts/publish-platform.mjs --tag latest --access public
