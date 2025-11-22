@@ -103,14 +103,30 @@ if (envBinary) {
     process.exit(1);
   }
 
-  // Try to find the platform-specific binary
-  // Look in node_modules relative to this wrapper
-  const binaryPath = join(ROOT_FALLBACK, 'node_modules', platformConfig.pkg, platformConfig.bin);
+  // Try to find the platform-specific binary in multiple locations
+  const searchPaths = [
+    // 1. Nested node_modules (npm < 7 behavior)
+    join(ROOT_FALLBACK, 'node_modules', platformConfig.pkg, platformConfig.bin),
+    // 2. Hoisted to parent node_modules (npm >= 7 behavior, pnpm, yarn)
+    join(ROOT_FALLBACK, '..', platformConfig.pkg, platformConfig.bin),
+    // 3. Global install location (try to resolve from parent of codemachine)
+    join(dirname(ROOT_FALLBACK), platformConfig.pkg, platformConfig.bin),
+  ];
 
-  if (!existsSync(binaryPath)) {
-    console.error(`Error: Platform binary not found at ${binaryPath}`);
+  let binaryPath = null;
+  for (const path of searchPaths) {
+    if (existsSync(path)) {
+      binaryPath = path;
+      break;
+    }
+  }
+
+  if (!binaryPath) {
+    console.error(`Error: Platform binary not found. Searched:`);
+    searchPaths.forEach((p) => console.error(`  - ${p}`));
     console.error(`\nThe ${platformConfig.pkg} package may not be installed.`);
     console.error(`This is likely because your platform is not supported as an optional dependency.`);
+    console.error(`\nTry reinstalling: npm install -g codemachine`);
     console.error(`\nPlease report this issue at: https://github.com/moazbuilds/CodeMachine-CLI/issues`);
     process.exit(1);
   }
