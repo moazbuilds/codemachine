@@ -65,3 +65,11 @@ jobs:
         with:
           name: ${{ matrix.slug }}
           path: binaries/${{ matrix.slug }}
+
+      - name: Publish platform package to npm
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+          bun scripts/publish-platform.mjs --tag latest --access public

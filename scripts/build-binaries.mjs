@@ -152,9 +152,9 @@ try {
   // Create package.json for the platform-specific package
   const pkgName = `codemachine-${os}-${archName}`;
   const binEntries = {
-    codemachine: `./codemachine${ext}`,
-    'codemachine-workflow': `./codemachine-workflow${ext}`,
-    cm: `./codemachine${ext}`,
+    codemachine: `codemachine${ext}`,
+    'codemachine-workflow': `codemachine-workflow${ext}`,
+    cm: `codemachine${ext}`,
   };
 
   const pkg = {
